@@ -95,7 +95,7 @@ class GeofencingService {
         type: AttendanceType.enter,
         geofence: geofence,
         latitude: position.latitude,
-        longitude: position.longitude,
+        longitude: position.longitude, userId: '',
       );
 
       await StorageService.addAttendanceRecord(attendanceRecord);
@@ -132,7 +132,7 @@ class GeofencingService {
         type: AttendanceType.exit,
         geofence: geofence,
         latitude: position.latitude,
-        longitude: position.longitude,
+        longitude: position.longitude, userId: '',
       );
 
       await StorageService.addAttendanceRecord(attendanceRecord);
