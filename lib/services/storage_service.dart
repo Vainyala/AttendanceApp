@@ -114,6 +114,10 @@ class StorageService {
     await saveAttendanceHistory(attendance);
   }
 
+  static Future<void> saveAttendanceRecord(AttendanceModel record) async {
+    await addAttendanceRecord(record);
+  }
+
   // Clear all data
   static Future<void> clearAllData() async {
     final prefs = await SharedPreferences.getInstance();
