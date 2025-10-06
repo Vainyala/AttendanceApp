@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
 import 'dashboard_screen.dart';
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
           email: '$_selectedCountryCode${_phoneController.text}@phone.auth',
           name: 'User ${_phoneController.text.substring(_phoneController.text.length - 4)}',
           role: 'Employee',
+          projects: [],
         );
 
         await StorageService.saveUser(user);
@@ -107,12 +109,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: Center(
-                      child:  Image.asset('assets/images/header_illustration.png', // put your top illustration image here
+                      child: Image.asset(
+                        'assets/images/header_illustration.png',
                         height: 150,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.account_circle,
+                            size: 100,
+                            color: Colors.white,
+                          );
+                        },
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
                   // Login Form Container
                   Container(
@@ -146,7 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 16),
                                   child: Text(
                                     _selectedCountryCode,
                                     style: const TextStyle(
@@ -158,7 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _phoneController,
-                                    keyboardType: TextInputType.phone,
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 10,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(10),
+                                    ],
                                     decoration: const InputDecoration(
                                       hintText: 'Enter phone number',
                                       hintStyle: TextStyle(
@@ -167,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                       border: InputBorder.none,
                                       contentPadding: EdgeInsets.symmetric(vertical: 16),
+                                      counterText: '', // Hide counter text
                                     ),
                                     style: const TextStyle(
                                       fontSize: 16,
@@ -176,8 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter your phone number';
                                       }
-                                      if (value.length < 10) {
-                                        return 'Please enter a valid phone number';
+                                      if (value.length != 10) {
+                                        return 'Phone number must be exactly 10 digits';
                                       }
                                       return null;
                                     },
@@ -211,10 +228,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
                                     color: Colors.grey,
                                   ),
-                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                  onPressed: () => setState(
+                                          () => _obscurePassword = !_obscurePassword),
                                 ),
                               ),
                               style: const TextStyle(
@@ -235,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 40),
 
                           // Submit Button
-                          Container(
+                          SizedBox(
                             height: 55,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
@@ -274,7 +294,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                      const ForgotPasswordScreen()),
                                 );
                               },
                               child: const Text(
@@ -291,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   // Footer Branding
                   Column(
@@ -301,8 +323,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(fontSize: 14, color: Colors.black54),
                       ),
                       const SizedBox(height: 10),
-                      Image.asset('assets/images/nutantek_logo.png',  // your logo
+                      Image.asset(
+                        'assets/images/nutantek_logo.png',
                         height: 50,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Text(
+                            'NUTANTEK',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

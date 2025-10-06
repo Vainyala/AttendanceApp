@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../models/leave_model.dart';
-import '../services/custom_bottom_nav_bar.dart';
+import '../services/custom_bars.dart';
 
-
-// Leave Screen
 class LeaveScreen extends StatefulWidget {
   const LeaveScreen({super.key});
 
@@ -25,12 +24,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
   bool _isHalfDayTo = false;
   bool _isLoading = false;
 
-  // Sample leave balance data
-  final Map<String, int> _leaveBalance = {
-    'Carry Forward': 3,
-    'Eligible': 6,
-    'Availed': 2,
-    'Balance': 4,
+  // Leave balance data
+  final Map<String, dynamic> _leaveBalance = {
+    'Carry Forward': {'count': 3, 'color': const Color(0xFF4CAF50)},
+    'Eligible': {'count': 6, 'color': const Color(0xFF2196F3)},
+    'Availed': {'count': 2, 'color': const Color(0xFFF44336)},
+    'Balance': {'count': 4, 'color': const Color(0xFFFFEB3B)},
   };
 
   final List<String> _leaveTypes = [
@@ -52,13 +51,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isFromDate ? _fromDate : _toDate,
-      firstDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF4A90E2),
+              onPrimary: Colors.white,
             ),
           ),
           child: child!,
@@ -89,6 +89,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF4A90E2),
+              onPrimary: Colors.white,
             ),
           ),
           child: child!,
@@ -108,7 +109,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    return DateFormat('dd/MM/yyyy').format(date);
   }
 
   String _formatTime(TimeOfDay time) {
@@ -127,32 +128,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
               PieChartData(
                 sectionsSpace: 2,
                 centerSpaceRadius: 0,
-                sections: [
-                  PieChartSectionData(
-                    color: const Color(0xFF4CAF50), // Green
-                    value: _leaveBalance['Carry Forward']!.toDouble(),
+                sections: _leaveBalance.entries.map((entry) {
+                  return PieChartSectionData(
+                    color: entry.value['color'],
+                    value: entry.value['count'].toDouble(),
                     title: '',
                     radius: 80,
-                  ),
-                  PieChartSectionData(
-                    color: const Color(0xFF2196F3), // Blue
-                    value: _leaveBalance['Eligible']!.toDouble(),
-                    title: '',
-                    radius: 80,
-                  ),
-                  PieChartSectionData(
-                    color: const Color(0xFFF44336), // Red
-                    value: _leaveBalance['Availed']!.toDouble(),
-                    title: '',
-                    radius: 80,
-                  ),
-                  PieChartSectionData(
-                    color: const Color(0xFFFFEB3B), // Yellow
-                    value: _leaveBalance['Balance']!.toDouble(),
-                    title: '',
-                    radius: 80,
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -161,15 +144,16 @@ class _LeaveScreenState extends State<LeaveScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLegendItem(const Color(0xFF4CAF50), 'Carry Forward', _leaveBalance['Carry Forward']!),
-                const SizedBox(height: 8),
-                _buildLegendItem(const Color(0xFF2196F3), 'Eligible', _leaveBalance['Eligible']!),
-                const SizedBox(height: 8),
-                _buildLegendItem(const Color(0xFFF44336), 'Availed', _leaveBalance['Availed']!),
-                const SizedBox(height: 8),
-                _buildLegendItem(const Color(0xFFFFEB3B), 'Balance', _leaveBalance['Balance']!),
-              ],
+              children: _leaveBalance.entries.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: _buildLegendItem(
+                    entry.value['color'],
+                    entry.key,
+                    entry.value['count'],
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -189,65 +173,118 @@ class _LeaveScreenState extends State<LeaveScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '$count $label',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.grey,
+        Flexible(
+          child: Text(
+            '$count $label',
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDateTimeField({
+  Widget _buildDateField({
     required String label,
-    required IconData icon,
     required String value,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey, width: 1),
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const Spacer(),
-            const Text('–', style: TextStyle(fontSize: 18)),
-            const SizedBox(width: 12),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          ],
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today, color: Colors.red, size: 18),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Text(
+                '–',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHalfDayCheckbox(String label, bool value, Function(bool?) onChanged) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16),
+  Widget _buildTimeField({
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.access_time, color: Colors.red, size: 18),
+              const SizedBox(width: 12),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              const Text(
+                '–',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(width: 8),
+      ),
+    );
+  }
+
+  Widget _buildHalfDayCheckbox(bool value, Function(bool?) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        const Text(
+          'Half Day',
+          style: TextStyle(fontSize: 14),
+        ),
         Checkbox(
           value: value,
           onChanged: onChanged,
           activeColor: const Color(0xFF4A90E2),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ],
     );
@@ -276,16 +313,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
 
       setState(() => _isLoading = false);
 
-      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Leave application submitted successfully!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
-
-        // Reset form
         _resetForm();
       }
     }
@@ -315,7 +350,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 color: Colors.white,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,14 +362,17 @@ class _LeaveScreenState extends State<LeaveScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        // Download functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Download feature coming soon')),
-                        );
-                      },
-                      icon: const Icon(Icons.download),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: const Icon(
+                        Icons.download,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -343,7 +381,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Pie Chart Card
                       Container(
@@ -392,83 +429,70 @@ class _LeaveScreenState extends State<LeaveScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  IconButton(
-                                    onPressed: () {
-                                      // Attachment functionality
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Attachment feature coming soon')),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.attachment),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    padding: const EdgeInsets.all(6),
+                                    child: const Icon(
+                                      Icons.attachment,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
                                   ),
                                 ],
                               ),
 
                               const SizedBox(height: 20),
 
-                              // Date Fields
+                              // Date Fields Row
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: _buildDateTimeField(
-                                      label: 'From Date',
-                                      icon: Icons.calendar_today,
-                                      value: _formatDate(_fromDate),
-                                      onTap: () => _selectDate(context, true),
-                                    ),
+                                  _buildDateField(
+                                    label: 'From Date',
+                                    value: _formatDate(_fromDate),
+                                    onTap: () => _selectDate(context, true),
                                   ),
-                                  const SizedBox(width: 20),
-                                  Expanded(
-                                    child: _buildDateTimeField(
-                                      label: 'To Date',
-                                      icon: Icons.calendar_today,
-                                      value: _formatDate(_toDate),
-                                      onTap: () => _selectDate(context, false),
-                                    ),
+                                  const SizedBox(width: 16),
+                                  _buildDateField(
+                                    label: 'To Date',
+                                    value: _formatDate(_toDate),
+                                    onTap: () => _selectDate(context, false),
                                   ),
                                 ],
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
 
-                              // Time Fields
+                              // Time Fields Row
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: _buildDateTimeField(
-                                      label: _formatTime(_fromTime),
-                                      icon: Icons.access_time,
-                                      value: '',
-                                      onTap: () => _selectTime(context, true),
-                                    ),
+                                  _buildTimeField(
+                                    value: _formatTime(_fromTime),
+                                    onTap: () => _selectTime(context, true),
                                   ),
-                                  const SizedBox(width: 20),
-                                  Expanded(
-                                    child: _buildDateTimeField(
-                                      label: _formatTime(_toTime),
-                                      icon: Icons.access_time,
-                                      value: '',
-                                      onTap: () => _selectTime(context, false),
-                                    ),
+                                  const SizedBox(width: 16),
+                                  _buildTimeField(
+                                    value: _formatTime(_toTime),
+                                    onTap: () => _selectTime(context, false),
                                   ),
                                 ],
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
 
                               // Half Day Checkboxes
                               Row(
                                 children: [
                                   Expanded(
                                     child: _buildHalfDayCheckbox(
-                                      'Half Day',
                                       _isHalfDayFrom,
                                           (value) => setState(() => _isHalfDayFrom = value ?? false),
                                     ),
                                   ),
                                   Expanded(
                                     child: _buildHalfDayCheckbox(
-                                      'Half Day',
                                       _isHalfDayTo,
                                           (value) => setState(() => _isHalfDayTo = value ?? false),
                                     ),
@@ -479,25 +503,36 @@ class _LeaveScreenState extends State<LeaveScreen> {
                               const SizedBox(height: 20),
 
                               // Leave Type Dropdown
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      'Leave Type :-',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    const SizedBox(width: 20),
-                                    Expanded(
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Leave Type :-',
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: Colors.grey.shade300,
+                                            width: 1,
+                                          ),
+                                        ),
+                                      ),
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<String>(
                                           value: _selectedLeaveType,
                                           isExpanded: true,
+                                          icon: const Icon(Icons.arrow_drop_down),
                                           items: _leaveTypes.map((String type) {
                                             return DropdownMenuItem<String>(
                                               value: type,
-                                              child: Text(type),
+                                              child: Text(
+                                                type,
+                                                style: const TextStyle(fontSize: 15),
+                                              ),
                                             );
                                           }).toList(),
                                           onChanged: (String? newValue) {
@@ -508,23 +543,30 @@ class _LeaveScreenState extends State<LeaveScreen> {
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 24),
 
                               // Notes Field
                               const Text(
                                 'Notes :',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 12),
                               TextFormField(
                                 controller: _notesController,
                                 maxLines: 4,
+                                style: const TextStyle(fontSize: 14),
                                 decoration: InputDecoration(
                                   hintText: 'Enter reason for leave...',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey.shade50,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -535,8 +577,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
-                                    borderSide: const BorderSide(color: Color(0xFF4A90E2)),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF4A90E2),
+                                      width: 2,
+                                    ),
                                   ),
+                                  contentPadding: const EdgeInsets.all(12),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -556,31 +602,30 @@ class _LeaveScreenState extends State<LeaveScreen> {
                                   onPressed: _isLoading ? null : _submitLeave,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF4A90E2),
+                                    foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
+                                    elevation: 0,
                                   ),
                                   child: _isLoading
                                       ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
+                                    width: 24,
+                                    height: 24,
                                     child: CircularProgressIndicator(
                                       color: Colors.white,
-                                      strokeWidth: 2,
+                                      strokeWidth: 2.5,
                                     ),
                                   )
                                       : const Text(
                                     'Submit',
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
                               ),
-
-                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
