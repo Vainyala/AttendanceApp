@@ -8,6 +8,7 @@
     final GeofenceModel? geofence;
     final double latitude;
     final double longitude;
+    final String projectName;
 
     AttendanceModel({
       required this.id,
@@ -17,6 +18,7 @@
       required this.latitude,
       required this.longitude,
       required this.userId,
+      this.projectName = 'Default Project',
     });
 
     Map<String, dynamic> toJson() => {

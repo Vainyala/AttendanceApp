@@ -134,41 +134,33 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       final maxDay = month.month == now.month && month.year == now.year ? now.day : daysInMonth;
 
       for (int day = 1; day <= maxDay; day++) {
-        final date = DateTime(month.year, month.month, day);
+        // Example with multiple projects
+        final projects = ['Project A', 'Project B'];
+        for (var project in projects) {
+          // each project will have 4 hours for that day
+          final checkInTime = DateTime(month.year, month.month, day, 9 + (project == 'Project A' ? 0 : 4));
+          final checkOutTime = checkInTime.add(const Duration(hours: 4));
 
-        // Skip weekends
-        if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
-          continue;
+          dummyRecords.add(AttendanceModel(
+            id: 'checkin_${month.month}_${day}_$project',
+            userId: 'user_123',
+            timestamp: checkInTime,
+            type: AttendanceType.checkIn,
+            latitude: 19.2183,
+            longitude: 72.9781,
+            projectName: project,
+          ));
+
+          dummyRecords.add(AttendanceModel(
+            id: 'checkout_${month.month}_${day}_$project',
+            userId: 'user_123',
+            timestamp: checkOutTime,
+            type: AttendanceType.checkOut,
+            latitude: 19.2183,
+            longitude: 72.9781,
+            projectName: project,
+          ));
         }
-
-        // Vary check-in times (some early, some late)
-        final checkInHour = 9 + (day % 3 == 0 ? -1 : (day % 4 == 0 ? 1 : 0));
-        final checkInMinute = day % 60;
-        final checkInTime = DateTime(month.year, month.month, day, checkInHour, checkInMinute);
-
-        // Vary work duration (7-9 hours)
-        final workHours = 7 + (day % 3);
-        final checkOutTime = checkInTime.add(Duration(hours: workHours, minutes: 30));
-
-        // Check-in record
-        dummyRecords.add(AttendanceModel(
-          id: 'checkin_${month.month}_$day',
-          userId: 'user_123',
-          timestamp: checkInTime,
-          type: AttendanceType.checkIn,
-          latitude: 19.2183 + (day * 0.001),
-          longitude: 72.9781 + (day * 0.001),
-        ));
-
-        // Check-out record
-        dummyRecords.add(AttendanceModel(
-          id: 'checkout_${month.month}_$day',
-          userId: 'user_123',
-          timestamp: checkOutTime,
-          type: AttendanceType.checkOut,
-          latitude: 19.2183 + (day * 0.001),
-          longitude: 72.9781 + (day * 0.001),
-        ));
       }
     }
 
@@ -184,18 +176,34 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
   String _calculateClockHours(List<AttendanceModel> dayRecords) {
     try {
-      final checkIn = dayRecords.firstWhere(
-            (r) => r.type == AttendanceType.checkIn,
-        orElse: () => dayRecords.first,
-      );
-      final checkOut = dayRecords.lastWhere(
-            (r) => r.type == AttendanceType.checkOut,
-        orElse: () => dayRecords.last,
-      );
+      // Group by project
+      final projectGroups = <String, List<AttendanceModel>>{};
+      for (var record in dayRecords) {
+        if (!projectGroups.containsKey(record.projectName)) {
+          projectGroups[record.projectName] = [];
+        }
+        projectGroups[record.projectName]!.add(record);
+      }
 
-      final duration = checkOut.timestamp.difference(checkIn.timestamp);
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes % 60;
+      // Calculate total hours across all projects
+      int totalMinutes = 0;
+
+      for (var projectRecords in projectGroups.values) {
+        final checkIn = projectRecords.firstWhere(
+              (r) => r.type == AttendanceType.checkIn,
+          orElse: () => projectRecords.first,
+        );
+        final checkOut = projectRecords.lastWhere(
+              (r) => r.type == AttendanceType.checkOut,
+          orElse: () => projectRecords.last,
+        );
+
+        final duration = checkOut.timestamp.difference(checkIn.timestamp);
+        totalMinutes += duration.inMinutes;
+      }
+
+      final hours = totalMinutes ~/ 60;
+      final minutes = totalMinutes % 60;
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     } catch (e) {
       return '00:00';
@@ -258,12 +266,13 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     // Can only edit if:
     // 1. Date is in the past (not today or future)
     // 2. Status is "Apply"
-    // Note: All previous dates with "Apply" status can be edited
     return checkDate.isBefore(today) && status == 'Apply';
   }
 
-  void _showRegularisationDialog(String dateStr, DateTime actualDate) {
-    if (!_canEditRecord(actualDate, _getStatusForDay(actualDate, ''))) {
+  void _showRegularisationDialog(String dateStr, DateTime actualDate, List<AttendanceModel> dayRecords) {
+    final status = _getStatusForDay(actualDate, _calculateShortfall(_calculateClockHours(dayRecords)));
+
+    if (!_canEditRecord(actualDate, status)) {
       String message = actualDate.isAfter(DateTime.now().subtract(const Duration(days: 1)))
           ? 'Cannot apply for regularisation for today or future dates'
           : 'This record cannot be edited';
@@ -275,6 +284,15 @@ class _RegularisationScreenState extends State<RegularisationScreen>
         ),
       );
       return;
+    }
+
+    // Group records by project
+    final projectGroups = <String, List<AttendanceModel>>{};
+    for (var record in dayRecords) {
+      if (!projectGroups.containsKey(record.projectName)) {
+        projectGroups[record.projectName] = [];
+      }
+      projectGroups[record.projectName]!.add(record);
     }
 
     TimeOfDay selectedTime = TimeOfDay.now();
@@ -292,6 +310,80 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Date: $dateStr', style: const TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 16),
+
+                // Show project breakdown
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Project Hours:',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      ...projectGroups.entries.map((entry) {
+                        final projectName = entry.key;
+                        final projectRecords = entry.value;
+
+                        final checkIn = projectRecords.firstWhere(
+                              (r) => r.type == AttendanceType.checkIn,
+                          orElse: () => projectRecords.first,
+                        );
+                        final checkOut = projectRecords.lastWhere(
+                              (r) => r.type == AttendanceType.checkOut,
+                          orElse: () => projectRecords.last,
+                        );
+
+                        final duration = checkOut.timestamp.difference(checkIn.timestamp);
+                        final hours = duration.inHours;
+                        final minutes = duration.inMinutes % 60;
+                        final timeStr = '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(projectName, style: const TextStyle(fontSize: 13)),
+                              Text(
+                                '$timeStr hrs',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      const Divider(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total:',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          Text(
+                            '${_calculateClockHours(dayRecords)} hrs',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 16),
                 const Text('Select Time:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
@@ -405,78 +497,61 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
-          title: const Text('Regularisation'),
+          title: const Text('Regularisation', style: TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: const Color(0xFF4A90E2),
           foregroundColor: Colors.white,
           elevation: 0,
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
+            preferredSize: const Size.fromHeight(48),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicator: const UnderlineTabIndicator(
+                  borderSide: BorderSide(
+                    color: Color(0xFF4A90E2),
+                    width: 3,
+                  ),
+                  insets: EdgeInsets.symmetric(horizontal: 16),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  children: [
-                    // Left Arrow
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
-                      onPressed: _tabController.index > 0
-                          ? () {
-                        _tabController.animateTo(_tabController.index - 1);
-                      }
-                          : null,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
-                    // Month Tabs - Scrollable
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.center,
-                        indicator: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                        //labelColor: const Color(0xFF4A90E2),
-                        unselectedLabelColor: Colors.white,
-                        labelStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                        unselectedLabelStyle: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                        ),
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-                        indicatorPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                        tabs: _availableMonths.map((month) {
-                          return Tab(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(DateFormat('MMM').format(month)),
+                labelColor: const Color(0xFF4A90E2),
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 15,
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 20),
+                tabs: _availableMonths.map((month) {
+                  final isCurrentMonth = month.month == DateTime.now().month &&
+                      month.year == DateTime.now().year;
+                  return Tab(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(DateFormat('MMM yyyy').format(month)),
+                        if (isCurrentMonth) ...[
+                          const SizedBox(height: 2),
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF4A90E2),
+                              shape: BoxShape.circle,
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                      ],
                     ),
-                    // Right Arrow
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
-                      onPressed: _tabController.index < _tabController.length - 1
-                          ? () {
-                        _tabController.animateTo(_tabController.index + 1);
-                      }
-                          : null,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -527,13 +602,11 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     };
 
     // Group records by date
-    final Map<String, List<AttendanceModel>> groupedRecords = {};
+    final Map<String, List<AttendanceModel>> groupedByDate = {};
     for (var record in records) {
       final dateKey = DateFormat('dd/MM/yy').format(record.timestamp);
-      if (!groupedRecords.containsKey(dateKey)) {
-        groupedRecords[dateKey] = [];
-      }
-      groupedRecords[dateKey]!.add(record);
+      groupedByDate.putIfAbsent(dateKey, () => []);
+      groupedByDate[dateKey]!.add(record);
     }
 
     return SingleChildScrollView(
@@ -543,7 +616,193 @@ class _RegularisationScreenState extends State<RegularisationScreen>
           // Status Card
           Container(
             margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade50, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.blue.shade100),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4A90E2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.analytics_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Monthly Overview',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Avg Shortfall
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(
+                          Icons.trending_down,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Avg Shortfall',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              '01:30 Hours',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          "LAGGING",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Avg Catch Up
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(
+                          Icons.trending_up,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Avg Catch Up',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              '5:30 Hours',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          "GREAT",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bar Chart Card
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -558,186 +817,171 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const Text(
-                      'Regularization Status',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.close, size: 20, color: Colors.grey),
-                  ],
+                const Text(
+                  'Status Distribution',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: const [
-                    Text(
-                      'Avg Shortfall :- 01:30 Hrs - ',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.thumb_down, color: Colors.orange, size: 16),
-                    Text(
-                      " YOU'RE LAGGING",
-                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: const [
-                    Text(
-                      'Avg Catch Up:- 5:30 Hrs - ',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.thumb_up, color: Colors.green, size: 16),
-                    Text(
-                      ' GREAT',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Bar Chart Card
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: () {
-                    final maxValue = stats.values.reduce((a, b) => a > b ? a : b);
-                    return maxValue > 0 ? (maxValue + 2).toDouble() : 10.0;
-                  }(),
-                  barTouchData: BarTouchData(enabled: false),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          const labels = ['Apply', 'Approved', 'Pending', 'Rejected'];
-                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                labels[value.toInt()],
-                                style: const TextStyle(fontSize: 11),
-                                textAlign: TextAlign.center,
+                SizedBox(
+                  height: 200,
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: () {
+                        final maxValue = stats.values.reduce((a, b) => a > b ? a : b);
+                        return maxValue > 0 ? (maxValue + 2).toDouble() : 10.0;
+                      }(),
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            const labels = ['Apply', 'Approved', 'Pending', 'Rejected'];
+                            return BarTooltipItem(
+                              '${labels[group.x.toInt()]}\n${rod.toY.toInt()} days',
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             );
-                          }
-                          return const SizedBox.shrink();
+                          },
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              const labels = ['Apply', 'Approved', 'Pending', 'Rejected'];
+                              if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    labels[value.toInt()],
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 35,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              if (value % 1 == 0) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 11),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 1,
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.shade200,
+                            strokeWidth: 1,
+                          );
                         },
                       ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        interval: 1,
-                        getTitlesWidget: (value, meta) {
-                          if (value % 1 == 0) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: const TextStyle(fontSize: 10),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
+                      borderData: FlBorderData(show: false),
+                      barGroups: [
+                        BarChartGroupData(
+                          x: 0,
+                          barRods: [
+                            BarChartRodData(
+                              toY: stats['Apply']! > 0 ? stats['Apply']!.toDouble() : 0.1,
+                              gradient: LinearGradient(
+                                colors: [Colors.blue.shade300, const Color(0xFF4A90E2)],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              width: 45,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                            )
+                          ],
+                        ),
+                        BarChartGroupData(
+                          x: 1,
+                          barRods: [
+                            BarChartRodData(
+                              toY: stats['Approved']! > 0 ? stats['Approved']!.toDouble() : 0.1,
+                              gradient: LinearGradient(
+                                colors: [Colors.green.shade300, Colors.green],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              width: 45,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                            )
+                          ],
+                        ),
+                        BarChartGroupData(
+                          x: 2,
+                          barRods: [
+                            BarChartRodData(
+                              toY: stats['Pending']! > 0 ? stats['Pending']!.toDouble() : 0.1,
+                              gradient: LinearGradient(
+                                colors: [Colors.orange.shade200, Colors.orange],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              width: 45,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                            )
+                          ],
+                        ),
+                        BarChartGroupData(
+                          x: 3,
+                          barRods: [
+                            BarChartRodData(
+                              toY: stats['Rejected']! > 0 ? stats['Rejected']!.toDouble() : 0.1,
+                              gradient: LinearGradient(
+                                colors: [Colors.red.shade300, Colors.red],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              width: 45,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                            )
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: 1,
-                    getDrawingHorizontalLine: (value) {
-                      return FlLine(
-                        color: Colors.grey.shade300,
-                        strokeWidth: 1,
-                      );
-                    },
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: [
-                    BarChartGroupData(
-                      x: 0,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Apply']! > 0 ? stats['Apply']!.toDouble() : 0.1,
-                          color: Colors.orange,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 1,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Approved']! > 0 ? stats['Approved']!.toDouble() : 0.1,
-                          color: Colors.green,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 2,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Pending']! > 0 ? stats['Pending']!.toDouble() : 0.1,
-                          color: Colors.orange.shade300,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 3,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Rejected']! > 0 ? stats['Rejected']!.toDouble() : 0.1,
-                          color: Colors.red,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                  ],
                 ),
-              ),
+              ],
             ),
           ),
 
           const SizedBox(height: 16),
 
+          // Records Table
           // Records Table
           Container(
             margin: const EdgeInsets.all(16),
@@ -753,64 +997,70 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               ],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: const Row(
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Date",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      const Text(
+                        'Attendance Records',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Clock Hrs",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      Expanded(
-                        flex: 2,
                         child: Text(
-                          "Shortfall",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Regularize",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          textAlign: TextAlign.center,
+                          '${groupedByDate.length} days',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue.shade700,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1),
-                groupedRecords.isEmpty
-                    ? const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'No attendance records for this month',
-                    style: TextStyle(color: Colors.grey),
+                groupedByDate.isEmpty
+                    ? Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.calendar_today_outlined,
+                            size: 48,
+                            color: Colors.grey.shade300),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No attendance records',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 )
                     : ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: groupedRecords.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemCount: groupedByDate.length,
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    color: Colors.grey.shade200,
+                  ),
                   itemBuilder: (context, index) {
-                    final dateKey = groupedRecords.keys.elementAt(index);
-                    final dayRecords = groupedRecords[dateKey]!;
+                    final dateKey = groupedByDate.keys.elementAt(index);
+                    final dayRecords = groupedByDate[dateKey]!;
                     final clockHours = _calculateClockHours(dayRecords);
                     final shortfall = _calculateShortfall(clockHours);
                     final actualDate = dayRecords.first.timestamp;
@@ -822,6 +1072,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                       shortfall,
                       status,
                       actualDate,
+                      dayRecords,
                     );
                   },
                 ),
@@ -835,44 +1086,226 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  Widget _buildTableRow(String date, String hours, String shortfall, String status, DateTime actualDate) {
+  Widget _buildTableRow(
+      String date,
+      String hours,
+      String shortfall,
+      String status,
+      DateTime actualDate,
+      List<AttendanceModel> dayRecords,
+      ) {
     final canEdit = _canEditRecord(actualDate, status);
 
+    // Group by project to show breakdown
+    final projectGroups = <String, List<AttendanceModel>>{};
+    for (var record in dayRecords) {
+      if (!projectGroups.containsKey(record.projectName)) {
+        projectGroups[record.projectName] = [];
+      }
+      projectGroups[record.projectName]!.add(record);
+    }
+
     return InkWell(
-      onTap: canEdit ? () => _showRegularisationDialog(date, actualDate) : null,
+      onTap: canEdit ? () => _showRegularisationDialog(date, actualDate, dayRecords) : null,
       child: Container(
-        color: canEdit ? Colors.transparent : Colors.grey.shade50,
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: canEdit ? Colors.white : Colors.grey.shade50,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 2, child: Text(date, style: const TextStyle(fontSize: 13))),
-            Expanded(flex: 2, child: Text(hours, style: const TextStyle(fontSize: 13))),
-            Expanded(flex: 2, child: Text(shortfall, style: const TextStyle(fontSize: 13))),
-            Expanded(
-              flex: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(status),
-                  borderRadius: BorderRadius.circular(6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date section
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        date,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('EEEE').format(actualDate),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
+                // Hours section with project breakdown
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.access_time,
+                              size: 14,
+                              color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Text(
+                            hours,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Text(' hrs',
+                              style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                      if (projectGroups.length > 1) ...[
+                        const SizedBox(height: 6),
+                        ...projectGroups.entries.take(2).map((entry) {
+                          final projectRecords = entry.value;
+                          final checkIn = projectRecords.firstWhere(
+                                (r) => r.type == AttendanceType.checkIn,
+                            orElse: () => projectRecords.first,
+                          );
+                          final checkOut = projectRecords.lastWhere(
+                                (r) => r.type == AttendanceType.checkOut,
+                            orElse: () => projectRecords.last,
+                          );
+                          final duration = checkOut.timestamp.difference(checkIn.timestamp);
+                          final hrs = duration.inHours;
+                          final mins = duration.inMinutes % 60;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade300,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    '${entry.key}: ${hrs}h ${mins}m',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        if (projectGroups.length > 2)
+                          Text(
+                            '+${projectGroups.length - 2} more',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blue.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Shortfall section
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        shortfall,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: shortfall == '00:00' ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      Text(
+                        'shortfall',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Status button
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(status),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (status == 'Apply')
+                          const Icon(Icons.edit, size: 12, color: Colors.white)
+                        else if (status == 'Approved')
+                          const Icon(Icons.check_circle, size: 12, color: Colors.white)
+                        else if (status == 'Pending')
+                            const Icon(Icons.schedule, size: 12, color: Colors.white)
+                          else
+                            const Icon(Icons.cancel, size: 12, color: Colors.white),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            status,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Show all projects on tap
+            if (projectGroups.length > 2 && canEdit)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  status,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  'Tap to view all projects and apply',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.blue.shade600,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
-
   Color _getStatusColor(String status) {
     switch (status) {
       case "Approved":
