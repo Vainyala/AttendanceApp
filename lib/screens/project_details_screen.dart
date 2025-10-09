@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/project_model.dart';
+import '../providers/dashboard_provider.dart';
 
 class ProjectDetailsScreen extends StatelessWidget {
-  final dynamic project;
-
-  const ProjectDetailsScreen({super.key, required this.project});
+  const ProjectDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<AppProvider>();
+    final project = provider.selectedProject;
+
+    if (project == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('No project selected'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(

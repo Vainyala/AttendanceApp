@@ -7,7 +7,7 @@ import '../models/user_model.dart';
 
 class StorageService {
   static const String _userKey = 'user_data';
-  static const String _geofencesKey = 'geofences_data';
+  static const String _geofencesKey = 'geofences_yh,data';
   static const String _attendanceKey = 'attendance_data';
   static const String _loginCredentialsKey = 'login_credentials';
 

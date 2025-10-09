@@ -1,7 +1,6 @@
-
-// screens/splash_screen.dart
 import 'package:flutter/material.dart';
-import '../services/storage_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/splash_provider.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -16,28 +15,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
-  }
-
-  _checkLoginStatus() async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    final user = await StorageService.getUser();
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-          user != null
-              ? const DashboardScreen()
-              : const LoginScreen(),
-        ),
-      );
-    }
+    final provider = Provider.of<SplashProvider>(context, listen: false);
+    provider.checkLoginStatus().then((_) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => provider.isLoggedIn
+                ? const DashboardScreen()
+                : const LoginScreen(),
+          ),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SplashProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -47,15 +43,12 @@ class _SplashScreenState extends State<SplashScreen> {
             colors: [Color(0xFF4A5AE8), Color(0xFF6C7CE7)],
           ),
         ),
-        child: const Center(
-          child: Column(
+        child: Center(
+          child: provider.isLoading
+              ? const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.location_on,
-                size: 100,
-                color: Colors.white,
-              ),
+              Icon(Icons.location_on, size: 100, color: Colors.white),
               SizedBox(height: 20),
               Text(
                 'Geofence Attendance',
@@ -78,7 +71,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ],
-          ),
+          )
+              : const SizedBox.shrink(),
         ),
       ),
     );
