@@ -5,6 +5,47 @@ import '../services/custom_bars.dart';
 import '../services/storage_service.dart';
 import '../models/attendance_model.dart';
 
+// State Management - Regularisation Provider/State
+class RegularisationState {
+  final List<AttendanceModel> attendance;
+  final bool isLoading;
+  final String? errorMessage;
+  final List<DateTime> availableMonths;
+  final int currentMonthIndex;
+  final Map<String, Map<String, int>> monthlyStats;
+  final int currentProjectPage;
+
+  RegularisationState({
+    required this.attendance,
+    required this.isLoading,
+    this.errorMessage,
+    required this.availableMonths,
+    required this.currentMonthIndex,
+    required this.monthlyStats,
+    required this.currentProjectPage,
+  });
+
+  RegularisationState copyWith({
+    List<AttendanceModel>? attendance,
+    bool? isLoading,
+    String? errorMessage,
+    List<DateTime>? availableMonths,
+    int? currentMonthIndex,
+    Map<String, Map<String, int>>? monthlyStats,
+    int? currentProjectPage,
+  }) {
+    return RegularisationState(
+      attendance: attendance ?? this.attendance,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      availableMonths: availableMonths ?? this.availableMonths,
+      currentMonthIndex: currentMonthIndex ?? this.currentMonthIndex,
+      monthlyStats: monthlyStats ?? this.monthlyStats,
+      currentProjectPage: currentProjectPage ?? this.currentProjectPage,
+    );
+  }
+}
+
 class RegularisationScreen extends StatefulWidget {
   const RegularisationScreen({super.key});
 
@@ -15,36 +56,44 @@ class RegularisationScreen extends StatefulWidget {
 class _RegularisationScreenState extends State<RegularisationScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<AttendanceModel> _attendance = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-  List<DateTime> _availableMonths = [];
-  int _currentMonthIndex = 0;
-
-  // Statistics per month
-  Map<String, Map<String, int>> _monthlyStats = {};
+  late RegularisationState _state;
 
   @override
   void initState() {
     super.initState();
-    _initializeMonths();
-    _tabController = TabController(length: _availableMonths.length, vsync: this);
-    _tabController.index = _currentMonthIndex;
+    _initializeState();
     _loadAttendance();
   }
 
-  void _initializeMonths() {
+  void _initializeState() {
     final now = DateTime.now();
-    _availableMonths.clear();
+    final availableMonths = <DateTime>[];
 
-    // Generate last 6 months including current month
     for (int i = 5; i >= 0; i--) {
       final month = DateTime(now.year, now.month - i, 1);
-      _availableMonths.add(month);
+      availableMonths.add(month);
     }
 
-    // Set current month as default (last in list)
-    _currentMonthIndex = _availableMonths.length - 1;
+    _state = RegularisationState(
+      attendance: [],
+      isLoading: false,
+      availableMonths: availableMonths,
+      currentMonthIndex: availableMonths.length - 1,
+      monthlyStats: {},
+      currentProjectPage: 0,
+    );
+
+    _tabController = TabController(
+      length: availableMonths.length,
+      vsync: this,
+      initialIndex: _state.currentMonthIndex,
+    );
+  }
+
+  void _updateState(RegularisationState newState) {
+    setState(() {
+      _state = newState;
+    });
   }
 
   @override
@@ -54,42 +103,38 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   }
 
   Future<void> _loadAttendance() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+    _updateState(_state.copyWith(isLoading: true, errorMessage: null));
 
+    try {
       await Future.delayed(const Duration(seconds: 1));
 
       final dummyData = _createDummyAttendance();
       _calculateMonthlyStats(dummyData);
 
       if (mounted) {
-        setState(() {
-          _attendance = dummyData;
-          _isLoading = false;
-        });
+        _updateState(_state.copyWith(
+          attendance: dummyData,
+          isLoading: false,
+        ));
       }
     } catch (e, stackTrace) {
       if (mounted) {
-        setState(() {
-          _errorMessage = 'Error loading attendance: $e';
-          _isLoading = false;
-          _attendance = [];
-        });
+        _updateState(_state.copyWith(
+          errorMessage: 'Error loading attendance: $e',
+          isLoading: false,
+          attendance: [],
+        ));
       }
-      print('Error loading attendance: $e');
-      print('Stack trace: $stackTrace');
+      print('Error: $e\nStack: $stackTrace');
     }
   }
 
   void _calculateMonthlyStats(List<AttendanceModel> records) {
-    _monthlyStats.clear();
+    final stats = <String, Map<String, int>>{};
 
-    for (var month in _availableMonths) {
+    for (var month in _state.availableMonths) {
       final monthKey = DateFormat('yyyy-MM').format(month);
-      _monthlyStats[monthKey] = {
+      stats[monthKey] = {
         'Apply': 0,
         'Approved': 0,
         'Pending': 0,
@@ -97,105 +142,175 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       };
     }
 
-    // Group by date and calculate stats
     final groupedByDate = <String, List<AttendanceModel>>{};
     for (var record in records) {
       final dateKey = DateFormat('yyyy-MM-dd').format(record.timestamp);
-      if (!groupedByDate.containsKey(dateKey)) {
-        groupedByDate[dateKey] = [];
-      }
+      groupedByDate.putIfAbsent(dateKey, () => []);
       groupedByDate[dateKey]!.add(record);
     }
 
-    // Calculate status for each day
     for (var entry in groupedByDate.entries) {
       final dayRecords = entry.value;
       final clockHours = _calculateClockHours(dayRecords);
       final shortfall = _calculateShortfall(clockHours);
       final date = dayRecords.first.timestamp;
       final monthKey = DateFormat('yyyy-MM').format(date);
+      final status = _getStatusForDay(date, shortfall);
 
-      if (_monthlyStats.containsKey(monthKey)) {
-        final status = _getStatusForDay(date, shortfall);
-        if (_monthlyStats[monthKey]!.containsKey(status)) {
-          _monthlyStats[monthKey]![status] = _monthlyStats[monthKey]![status]! + 1;
-        }
+      if (stats.containsKey(monthKey) && stats[monthKey]!.containsKey(status)) {
+        stats[monthKey]![status] = stats[monthKey]![status]! + 1;
       }
     }
+
+    _updateState(_state.copyWith(monthlyStats: stats));
   }
 
   List<AttendanceModel> _createDummyAttendance() {
-    final dummyRecords = <AttendanceModel>[];
+    final records = <AttendanceModel>[];
     final now = DateTime.now();
 
-    // Generate data for last 6 months
-    for (var month in _availableMonths) {
+    // List of holidays (format: 'yyyy-MM-dd')
+    final holidays = [
+      '2024-10-02', // Gandhi Jayanti
+      '2024-10-12', // Dussehra
+      '2024-10-31', // Diwali
+      '2024-11-01', // Diwali
+      '2024-12-25', // Christmas
+      '2025-01-26', // Republic Day
+    ];
+
+    final projectNames = [
+      'Project A', 'Project B', 'Project C', 'Project D',
+      'Project Alpha', 'Project Beta', 'Project Gamma'
+    ];
+
+    for (var month in _state.availableMonths) {
       final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-      final maxDay = month.month == now.month && month.year == now.year ? now.day : daysInMonth;
+      final maxDay =
+      month.month == now.month && month.year == now.year ? now.day : daysInMonth;
 
       for (int day = 1; day <= maxDay; day++) {
-        final date = DateTime(month.year, month.month, day);
+        final currentDate = DateTime(month.year, month.month, day);
+        final dateKey = DateFormat('yyyy-MM-dd').format(currentDate);
 
-        // Skip weekends
-        if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+        // Skip Sundays
+        if (currentDate.weekday == DateTime.sunday) {
           continue;
         }
 
-        // Vary check-in times (some early, some late)
-        final checkInHour = 9 + (day % 3 == 0 ? -1 : (day % 4 == 0 ? 1 : 0));
-        final checkInMinute = day % 60;
-        final checkInTime = DateTime(month.year, month.month, day, checkInHour, checkInMinute);
+        // Skip holidays
+        if (holidays.contains(dateKey)) {
+          continue;
+        }
 
-        // Vary work duration (7-9 hours)
-        final workHours = 7 + (day % 3);
-        final checkOutTime = checkInTime.add(Duration(hours: workHours, minutes: 30));
+        // Randomly select 1-3 projects for this day
+        final numProjects = 1 + ((day * month.month) % 3);
+        final dayProjects = <String>[];
 
-        // Check-in record
-        dummyRecords.add(AttendanceModel(
-          id: 'checkin_${month.month}_$day',
-          userId: 'user_123',
-          timestamp: checkInTime,
-          type: AttendanceType.checkIn,
-          latitude: 19.2183 + (day * 0.001),
-          longitude: 72.9781 + (day * 0.001),
-        ));
+        for (int i = 0; i < numProjects; i++) {
+          final projectIndex = ((day * 7 + i * 13 + month.month * 3) % projectNames.length);
+          final project = projectNames[projectIndex];
+          if (!dayProjects.contains(project)) {
+            dayProjects.add(project);
+          }
+        }
 
-        // Check-out record
-        dummyRecords.add(AttendanceModel(
-          id: 'checkout_${month.month}_$day',
-          userId: 'user_123',
-          timestamp: checkOutTime,
-          type: AttendanceType.checkOut,
-          latitude: 19.2183 + (day * 0.001),
-          longitude: 72.9781 + (day * 0.001),
-        ));
+        // Create varied work hours to simulate different scenarios
+        final dayVariation = (day * 3 + month.month * 7) % 10;
+
+        for (int i = 0; i < dayProjects.length; i++) {
+          final project = dayProjects[i];
+
+          // Vary work hours more realistically
+          int workHours;
+          int workMinutes;
+
+          if (dayVariation < 2) {
+            workHours = 2; // 2-3 hours
+            workMinutes = 30 + ((day + i) % 30);
+          } else if (dayVariation < 4) {
+            workHours = 3; // 3-4 hours
+            workMinutes = ((day * i) % 60);
+          } else if (dayVariation < 7) {
+            workHours = 3; // 3.5-4 hours
+            workMinutes = 30 + ((day - i) % 30);
+          } else {
+            workHours = 4; // 4-5 hours (full/near full)
+            workMinutes = ((day + month.month + i) % 45);
+          }
+
+          // Vary check-in times between 8:30 AM and 10:00 AM
+          final checkInHour = 8 + ((day + i) % 2);
+          final checkInMinute = (day * 5 + i * 15) % 60;
+
+          final checkInTime = DateTime(
+              month.year, month.month, day,
+              checkInHour, checkInMinute
+          );
+          final checkOutTime = checkInTime.add(
+              Duration(hours: workHours, minutes: workMinutes)
+          );
+
+          records.addAll([
+            AttendanceModel(
+              id: 'checkin_${month.month}_${day}_$project',
+              userId: 'user_123',
+              timestamp: checkInTime,
+              type: AttendanceType.checkIn,
+              latitude: 19.2183,
+              longitude: 72.9781,
+              projectName: project,
+            ),
+            AttendanceModel(
+              id: 'checkout_${month.month}_${day}_$project',
+              userId: 'user_123',
+              timestamp: checkOutTime,
+              type: AttendanceType.checkOut,
+              latitude: 19.2183,
+              longitude: 72.9781,
+              projectName: project,
+            ),
+          ]);
+        }
       }
     }
 
-    return dummyRecords;
+    return records;
   }
 
   List<AttendanceModel> _filterByMonth(DateTime month) {
-    return _attendance.where((record) {
-      return record.timestamp.year == month.year &&
-          record.timestamp.month == month.month;
-    }).toList();
+    return _state.attendance
+        .where((record) =>
+    record.timestamp.year == month.year &&
+        record.timestamp.month == month.month)
+        .toList();
   }
 
   String _calculateClockHours(List<AttendanceModel> dayRecords) {
     try {
-      final checkIn = dayRecords.firstWhere(
-            (r) => r.type == AttendanceType.checkIn,
-        orElse: () => dayRecords.first,
-      );
-      final checkOut = dayRecords.lastWhere(
-            (r) => r.type == AttendanceType.checkOut,
-        orElse: () => dayRecords.last,
-      );
+      final projectGroups = <String, List<AttendanceModel>>{};
+      for (var record in dayRecords) {
+        projectGroups.putIfAbsent(record.projectName, () => []);
+        projectGroups[record.projectName]!.add(record);
+      }
 
-      final duration = checkOut.timestamp.difference(checkIn.timestamp);
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes % 60;
+      int totalMinutes = 0;
+
+      for (var projectRecords in projectGroups.values) {
+        final checkIn = projectRecords.firstWhere(
+              (r) => r.type == AttendanceType.checkIn,
+          orElse: () => projectRecords.first,
+        );
+        final checkOut = projectRecords.lastWhere(
+              (r) => r.type == AttendanceType.checkOut,
+          orElse: () => projectRecords.last,
+        );
+
+        totalMinutes += checkOut.timestamp.difference(checkIn.timestamp).inMinutes;
+      }
+
+      final hours = totalMinutes ~/ 60;
+      final minutes = totalMinutes % 60;
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     } catch (e) {
       return '00:00';
@@ -205,16 +320,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   String _calculateShortfall(String clockHours) {
     try {
       final parts = clockHours.split(':');
-      final workedHours = int.parse(parts[0]);
-      final workedMinutes = int.parse(parts[1]);
-      final totalWorkedMinutes = workedHours * 60 + workedMinutes;
+      final workedMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
       final standardMinutes = 8 * 60;
 
-      if (totalWorkedMinutes >= standardMinutes) {
-        return '00:00';
-      }
+      if (workedMinutes >= standardMinutes) return '00:00';
 
-      final shortfallMinutes = standardMinutes - totalWorkedMinutes;
+      final shortfallMinutes = standardMinutes - workedMinutes;
       final hours = shortfallMinutes ~/ 60;
       final minutes = shortfallMinutes % 60;
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
@@ -228,26 +339,29 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
-    // Today and future dates are automatically Approved (can't be edited)
+    // Future dates and today are always approved
     if (checkDate.isAtSameMomentAs(today) || checkDate.isAfter(today)) {
       return 'Approved';
     }
 
-    // For past dates, generate varied statuses based on shortfall and day
-    final random = date.day % 10;
+    // If no shortfall, approved
+    if (shortfall == '00:00') return 'Approved';
 
-    if (shortfall == '00:00') {
-      return 'Approved'; // No shortfall = approved
-    } else {
-      // Has shortfall - distribute among Apply, Pending, Rejected
-      if (random < 3) {
-        return 'Rejected';
-      } else if (random < 6) {
-        return 'Pending';
-      } else {
-        return 'Apply';
-      }
-    }
+    // For past dates with shortfall, create realistic distribution
+    // Using day and month for better variety
+    final random = (date.day * 3 + date.month * 7) % 20;
+
+    // 25% Apply (needs action)
+    if (random < 5) return 'Apply';
+
+    // 20% Pending (under review)
+    if (random < 9) return 'Pending';
+
+    // 15% Rejected (denied)
+    if (random < 12) return 'Rejected';
+
+    // 40% Approved (accepted)
+    return 'Approved';
   }
 
   bool _canEditRecord(DateTime date, String status) {
@@ -255,22 +369,23 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
-    // Can only edit if:
-    // 1. Date is in the past (not today or future)
-    // 2. Status is "Apply"
-    // Note: All previous dates with "Apply" status can be edited
     return checkDate.isBefore(today) && status == 'Apply';
   }
 
-  void _showRegularisationDialog(String dateStr, DateTime actualDate) {
-    if (!_canEditRecord(actualDate, _getStatusForDay(actualDate, ''))) {
-      String message = actualDate.isAfter(DateTime.now().subtract(const Duration(days: 1)))
-          ? 'Cannot apply for regularisation for today or future dates'
-          : 'This record cannot be edited';
+  void _showRegularisationDialog(
+      String dateStr,
+      DateTime actualDate,
+      List<AttendanceModel> dayRecords,
+      ) {
+    final status = _getStatusForDay(
+      actualDate,
+      _calculateShortfall(_calculateClockHours(dayRecords)),
+    );
 
+    if (!_canEditRecord(actualDate, status)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: const Text('Cannot apply for regularisation for today or future dates'),
           backgroundColor: Colors.red,
         ),
       );
@@ -278,8 +393,8 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     }
 
     TimeOfDay selectedTime = TimeOfDay.now();
-    String selectedType = 'PM'; // Default is PM as per requirement
-    final TextEditingController noteController = TextEditingController();
+    String selectedType = 'PM';
+    final noteController = TextEditingController();
 
     showDialog(
       context: context,
@@ -293,29 +408,25 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               children: [
                 Text('Date: $dateStr', style: const TextStyle(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 16),
+                _buildProjectSummary(dayRecords),
+                const SizedBox(height: 16),
                 const Text('Select Time:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: selectedTime,
-                          );
-                          if (time != null) {
-                            setDialogState(() => selectedTime = time);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey.shade200,
-                          foregroundColor: Colors.black87,
-                        ),
-                        child: Text(selectedTime.format(context)),
-                      ),
-                    ),
-                  ],
+                ElevatedButton(
+                  onPressed: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: selectedTime,
+                    );
+                    if (time != null) {
+                      setDialogState(() => selectedTime = time);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade200,
+                    foregroundColor: Colors.black87,
+                  ),
+                  child: Text(selectedTime.format(context)),
                 ),
                 const SizedBox(height: 16),
                 const Text('Type:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -380,7 +491,9 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Regularisation request submitted for $dateStr at ${selectedTime.format(context)} $selectedType'),
+                    content: Text(
+                      'Regularisation request submitted for $dateStr at ${selectedTime.format(context)} $selectedType',
+                    ),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -398,479 +511,470 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ScreenWithBottomNav(
-      currentIndex: 1,
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
-        appBar: AppBar(
-          title: const Text('Regularisation'),
-          backgroundColor: const Color(0xFF4A90E2),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  children: [
-                    // Left Arrow
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
-                      onPressed: _tabController.index > 0
-                          ? () {
-                        _tabController.animateTo(_tabController.index - 1);
-                      }
-                          : null,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
-                    // Month Tabs - Scrollable
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.center,
-                        indicator: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                        //labelColor: const Color(0xFF4A90E2),
-                        unselectedLabelColor: Colors.white,
-                        labelStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                        unselectedLabelStyle: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                        ),
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-                        indicatorPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                        tabs: _availableMonths.map((month) {
-                          return Tab(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(DateFormat('MMM').format(month)),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    // Right Arrow
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
-                      onPressed: _tabController.index < _tabController.length - 1
-                          ? () {
-                        _tabController.animateTo(_tabController.index + 1);
-                      }
-                          : null,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        body: _isLoading
-            ? const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Loading attendance data...'),
-            ],
-          ),
-        )
-            : _errorMessage != null
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(_errorMessage!),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadAttendance,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        )
-            : TabBarView(
-          controller: _tabController,
-          children: _availableMonths.map((month) => _buildTabContent(month)).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabContent(DateTime month) {
-    final records = _filterByMonth(month);
-    final monthKey = DateFormat('yyyy-MM').format(month);
-    final stats = _monthlyStats[monthKey] ?? {
-      'Apply': 0,
-      'Approved': 0,
-      'Pending': 0,
-      'Rejected': 0,
-    };
-
-    // Group records by date
-    final Map<String, List<AttendanceModel>> groupedRecords = {};
-    for (var record in records) {
-      final dateKey = DateFormat('dd/MM/yy').format(record.timestamp);
-      if (!groupedRecords.containsKey(dateKey)) {
-        groupedRecords[dateKey] = [];
-      }
-      groupedRecords[dateKey]!.add(record);
+  Widget _buildProjectSummary(List<AttendanceModel> dayRecords) {
+    final projectGroups = <String, List<AttendanceModel>>{};
+    for (var record in dayRecords) {
+      projectGroups.putIfAbsent(record.projectName, () => []);
+      projectGroups[record.projectName]!.add(record);
     }
 
-    return SingleChildScrollView(
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status Card
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text(
-                      'Regularization Status',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.close, size: 20, color: Colors.grey),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: const [
-                    Text(
-                      'Avg Shortfall :- 01:30 Hrs - ',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.thumb_down, color: Colors.orange, size: 16),
-                    Text(
-                      " YOU'RE LAGGING",
-                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: const [
-                    Text(
-                      'Avg Catch Up:- 5:30 Hrs - ',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.thumb_up, color: Colors.green, size: 16),
-                    Text(
-                      ' GREAT',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          const Text(
+            'Project Hours:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
+          const SizedBox(height: 8),
+          ...projectGroups.entries.map((entry) {
+            final projectRecords = entry.value;
+            final checkIn = projectRecords.firstWhere(
+                  (r) => r.type == AttendanceType.checkIn,
+              orElse: () => projectRecords.first,
+            );
+            final checkOut = projectRecords.lastWhere(
+                  (r) => r.type == AttendanceType.checkOut,
+              orElse: () => projectRecords.last,
+            );
 
-          // Bar Chart Card
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: () {
-                    final maxValue = stats.values.reduce((a, b) => a > b ? a : b);
-                    return maxValue > 0 ? (maxValue + 2).toDouble() : 10.0;
-                  }(),
-                  barTouchData: BarTouchData(enabled: false),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          const labels = ['Apply', 'Approved', 'Pending', 'Rejected'];
-                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                labels[value.toInt()],
-                                style: const TextStyle(fontSize: 11),
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        interval: 1,
-                        getTitlesWidget: (value, meta) {
-                          if (value % 1 == 0) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: const TextStyle(fontSize: 10),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+            final duration = checkOut.timestamp.difference(checkIn.timestamp);
+            final hours = duration.inHours;
+            final minutes = duration.inMinutes % 60;
+            final timeStr =
+                '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(entry.key, style: const TextStyle(fontSize: 13)),
+                  Text(
+                    '$timeStr hrs',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: 1,
-                    getDrawingHorizontalLine: (value) {
-                      return FlLine(
-                        color: Colors.grey.shade300,
-                        strokeWidth: 1,
-                      );
-                    },
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: [
-                    BarChartGroupData(
-                      x: 0,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Apply']! > 0 ? stats['Apply']!.toDouble() : 0.1,
-                          color: Colors.orange,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 1,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Approved']! > 0 ? stats['Approved']!.toDouble() : 0.1,
-                          color: Colors.green,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 2,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Pending']! > 0 ? stats['Pending']!.toDouble() : 0.1,
-                          color: Colors.orange.shade300,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 3,
-                      barRods: [
-                        BarChartRodData(
-                          toY: stats['Rejected']! > 0 ? stats['Rejected']!.toDouble() : 0.1,
-                          color: Colors.red,
-                          width: 40,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                        )
-                      ],
-                    ),
-                  ],
+                ],
+              ),
+            );
+          }).toList(),
+          const Divider(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Text(
+                '${_calculateClockHours(dayRecords)} hrs',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.blue,
                 ),
               ),
-            ),
+            ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Records Table
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Date",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Clock Hrs",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Shortfall",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Regularize",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                groupedRecords.isEmpty
-                    ? const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'No attendance records for this month',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-                    : ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: groupedRecords.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final dateKey = groupedRecords.keys.elementAt(index);
-                    final dayRecords = groupedRecords[dateKey]!;
-                    final clockHours = _calculateClockHours(dayRecords);
-                    final shortfall = _calculateShortfall(clockHours);
-                    final actualDate = dayRecords.first.timestamp;
-                    final status = _getStatusForDay(actualDate, shortfall);
-
-                    return _buildTableRow(
-                      dateKey,
-                      clockHours,
-                      shortfall,
-                      status,
-                      actualDate,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildTableRow(String date, String hours, String shortfall, String status, DateTime actualDate) {
+  Widget _buildProjectSwiper(List<AttendanceModel> dayRecords) {
+    final projectGroups = <String, List<AttendanceModel>>{};
+    for (var record in dayRecords) {
+      projectGroups.putIfAbsent(record.projectName, () => []);
+      projectGroups[record.projectName]!.add(record);
+    }
+
+    if (projectGroups.isEmpty) return const SizedBox.shrink();
+
+    final projectEntries = projectGroups.entries.toList();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Projects (Swipe to view)',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.blue,
+                ),
+              ),
+              Text(
+                '${projectEntries.length} projects',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 90,
+            child: PageView.builder(
+              itemCount: projectEntries.length,
+              itemBuilder: (context, index) {
+                final entry = projectEntries[index];
+                final projectRecords = entry.value;
+
+                final checkIn = projectRecords.firstWhere(
+                      (r) => r.type == AttendanceType.checkIn,
+                  orElse: () => projectRecords.first,
+                );
+                final checkOut = projectRecords.lastWhere(
+                      (r) => r.type == AttendanceType.checkOut,
+                  orElse: () => projectRecords.last,
+                );
+
+                final duration = checkOut.timestamp.difference(checkIn.timestamp);
+                final hours = duration.inHours;
+                final minutes = duration.inMinutes % 60;
+                final timeStr =
+                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.shade300, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.shade100,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              entry.key,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${index + 1}/${projectEntries.length}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.timer_outlined,
+                              size: 16, color: Colors.blue.shade600),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$timeStr hrs',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableRow(
+      String date,
+      String hours,
+      String shortfall,
+      String status,
+      DateTime actualDate,
+      List<AttendanceModel> dayRecords,
+      ) {
     final canEdit = _canEditRecord(actualDate, status);
 
     return InkWell(
-      onTap: canEdit ? () => _showRegularisationDialog(date, actualDate) : null,
+      onTap: canEdit ? () => _showRegularisationDialog(date, actualDate, dayRecords) : null,
       child: Container(
-        color: canEdit ? Colors.transparent : Colors.grey.shade50,
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: canEdit ? Colors.white : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: canEdit ? Colors.blue.shade200 : Colors.grey.shade300,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 2, child: Text(date, style: const TextStyle(fontSize: 13))),
-            Expanded(flex: 2, child: Text(hours, style: const TextStyle(fontSize: 13))),
-            Expanded(flex: 2, child: Text(shortfall, style: const TextStyle(fontSize: 13))),
-            Expanded(
-              flex: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(status),
-                  borderRadius: BorderRadius.circular(6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        date,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('EEEE').format(actualDate),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.access_time,
+                              size: 14, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Text(
+                            hours,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Text(' hrs',
+                              style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        shortfall,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: shortfall == '00:00' ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      Text(
+                        'shortfall',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(status),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _getStatusIcon(status),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            status,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            _buildProjectSwiper(dayRecords),
+            if (canEdit)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  status,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  'Tap to apply for regularisation',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.blue.shade600,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildCategorizedRecords(DateTime month) {
+    final records = _filterByMonth(month);
+    final byStatus = {
+      'Apply': <Map>[],
+      'Pending': <Map>[],
+      'Rejected': <Map>[],
+      'Approved': <Map>[],
+    };
+
+    final groupedByDate = <String, List<AttendanceModel>>{};
+    for (var record in records) {
+      final dateKey = DateFormat('dd/MM/yy').format(record.timestamp);
+      groupedByDate.putIfAbsent(dateKey, () => []);
+      groupedByDate[dateKey]!.add(record);
+    }
+
+    for (var entry in groupedByDate.entries) {
+      final dayRecords = entry.value;
+      final clockHours = _calculateClockHours(dayRecords);
+      final shortfall = _calculateShortfall(clockHours);
+      final actualDate = dayRecords.first.timestamp;
+      final status = _getStatusForDay(actualDate, shortfall);
+
+      byStatus[status]?.add({
+        'date': entry.key,
+        'hours': clockHours,
+        'shortfall': shortfall,
+        'actualDate': actualDate,
+        'records': dayRecords,
+      });
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 80),
+      children: byStatus.entries
+          .where((entry) => entry.value.isNotEmpty)
+          .map((entry) => _buildStatusCategory(entry.key, entry.value))
+          .toList(),
+    );
+  }
+
+  Widget _buildStatusCategory(String status, List<Map> items) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _getStatusColor(status),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _getStatusIcon(status),
+                const SizedBox(width: 8),
+                Text(
+                  '$status (${items.length})',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...items
+              .map((item) => _buildTableRow(
+            item['date'],
+            item['hours'],
+            item['shortfall'],
+            status,
+            item['actualDate'],
+            item['records'],
+          ))
+              .toList(),
+        ],
+      ),
+    );
+  }
+
+  Icon _getStatusIcon(String status) {
+    switch (status) {
+      case 'Apply':
+        return const Icon(Icons.edit, size: 12, color: Colors.white);
+      case 'Approved':
+        return const Icon(Icons.check_circle, size: 12, color: Colors.white);
+      case 'Pending':
+        return const Icon(Icons.schedule, size: 12, color: Colors.white);
+      case 'Rejected':
+        return const Icon(Icons.cancel, size: 12, color: Colors.white);
+      default:
+        return const Icon(Icons.help, size: 12, color: Colors.white);
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -886,5 +990,110 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       default:
         return Colors.blue;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenWithBottomNav(
+      currentIndex: 1,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          title: const Text('Regularisation', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFF4A90E2),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicator: const UnderlineTabIndicator(
+                  borderSide: BorderSide(
+                    color: Color(0xFF4A90E2),
+                    width: 3,
+                  ),
+                  insets: EdgeInsets.symmetric(horizontal: 16),
+                ),
+                labelColor: const Color(0xFF4A90E2),
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 15,
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 20),
+                tabs: _state.availableMonths
+                    .map((month) {
+                  final isCurrentMonth =
+                      month.month == DateTime.now().month &&
+                          month.year == DateTime.now().year;
+                  return Tab(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(DateFormat('MMM yyyy').format(month)),
+                        if (isCurrentMonth) ...[
+                          const SizedBox(height: 2),
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF4A90E2),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+        body: _state.isLoading
+            ? const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading attendance data...'),
+            ],
+          ),
+        )
+            : _state.errorMessage != null
+            ? Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(_state.errorMessage!),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadAttendance,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        )
+            : TabBarView(
+          controller: _tabController,
+          children: _state.availableMonths
+              .map((month) => _buildCategorizedRecords(month))
+              .toList(),
+        ),
+      ),
+    );
   }
 }

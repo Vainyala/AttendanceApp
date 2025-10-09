@@ -10,7 +10,7 @@ class TimesheetScreen extends StatelessWidget {
       currentIndex: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Profile'),
+          title: const Text('Timesheet'),
           backgroundColor: const Color(0xFF4A90E2),
           foregroundColor: Colors.white,
           elevation: 0,
@@ -26,7 +26,7 @@ class TimesheetScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Text(
-                'Profile',
+                'Timesheet',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

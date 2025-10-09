@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/profile_provider.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  // Editable fields
-  String phoneNumber = '+91-9767731178';
-  String email = 'vainyala.samal@nutantek.com';
-  String emergencyContact = '+91-9876543210';
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +24,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      //drawer: const AppDrawer(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -140,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label: 'RM Number',
                   value: '+91-9876543210',
                   isEditable: false,
-                  onTap: () => _makePhoneCall('+91-9876543210'),
+                  onTap: () => _makePhoneCall(context, '+91-9876543210'),
                 ),
               ],
             ),
@@ -190,32 +181,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildSection(
               title: 'Contact Details',
               children: [
-                _buildInfoTile(
-                  icon: Icons.phone_android_outlined,
-                  label: 'Mobile Number',
-                  value: phoneNumber,
-                  isEditable: true,
-                  onEdit: () => _editField('Mobile Number', phoneNumber, (value) {
-                    setState(() => phoneNumber = value);
-                  }),
+                Consumer<ProfileProvider>(
+                  builder: (context, provider, _) => _buildInfoTile(
+                    icon: Icons.phone_android_outlined,
+                    label: 'Mobile Number',
+                    value: provider.phoneNumber,
+                    isEditable: true,
+                    onEdit: () => _editField(context, 'Mobile Number', provider.phoneNumber, (value) {
+                      provider.setPhoneNumber(value);
+                    }),
+                  ),
                 ),
-                _buildInfoTile(
-                  icon: Icons.email_outlined,
-                  label: 'Email',
-                  value: email,
-                  isEditable: true,
-                  onEdit: () => _editField('Email', email, (value) {
-                    setState(() => email = value);
-                  }),
+                Consumer<ProfileProvider>(
+                  builder: (context, provider, _) => _buildInfoTile(
+                    icon: Icons.email_outlined,
+                    label: 'Email',
+                    value: provider.email,
+                    isEditable: true,
+                    onEdit: () => _editField(context, 'Email', provider.email, (value) {
+                      provider.setEmail(value);
+                    }),
+                  ),
                 ),
-                _buildInfoTile(
-                  icon: Icons.emergency_outlined,
-                  label: 'Emergency Contact',
-                  value: emergencyContact,
-                  isEditable: true,
-                  onEdit: () => _editField('Emergency Contact', emergencyContact, (value) {
-                    setState(() => emergencyContact = value);
-                  }),
+                Consumer<ProfileProvider>(
+                  builder: (context, provider, _) => _buildInfoTile(
+                    icon: Icons.emergency_outlined,
+                    label: 'Emergency Contact',
+                    value: provider.emergencyContact,
+                    isEditable: true,
+                    onEdit: () => _editField(context, 'Emergency Contact', provider.emergencyContact, (value) {
+                      provider.setEmergencyContact(value);
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -395,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _editField(String fieldName, String currentValue, Function(String) onSave) {
+  void _editField(BuildContext context, String fieldName, String currentValue, Function(String) onSave) {
     final controller = TextEditingController(text: currentValue);
     showDialog(
       context: context,
@@ -466,7 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _makePhoneCall(String phoneNumber) {
+  void _makePhoneCall(BuildContext context, String phoneNumber) {
     _showSnackBar(context, 'Calling $phoneNumber...');
   }
 
