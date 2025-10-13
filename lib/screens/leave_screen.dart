@@ -3,10 +3,32 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/leave_provider.dart';
-import '../services/custom_bars.dart';
+import '../widgets/custom_bars.dart';
+import '../widgets/date_time_utils.dart';
+import '../widgets/day_leave_edit.dart';
+import '../widgets/detail_row.dart';
+import '../widgets/half_day_checkbox.dart';
+import '../widgets/leave_type_dropdown.dart';
+import '../widgets/legend_item.dart';
+import '../widgets/status_badge.dart';
+import '../widgets/submit_button.dart';
 
-class LeaveScreen extends StatelessWidget {
+class LeaveScreen extends StatefulWidget {
   const LeaveScreen({super.key});
+
+  @override
+  State<LeaveScreen> createState() => _LeaveScreenState();
+}
+
+class _LeaveScreenState extends State<LeaveScreen> {
+  final GlobalKey _formSectionKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
@@ -66,13 +88,108 @@ class LeaveScreen extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
+  Widget _buildDayByDayLeaveView(BuildContext context,
+      Map<String, dynamic> leave, LeaveProvider provider) {
+    final fromDate = leave['fromDate'] as DateTime;
+    final toDate = leave['toDate'] as DateTime;
+    final days = toDate.difference(fromDate).inDays + 1;
 
-  String _formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString()
-        .padLeft(2, '0')}';
+    final daysList = List.generate(days, (index) {
+      return fromDate.add(Duration(days: index));
+    });
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Edit Leave Days',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: daysList.length,
+            itemBuilder: (context, index) {
+              final date = daysList[index];
+              final isHalfDay = leave['halfDays']?[DateFormat('yyyy-MM-dd')
+                  .format(date)] ?? false;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          DateFormat('dd MMM yyyy').format(date),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (isHalfDay)
+                          const Text(
+                            'Half Day',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => DayLeaveEditor(
+                            leaveDate: date,
+                            isHalfDay: isHalfDay,
+                            onSave: (editedDate, halfDay) {
+                              provider.updateLeaveDay(
+                                leave['id'],
+                                editedDate,
+                                halfDay,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: const Text('Edit'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPieChart(BuildContext context) {
@@ -108,11 +225,11 @@ class LeaveScreen extends StatelessWidget {
               children: provider.leaveBalance.entries.map((entry) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: _buildLegendItem(
-                    entry.value['color'],
-                    entry.key,
-                    entry.value['count'],
-                  ),
+                  child: LegendItem(
+                    color: entry.value['color'],
+                    label: entry.key,
+                    count: entry.value['count'],
+                  )
                 );
               }).toList(),
             ),
@@ -402,9 +519,12 @@ class LeaveScreen extends StatelessWidget {
         statusIcon = Icons.schedule;
     }
 
-    bool canEdit = leave['status'] == 'Pending' ||
-        leave['status'] == 'Approved';
-    bool canCancel = leave['status'] == 'Pending';
+
+
+    bool canEdit = leave['status'] != 'Rejected' &&
+        provider.canEditOrDeleteLeave(leave);
+    bool canCancelPartial = provider.canCancelPartialLeave(leave);
+    bool canCancel = leave['status'] == 'Pending' || canCancelPartial;
     bool canOnlyView = leave['status'] == 'Rejected';
 
     return Container(
@@ -439,31 +559,7 @@ class LeaveScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, size: 12, color: statusColor),
-                              const SizedBox(width: 4),
-                              Text(
-                                leave['status'],
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        StatusBadge(status: leave['status'])
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -562,7 +658,8 @@ class LeaveScreen extends StatelessWidget {
     );
   }
 
-  void _showEditLeaveDialog(BuildContext context, Map<String, dynamic> leave) {
+  void _showEditLeaveDialog(BuildContext context,
+      Map<String, dynamic> leave) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
     bool isApproved = leave['status'] == 'Approved';
     int originalDays = leave['days'];
@@ -571,88 +668,176 @@ class LeaveScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            title: Text(isApproved ? 'Edit Approved Leave' : 'Edit Leave'),
-            content: Text(
-              isApproved
-                  ? 'You can only decrease the number of days for an approved leave. Current days: $originalDays'
-                  : 'Update your leave details below and submit the form.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  provider.resetForm();
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  int newDays = provider.toDate
-                      .difference(provider.fromDate)
-                      .inDays + 1;
-
-                  provider.updateLeave(
-                    leave['id'],
-                    fromDate: provider.fromDate,
-                    toDate: provider.toDate,
-                    reason: provider.notesController.text,
-                  );
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isApproved
-                          ? 'Leave updated successfully. You decreased days from $originalDays to $newDays'
-                          : 'Leave updated successfully'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A90E2),
-                ),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(isApproved ? 'Edit Approved Leave' : 'Edit Leave'),
+        content: Text(
+          isApproved
+              ? 'You can only decrease the number of days for an approved leave. '
+              'Current days: $originalDays'
+              : 'Update your leave details below and submit the form.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              provider.resetForm();
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              int newDays = provider.toDate
+                  .difference(provider.fromDate)
+                  .inDays + 1;
+
+              provider.updateLeave(
+                leave['id'],
+                fromDate: provider.fromDate,
+                toDate: provider.toDate,
+                reason: provider.notesController.text,
+              );
+
+              Navigator.pop(context);
+
+              // Scroll to form section after closing dialog
+              Future.delayed(const Duration(milliseconds: 300), () {
+                _scrollToFormSection();
+                _showFormUpdatedBanner(context);
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(isApproved
+                      ? 'Leave updated successfully. You decreased days from '
+                      '$originalDays to $newDays'
+                      : 'Leave updated successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A90E2),
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
-  void _showCancelConfirmation(BuildContext context, String leaveId) {
+  void _scrollToFormSection() {
+    final context = _formSectionKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _showFormUpdatedBanner(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Form updated! Continue editing above or submit when ready.',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF4A90E2),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+  void _showDeleteConfirmation(BuildContext context, String leaveId) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
 
     showDialog(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            title: const Text('Cancel Leave'),
-            content: const Text(
-                'Are you sure you want to cancel this leave application?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('No'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  provider.cancelLeave(leaveId);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Leave cancelled successfully'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Leave'),
+        content: const Text(
+          'Are you sure you want to permanently delete this leave? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.cancelLeave(leaveId);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Leave deleted successfully'),
                   backgroundColor: Colors.red,
                 ),
-                child: const Text('Yes, Cancel'),
-              ),
-            ],
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Yes, Delete'),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showCancelConfirmation(BuildContext context, String leaveId,
+      Map<String, dynamic> leave) {
+    final provider = Provider.of<LeaveProvider>(context, listen: false);
+    final isPartialCancel = provider.canCancelPartialLeave(leave);
+    final remainingDays = isPartialCancel
+        ? provider.getRemainingLeaveDays(leave)
+        : 0;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Leave'),
+        content: Text(
+          isPartialCancel
+              ? 'You have $remainingDays remaining day(s) for this leave. '
+              'Cancel the remaining days?'
+              : 'Are you sure you want to cancel this leave application?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.cancelLeave(leaveId, isPartialCancel: isPartialCancel);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isPartialCancel
+                        ? 'Remaining $remainingDays day(s) cancelled successfully'
+                        : 'Leave cancelled successfully',
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -667,15 +852,18 @@ class LeaveScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildDetailRow('Status', leave['status']),
-                  _buildDetailRow('From Date',
+                  DetailRow(
+                    label: 'Status',
+                    value: leave['status'],
+                  ),
+                  DetailRow(label:'From Date', value:
                       DateFormat('dd MMM yyyy').format(leave['fromDate'])),
-                  _buildDetailRow('To Date',
+                  DetailRow(label:'To Date',value:
                       DateFormat('dd MMM yyyy').format(leave['toDate'])),
-                  _buildDetailRow('Duration',
+                  DetailRow(label:'Duration',value:
                       '${leave['days']} day${leave['days'] > 1 ? 's' : ''}'),
-                  _buildDetailRow('Reason', leave['reason']),
-                  _buildDetailRow('Applied On',
+                  DetailRow(label: 'Reason', value: leave['reason']),
+                  DetailRow(label:'Applied On',value:
                       DateFormat('dd MMM yyyy').format(leave['appliedOn'])),
                 ],
               ),
@@ -690,161 +878,10 @@ class LeaveScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildLegendItem(Color color, String label, int count) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            '$count $label',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildDateField({
-    required String label,
-    required String value,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.calendar_today, color: Colors.red, size: 18),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Text(
-                '–',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTimeField({
-    required String value,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.access_time, color: Colors.red, size: 18),
-              const SizedBox(width: 12),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              const Text(
-                '–',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildHalfDayCheckbox(bool value, Function(bool?) onChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        const Text(
-          'Half Day',
-          style: TextStyle(fontSize: 14),
-        ),
-        Checkbox(
-          value: value,
-          onChanged: onChanged,
-          activeColor: const Color(0xFF4A90E2),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ],
-    );
-  }
 
   Future<void> _submitLeave(BuildContext context) async {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
@@ -959,228 +996,223 @@ class LeaveScreen extends StatelessWidget {
 
   Widget _buildLeaveForm(BuildContext context, LeaveProvider provider) {
     final formKey = GlobalKey<FormState>();
+    final isFormFilled = provider.isFormPrefilled();
 
-    return Form(
-      key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Apply For Leave',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+    return Container(
+      key: _formSectionKey,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        // Add highlight border if form is being edited
+        border: isFormFilled
+            ? Border.all(
+          color: const Color(0xFF4A90E2),
+          width: 2,
+        )
+            : null,
+      ),
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Highlight indicator
+            if (isFormFilled)
               Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(4),
+                  color: const Color(0xFF4A90E2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: const Color(0xFF4A90E2),
+                    width: 1,
+                  ),
                 ),
-                padding: const EdgeInsets.all(6),
-                child: const Icon(
-                  Icons.attachment,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Date Fields Row
-          Row(
-            children: [
-              _buildDateField(
-                label: 'From Date',
-                value: _formatDate(provider.fromDate),
-                onTap: () => _selectDate(context, true),
-              ),
-              const SizedBox(width: 16),
-              _buildDateField(
-                label: 'To Date',
-                value: _formatDate(provider.toDate),
-                onTap: () => _selectDate(context, false),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Time Fields Row
-          Row(
-            children: [
-              _buildTimeField(
-                value: _formatTime(provider.fromTime),
-                onTap: () => _selectTime(context, true),
-              ),
-              const SizedBox(width: 16),
-              _buildTimeField(
-                value: _formatTime(provider.toTime),
-                onTap: () => _selectTime(context, false),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Half Day Checkboxes
-          Row(
-            children: [
-              Expanded(
-                child: _buildHalfDayCheckbox(
-                  provider.isHalfDayFrom,
-                      (value) => provider.setIsHalfDayFrom(value ?? false),
-                ),
-              ),
-              Expanded(
-                child: _buildHalfDayCheckbox(
-                  provider.isHalfDayTo,
-                      (value) => provider.setIsHalfDayTo(value ?? false),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Leave Type Dropdown
-          Row(
-            children: [
-              const Text(
-                'Leave Type :-',
-                style: TextStyle(fontSize: 15),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey.shade300,
-                        width: 1,
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF4A90E2),
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Editing mode: Continue editing or submit to update',
+                        style: TextStyle(
+                          color: Color(0xFF4A90E2),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: provider.selectedLeaveType,
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down),
-                      items: provider.leaveTypes.map((String type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(
-                            type,
-                            style: const TextStyle(fontSize: 15),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          provider.setSelectedLeaveType(newValue);
-                        }
-                      },
-                    ),
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
 
-          const SizedBox(height: 24),
-
-          // Notes Field
-          const Text(
-            'Notes :',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: provider.notesController,
-            maxLines: 4,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'Enter reason for leave...',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(
-                  color: Color(0xFF4A90E2),
-                  width: 2,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Apply/Edit For Leave',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              contentPadding: const EdgeInsets.all(12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: const Icon(
+                    Icons.attachment,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ],
             ),
-            validator: (value) {
-              if (value == null || value
-                  .trim()
-                  .isEmpty) {
-                return 'Please enter a reason for leave';
-              }
-              return null;
-            },
-          ),
 
-          const SizedBox(height: 30),
 
-          // Submit Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: provider.isLoading
-                  ? null
-                  : () {
+            const SizedBox(height: 20),
+
+            // Date Fields Row
+            Row(
+              children: [
+                CustomDateField(
+                  label: 'From Date',
+                  value: DateFormattingUtils.formatDate(provider.fromDate),
+                  onTap: () => _selectDate(context, true),
+                ),
+                const SizedBox(width: 16),
+                CustomDateField(
+                  label: 'To Date',
+                  value: DateFormattingUtils.formatDate(provider.toDate),
+                  onTap: () => _selectDate(context, false),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Time Fields Row
+            Row(
+              children: [
+                CustomTimeField(
+                  value: DateFormattingUtils.formatTime(provider.fromTime),
+                  onTap: () => _selectTime(context, true),
+                ),
+                const SizedBox(width: 16),
+                CustomTimeField(
+                  value: DateFormattingUtils.formatTime(provider.toTime),
+                  onTap: () => _selectTime(context, false),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Half Day Checkboxes
+            Row(
+              children: [
+                Expanded(
+                    child: HalfDayCheckbox(
+                      value: provider.isHalfDayFrom,
+                      onChanged: (value) => provider.setIsHalfDayFrom(value ?? false),
+                    )
+                ),
+                Expanded(
+                    child: HalfDayCheckbox(
+                      value: provider.isHalfDayFrom,
+                      onChanged: (value) => provider.setIsHalfDayFrom(value ?? false),
+                    )
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Leave Type Dropdown
+            LeaveTypeDropdown(
+              selectedValue: provider.selectedLeaveType,
+              leaveTypes: provider.leaveTypes,
+              onChanged: (value) {
+                if (value != null) provider.setSelectedLeaveType(value);
+              },
+            ),
+
+            const SizedBox(height: 24),
+
+            // Notes Field
+            const Text(
+              'Notes :',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: provider.notesController,
+              maxLines: 4,
+              style: const TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Enter reason for leave...',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF4A90E2),
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+              validator: (value) {
+                if (value == null || value
+                    .trim()
+                    .isEmpty) {
+                  return 'Please enter a reason for leave';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 30),
+
+            // Submit Button
+            SubmitButton(
+              onPressed: () {
                 if (formKey.currentState!.validate()) {
                   _submitLeave(context);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A90E2),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: provider.isLoading
-                  ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-                  : const Text(
-                'Submit',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+              isLoading: provider.isLoading,
+            )
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:AttendenceApp/providers/dashboard_provider.dart';
 import 'package:AttendenceApp/providers/splash_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SplashProvider()), // 👈 added provider
+        ChangeNotifierProvider(create: (_) => AppProvider()),
       ],
       child: MaterialApp(
         title: 'Geofence Attendance',

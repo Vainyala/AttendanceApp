@@ -233,6 +233,27 @@ class RegularisationProvider extends ChangeNotifier {
     }
   }
 
+  // Calculate clock hours for a specific project
+  String calculateClockHoursForProject(List<AttendanceModel> projectRecords) {
+    try {
+      final checkIn = projectRecords.firstWhere(
+            (r) => r.type == AttendanceType.checkIn,
+        orElse: () => projectRecords.first,
+      );
+      final checkOut = projectRecords.lastWhere(
+            (r) => r.type == AttendanceType.checkOut,
+        orElse: () => projectRecords.last,
+      );
+
+      final duration = checkOut.timestamp.difference(checkIn.timestamp);
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes % 60;
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '00:00';
+    }
+  }
+
   // Calculate shortfall hours
   String calculateShortfall(String clockHours) {
     try {
@@ -271,13 +292,19 @@ class RegularisationProvider extends ChangeNotifier {
     return 'Approved';
   }
 
-  // Check if record can be edited
+  // Check if record can be edited (Not used in new implementation but kept for compatibility)
   bool canEditRecord(DateTime date, String status) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
-    return checkDate.isBefore(today) && status == 'Apply';
+    // Cannot edit today or future dates
+    if (checkDate.isAtSameMomentAs(today) || checkDate.isAfter(today)) {
+      return false;
+    }
+
+    // Can edit Apply and Rejected statuses
+    return status == 'Apply' || status == 'Rejected';
   }
 
   // Get categorized records by status
@@ -329,15 +356,23 @@ class RegularisationProvider extends ChangeNotifier {
   // Submit regularisation request
   Future<void> submitRegularisation({
     required String date,
+    required String projectName,
     required TimeOfDay time,
     required String type,
-    required String notes,
+    required String description, required String notes,
   }) async {
     // Simulate API call
     await Future.delayed(const Duration(milliseconds: 500));
 
     // In a real app, you would send this to your backend
     // and update the attendance status accordingly
+    print('Submitting regularisation:');
+    print('Date: $date');
+    print('Project: $projectName');
+    print('Time: ${time.format as String}');
+    print('Type: $type');
+    print('Description: $description');
+
     notifyListeners();
   }
 
