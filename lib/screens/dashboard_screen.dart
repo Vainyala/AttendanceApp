@@ -234,11 +234,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 15),
         Expanded(
           child: CustomButton(
-            text: provider.isCheckingIn ? 'CHECKING OUT...' : 'CHECK OUT',
+            text: provider.isCheckingOut ? 'CHECKING OUT...' : 'CHECK OUT',
             icon: Icons.logout,
             color: AppColors.checkInGreen,
-            loading: provider.isCheckingIn,
-            onPressed: provider.canCheckIn ? _handleCheckIn : null,
+            loading: provider.isCheckingOut,
+            onPressed: provider.canCheckOut ? _handleCheckOut : null,
           ),
         ),
       ],

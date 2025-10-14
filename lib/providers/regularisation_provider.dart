@@ -292,7 +292,7 @@ class RegularisationProvider extends ChangeNotifier {
     return 'Approved';
   }
 
-  // Check if record can be edited (Not used in new implementation but kept for compatibility)
+  // Check if record can be edited
   bool canEditRecord(DateTime date, String status) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -304,7 +304,7 @@ class RegularisationProvider extends ChangeNotifier {
     }
 
     // Can edit Apply and Rejected statuses
-    return status == 'Apply' || status == 'Rejected';
+    return status == 'Apply' || status == 'Rejected' || status == 'Pending';
   }
 
   // Get categorized records by status
@@ -359,7 +359,8 @@ class RegularisationProvider extends ChangeNotifier {
     required String projectName,
     required TimeOfDay time,
     required String type,
-    required String description, required String notes,
+    required String description,
+    required String notes,
   }) async {
     // Simulate API call
     await Future.delayed(const Duration(milliseconds: 500));
@@ -369,9 +370,10 @@ class RegularisationProvider extends ChangeNotifier {
     print('Submitting regularisation:');
     print('Date: $date');
     print('Project: $projectName');
-    print('Time: ${time.format as String}');
+    print('Time: ${time.format}');
     print('Type: $type');
     print('Description: $description');
+    print('Notes: $notes');
 
     notifyListeners();
   }

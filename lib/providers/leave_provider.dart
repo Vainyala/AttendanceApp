@@ -330,9 +330,21 @@ class LeaveProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Cancel leave
-  void cancelLeave(String leaveId, {required bool isPartialCancel}) {
-    _appliedLeaves.removeWhere((leave) => leave['id'] == leaveId);
+  void cancelLeave(String leaveId, {bool isPartialCancel = false}) {
+    final index = _appliedLeaves.indexWhere((leave) => leave['id'] == leaveId);
+
+    if (index != -1) {
+      if (isPartialCancel) {
+        // For partial cancellation, update the toDate to today
+        _appliedLeaves[index]['toDate'] = DateTime.now();
+        final from = _appliedLeaves[index]['fromDate'] as DateTime;
+        final to = _appliedLeaves[index]['toDate'] as DateTime;
+        _appliedLeaves[index]['days'] = to.difference(from).inDays + 1;
+      } else {
+        // Full cancellation - remove the leave
+        _appliedLeaves.removeAt(index);
+      }
+    }
     notifyListeners();
   }
   void updateLeaveDay(String leaveId, DateTime date, bool isHalfDay) {

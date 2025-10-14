@@ -358,6 +358,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
             color: Colors.black.withOpacity(0.5),
             blurRadius: 10,
             offset: const Offset(0, 2),
+
           ),
         ],
       ),
@@ -502,6 +503,8 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   Widget _buildLeaveCard(BuildContext context, Map<String, dynamic> leave) {
+    final provider = Provider.of<LeaveProvider>(context); // ADD THIS LINE
+
     Color statusColor;
     IconData statusIcon;
 
@@ -518,8 +521,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
         statusColor = Colors.orange;
         statusIcon = Icons.schedule;
     }
-
-
 
     bool canEdit = leave['status'] != 'Rejected' &&
         provider.canEditOrDeleteLeave(leave);
@@ -674,7 +675,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
           isApproved
               ? 'You can only decrease the number of days for an approved leave. '
               'Current days: $originalDays'
-              : 'Update your leave details below and submit the form.',
+              : 'Do you want to Update you Details?',
         ),
         actions: [
           TextButton(
@@ -682,7 +683,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
               provider.resetForm();
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: const Text('No'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -716,9 +717,8 @@ class _LeaveScreenState extends State<LeaveScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4A90E2),
             ),
-            child: const Text('OK'),
+            child: const Text('Yes'),
           ),
         ],
       ),
@@ -793,9 +793,11 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  void _showCancelConfirmation(BuildContext context, String leaveId,
-      Map<String, dynamic> leave) {
+  void _showCancelConfirmation(BuildContext context, String leaveId) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
+    // Get leave from provider data
+    final leave = provider.allLeaves.firstWhere((l) => l['id'] == leaveId, orElse: () => {});
+
     final isPartialCancel = provider.canCancelPartialLeave(leave);
     final remainingDays = isPartialCancel
         ? provider.getRemainingLeaveDays(leave)
@@ -877,12 +879,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
           ),
     );
   }
-
-
-
-
-
-
   Future<void> _submitLeave(BuildContext context) async {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
 
@@ -957,23 +953,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                             ),
 
                             // Apply for Leave Form
-                            Container(
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 16),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.5),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: _buildLeaveForm(context, provider),
-                            ),
+                            _buildLeaveForm(context, provider),
                             const SizedBox(height: 16),
 
                             // Leave History
@@ -1012,7 +992,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
             offset: const Offset(0, 2),
           ),
         ],
-        // Add highlight border if form is being edited
         border: isFormFilled
             ? Border.all(
           color: const Color(0xFF4A90E2),
@@ -1025,26 +1004,18 @@ class _LeaveScreenState extends State<LeaveScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Highlight indicator
+            // ✅ Show this small info bar on top when editing mode is active
             if (isFormFilled)
               Container(
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4A90E2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: const Color(0xFF4A90E2),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Row(
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF4A90E2),
-                      size: 18,
-                    ),
+                    Icon(Icons.info_outline, color: Color(0xFF4A90E2), size: 18),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1060,6 +1031,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 ),
               ),
 
+            // ✅ Title and attach icon
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1085,10 +1057,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
               ],
             ),
 
-
             const SizedBox(height: 20),
 
-            // Date Fields Row
+            // ✅ From / To date fields
             Row(
               children: [
                 CustomDateField(
@@ -1107,7 +1078,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
 
             const SizedBox(height: 12),
 
-            // Time Fields Row
+            // ✅ From / To time fields
             Row(
               children: [
                 CustomTimeField(
@@ -1124,27 +1095,29 @@ class _LeaveScreenState extends State<LeaveScreen> {
 
             const SizedBox(height: 12),
 
-            // Half Day Checkboxes
+            // ✅ Half-day checkboxes
             Row(
               children: [
                 Expanded(
-                    child: HalfDayCheckbox(
-                      value: provider.isHalfDayFrom,
-                      onChanged: (value) => provider.setIsHalfDayFrom(value ?? false),
-                    )
+                  child: HalfDayCheckbox(
+                    value: provider.isHalfDayFrom,
+                    onChanged: (value) =>
+                        provider.setIsHalfDayFrom(value ?? false),
+                  ),
                 ),
                 Expanded(
-                    child: HalfDayCheckbox(
-                      value: provider.isHalfDayFrom,
-                      onChanged: (value) => provider.setIsHalfDayFrom(value ?? false),
-                    )
+                  child: HalfDayCheckbox(
+                    value: provider.isHalfDayTo,
+                    onChanged: (value) =>
+                        provider.setIsHalfDayTo(value ?? false),
+                  ),
                 ),
               ],
             ),
 
             const SizedBox(height: 20),
 
-            // Leave Type Dropdown
+            // ✅ Leave type dropdown
             LeaveTypeDropdown(
               selectedValue: provider.selectedLeaveType,
               leaveTypes: provider.leaveTypes,
@@ -1155,9 +1128,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
 
             const SizedBox(height: 24),
 
-            // Notes Field
+            // ✅ Justification field
             const Text(
-              'Notes :',
+              'Justification :',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 12),
@@ -1168,16 +1141,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
               decoration: InputDecoration(
                 hintText: 'Enter reason for leave...',
                 hintStyle: TextStyle(
-                  color: Colors.grey.shade400,
+                  color: Colors.grey,
                   fontSize: 14,
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
@@ -1191,9 +1160,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 contentPadding: const EdgeInsets.all(12),
               ),
               validator: (value) {
-                if (value == null || value
-                    .trim()
-                    .isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'Please enter a reason for leave';
                 }
                 return null;
@@ -1202,7 +1169,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
 
             const SizedBox(height: 30),
 
-            // Submit Button
+            // ✅ Submit button
             SubmitButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
@@ -1210,10 +1177,11 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 }
               },
               isLoading: provider.isLoading,
-            )
+            ),
           ],
         ),
       ),
     );
   }
+
 }

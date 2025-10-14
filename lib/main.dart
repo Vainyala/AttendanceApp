@@ -1,5 +1,6 @@
 import 'package:AttendenceApp/providers/dashboard_provider.dart';
 import 'package:AttendenceApp/providers/splash_provider.dart';
+import 'package:AttendenceApp/providers/regularisation_provider.dart'; // 👈 ADD THIS IMPORT
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/notification_service.dart';
@@ -23,8 +24,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SplashProvider()), // 👈 added provider
+        ChangeNotifierProvider(create: (_) => SplashProvider()),
         ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider(create: (_) => RegularisationProvider()), // 👈 ADD THIS
       ],
       child: MaterialApp(
         title: 'Geofence Attendance',

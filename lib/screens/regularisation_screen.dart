@@ -17,11 +17,21 @@ class RegularisationScreen extends StatefulWidget {
 class _RegularisationScreenState extends State<RegularisationScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeScreen();
+    // Don't initialize here - wait for didChangeDependencies
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _initializeScreen();
+      _isInitialized = true;
+    }
   }
 
   void _initializeScreen() {
@@ -41,7 +51,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     _tabController.dispose();
     super.dispose();
   }
-
   void _showRegularisationDialog(
       String dateStr,
       DateTime actualDate,
@@ -133,7 +142,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Text('Notes:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Justification:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: noteController,
@@ -167,9 +176,11 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
                 provider.submitRegularisation(
                   date: dateStr,
+                  projectName: '',
                   time: selectedTime,
                   type: selectedType,
-                  notes: noteController.text.trim(), projectName: '', description: '',
+                  notes: noteController.text.trim(),
+                  description: '',
                 );
 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -475,33 +486,23 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            hours,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Text(
-                            ' hrs',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        hours,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'hours',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -535,7 +536,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                     status: status,
                     fontSize: 11,
                     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                  )
+                  ),
                 ),
               ],
             ),
@@ -558,23 +559,61 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  Widget _buildStatusCategory(String status, List<Map> items) {
-    return StatusUtils.getStatusIconWidget(status);
-  }
-
-  Widget _buildCategorizedRecords(DateTime month) {
+  Widget _buildRecordsList(DateTime month) {
     final provider = context.read<RegularisationProvider>();
     final categorized = provider.getCategorizedRecords(month);
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 80),
-      children: categorized.entries
-          .where((entry) => entry.value.isNotEmpty)
-          .map((entry) => _buildStatusCategory(entry.key, entry.value))
-          .toList(),
+    final allRecords = <Map<String, dynamic>>[];
+    for (var records in categorized.values) {
+      allRecords.addAll(records);
+    }
+
+    if (allRecords.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today,
+              size: 64,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No attendance records found',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: allRecords.length,
+      itemBuilder: (context, index) {
+        final record = allRecords[index];
+        return _buildTableRow(
+          record['date'],
+          record['hours'],
+          record['shortfall'],
+          _getStatusFromRecord(record),
+          record['actualDate'],
+          record['records'],
+        );
+      },
     );
   }
 
+  String _getStatusFromRecord(Map<String, dynamic> record) {
+    final provider = context.read<RegularisationProvider>();
+    final actualDate = record['actualDate'] as DateTime;
+    final shortfall = record['shortfall'] as String;
+    return provider.getStatusForDay(actualDate, shortfall);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -692,7 +731,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             return TabBarView(
               controller: _tabController,
               children: provider.availableMonths
-                  .map((month) => _buildCategorizedRecords(month))
+                  .map((month) => _buildRecordsList(month))
                   .toList(),
             );
           },
