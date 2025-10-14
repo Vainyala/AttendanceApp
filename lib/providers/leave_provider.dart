@@ -135,6 +135,39 @@ class LeaveProvider extends ChangeNotifier {
     }).toList()..sort((a, b) => b['appliedOn'].compareTo(a['appliedOn']));
   }
 
+  bool canCancelPartialLeave(Map<String, dynamic> leave) {
+    final now = DateTime.now();
+    final fromDate = leave['fromDate'] as DateTime;
+    final toDate = leave['toDate'] as DateTime;
+
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+
+    // From date is today or in the past
+    final isFromDatePastOrToday =
+        fromDate.isBefore(normalizedNow) ||
+            fromDate.isAtSameMomentAs(normalizedNow);
+
+    // To date is in the future
+    final isTodateInFuture = toDate.isAfter(normalizedNow);
+
+    return isFromDatePastOrToday && isTodateInFuture;
+  }
+
+  int getRemainingLeaveDays(Map<String, dynamic> leave) {
+    final now = DateTime.now();
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+
+    if (leave['toDate'].isBefore(normalizedNow)) {
+      return 0;
+    }
+
+    // Calculate remaining days from tomorrow onwards
+    final nextDay = normalizedNow.add(const Duration(days: 1));
+    final remaining = leave['toDate'].difference(nextDay).inDays + 1;
+
+    return remaining > 0 ? remaining : 0;
+  }
+
   // Get display leaves (with show all/less logic)
   List<Map<String, dynamic>> get displayLeaves {
     return _showAllLeaves
@@ -145,6 +178,12 @@ class LeaveProvider extends ChangeNotifier {
   // Calculate total days
   int get totalLeaveDays {
     return allLeaves.fold<int>(0, (sum, leave) => sum + (leave['days'] as int));
+  }
+
+  bool isFormPrefilled() {
+    // Check if form has been filled with data from editing
+    return notesController.text.isNotEmpty &&
+        selectedLeaveType.isNotEmpty;
   }
 
   // Setters
@@ -291,17 +330,39 @@ class LeaveProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Cancel leave
-  void cancelLeave(String leaveId) {
-    _appliedLeaves.removeWhere((leave) => leave['id'] == leaveId);
+  void cancelLeave(String leaveId, {bool isPartialCancel = false}) {
+    final index = _appliedLeaves.indexWhere((leave) => leave['id'] == leaveId);
+
+    if (index != -1) {
+      if (isPartialCancel) {
+        // For partial cancellation, update the toDate to today
+        _appliedLeaves[index]['toDate'] = DateTime.now();
+        final from = _appliedLeaves[index]['fromDate'] as DateTime;
+        final to = _appliedLeaves[index]['toDate'] as DateTime;
+        _appliedLeaves[index]['days'] = to.difference(from).inDays + 1;
+      } else {
+        // Full cancellation - remove the leave
+        _appliedLeaves.removeAt(index);
+      }
+    }
     notifyListeners();
+  }
+  void updateLeaveDay(String leaveId, DateTime date, bool isHalfDay) {
+    // Update specific day in the leave record
+    // This persists to your backend
   }
 
   // Validate if days can be decreased for approved leave
   bool canDecreaseApprovedLeaveDays(int originalDays, int newDays) {
     return newDays < originalDays;
   }
+  bool canEditOrDeleteLeave(Map<String, dynamic> leave) {
+    final now = DateTime.now();
+    final fromDate = leave['fromDate'] as DateTime;
 
+    // Both dates must be in the future (excluding today)
+    return fromDate.isAfter(DateTime(now.year, now.month, now.day));
+  }
   @override
   void dispose() {
     notesController.dispose();

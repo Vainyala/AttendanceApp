@@ -233,6 +233,27 @@ class RegularisationProvider extends ChangeNotifier {
     }
   }
 
+  // Calculate clock hours for a specific project
+  String calculateClockHoursForProject(List<AttendanceModel> projectRecords) {
+    try {
+      final checkIn = projectRecords.firstWhere(
+            (r) => r.type == AttendanceType.checkIn,
+        orElse: () => projectRecords.first,
+      );
+      final checkOut = projectRecords.lastWhere(
+            (r) => r.type == AttendanceType.checkOut,
+        orElse: () => projectRecords.last,
+      );
+
+      final duration = checkOut.timestamp.difference(checkIn.timestamp);
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes % 60;
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '00:00';
+    }
+  }
+
   // Calculate shortfall hours
   String calculateShortfall(String clockHours) {
     try {
@@ -277,7 +298,13 @@ class RegularisationProvider extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
-    return checkDate.isBefore(today) && status == 'Apply';
+    // Cannot edit today or future dates
+    if (checkDate.isAtSameMomentAs(today) || checkDate.isAfter(today)) {
+      return false;
+    }
+
+    // Can edit Apply and Rejected statuses
+    return status == 'Apply' || status == 'Rejected' || status == 'Pending';
   }
 
   // Get categorized records by status
@@ -329,8 +356,10 @@ class RegularisationProvider extends ChangeNotifier {
   // Submit regularisation request
   Future<void> submitRegularisation({
     required String date,
+    required String projectName,
     required TimeOfDay time,
     required String type,
+    required String description,
     required String notes,
   }) async {
     // Simulate API call
@@ -338,6 +367,14 @@ class RegularisationProvider extends ChangeNotifier {
 
     // In a real app, you would send this to your backend
     // and update the attendance status accordingly
+    print('Submitting regularisation:');
+    print('Date: $date');
+    print('Project: $projectName');
+    print('Time: ${time.format}');
+    print('Type: $type');
+    print('Description: $description');
+    print('Notes: $notes');
+
     notifyListeners();
   }
 
