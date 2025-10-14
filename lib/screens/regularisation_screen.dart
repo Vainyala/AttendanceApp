@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/regularisation_provider.dart';
 import '../models/attendance_model.dart';
-import '../utils/status_utils.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/status_badge.dart';
 
@@ -18,12 +17,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Don't initialize here - wait for didChangeDependencies
-  }
 
   @override
   void didChangeDependencies() {
@@ -51,287 +44,89 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     _tabController.dispose();
     super.dispose();
   }
-  void _showRegularisationDialog(
+
+  // Show detailed regularisation view
+  void _showRegularisationDetails(
       String dateStr,
       DateTime actualDate,
       List<AttendanceModel> dayRecords,
+      String status,
       ) {
     final provider = context.read<RegularisationProvider>();
-    final clockHours = provider.calculateClockHours(dayRecords);
-    final shortfall = provider.calculateShortfall(clockHours);
-    final status = provider.getStatusForDay(actualDate, shortfall);
+    final projectGroups = provider.getProjectGroups(dayRecords);
+    final isEditable = status == 'Apply' || status == 'Rejected' || status == 'Pending';
 
-    if (!provider.canEditRecord(actualDate, status)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot apply for regularisation for today or future dates'),
-          backgroundColor: Colors.red,
-        ),
+    if (projectGroups.length == 1) {
+      // Single project - show direct edit form
+      final projectEntry = projectGroups.entries.first;
+      _showProjectDetailDialog(
+        dateStr,
+        actualDate,
+        projectEntry.key,
+        projectEntry.value,
+        status,
+        isEditable,
       );
-      return;
+    } else {
+      // Multiple projects - show project selection
+      _showProjectSelectionDialog(
+        dateStr,
+        actualDate,
+        projectGroups,
+        status,
+        isEditable,
+      );
     }
+  }
 
-    TimeOfDay selectedTime = TimeOfDay.now();
-    String selectedType = 'PM';
-    final noteController = TextEditingController();
-
+  // Show project selection dialog for multiple projects
+  void _showProjectSelectionDialog(
+      String dateStr,
+      DateTime actualDate,
+      Map<String, List<AttendanceModel>> projectGroups,
+      String status,
+      bool isEditable,
+      ) {
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Apply for Regularisation'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Date: $dateStr',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 16),
-                _buildProjectSummary(dayRecords),
-                const SizedBox(height: 16),
-                const Text(
-                  'Select Time:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () async {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: selectedTime,
-                    );
-                    if (time != null) {
-                      setDialogState(() => selectedTime = time);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade200,
-                    foregroundColor: Colors.black87,
-                  ),
-                  child: Text(selectedTime.format(context)),
-                ),
-                const SizedBox(height: 16),
-                const Text('Type:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile<String>(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('AM'),
-                        value: 'AM',
-                        groupValue: selectedType,
-                        onChanged: (value) {
-                          setDialogState(() => selectedType = value!);
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: RadioListTile<String>(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('PM'),
-                        value: 'PM',
-                        groupValue: selectedType,
-                        onChanged: (value) {
-                          setDialogState(() => selectedType = value!);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text('Justification:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: noteController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'Enter reason for regularisation...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (noteController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a reason for regularisation'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-
-                provider.submitRegularisation(
-                  date: dateStr,
-                  projectName: '',
-                  time: selectedTime,
-                  type: selectedType,
-                  notes: noteController.text.trim(),
-                  description: '',
-                );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Regularisation request submitted for $dateStr at ${selectedTime.format(context)} $selectedType',
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A90E2),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Submit'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProjectSummary(List<AttendanceModel> dayRecords) {
-    final provider = context.read<RegularisationProvider>();
-    final projectGroups = provider.getProjectGroups(dayRecords);
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Project Hours:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          ...projectGroups.entries.map((entry) {
-            final projectRecords = entry.value;
-            final checkIn = projectRecords.firstWhere(
-                  (r) => r.type == AttendanceType.checkIn,
-              orElse: () => projectRecords.first,
-            );
-            final checkOut = projectRecords.lastWhere(
-                  (r) => r.type == AttendanceType.checkOut,
-              orElse: () => projectRecords.last,
-            );
-
-            final duration = checkOut.timestamp.difference(checkIn.timestamp);
-            final hours = duration.inHours;
-            final minutes = duration.inMinutes % 60;
-            final timeStr =
-                '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ Fixed: removed extra comma after Row
+              Row(
                 children: [
-                  Text(entry.key, style: const TextStyle(fontSize: 13)),
+                  const Icon(Icons.calendar_today, color: Color(0xFF4A90E2), size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    '$timeStr hrs',
+                    dateStr,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
+                  const Spacer(),
+                  StatusBadge(status: status, fontSize: 12),
                 ],
               ),
-            );
-          }).toList(),
-          const Divider(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              Consumer<RegularisationProvider>(
-                builder: (context, provider, _) {
-                  final clockHours = provider.calculateClockHours(dayRecords);
-                  return Text(
-                    '$clockHours hrs',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.blue,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProjectSwiper(List<AttendanceModel> dayRecords) {
-    final provider = context.read<RegularisationProvider>();
-    final projectGroups = provider.getProjectGroups(dayRecords);
-
-    if (projectGroups.isEmpty) return const SizedBox.shrink();
-
-    final projectEntries = projectGroups.entries.toList();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Projects (Swipe to view)',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: Colors.blue,
-                ),
-              ),
+              const SizedBox(height: 20),
               Text(
-                '${projectEntries.length} projects',
+                'Select Project',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 14,
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 90,
-            child: PageView.builder(
-              itemCount: projectEntries.length,
-              itemBuilder: (context, index) {
-                final entry = projectEntries[index];
+              const SizedBox(height: 12),
+
+              // ✅ Loop through projects
+              ...projectGroups.entries.map((entry) {
                 final projectRecords = entry.value;
 
                 final checkIn = projectRecords.firstWhere(
@@ -346,92 +141,586 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 final duration = checkOut.timestamp.difference(checkIn.timestamp);
                 final hours = duration.inHours;
                 final minutes = duration.inMinutes % 60;
-                final timeStr =
-                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
 
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Material(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade300, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.shade100,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              entry.key,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    elevation: 2,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showProjectDetailDialog(
+                          dateStr,
+                          actualDate,
+                          entry.key,
+                          projectRecords,
+                          status,
+                          isEditable,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF4A90E2).withOpacity(0.3),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${index + 1}/${projectEntries.length}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4A90E2).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.folder_outlined,
+                                color: Color(0xFF4A90E2),
+                                size: 24,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.timer_outlined,
-                            size: 16,
-                            color: Colors.blue.shade600,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$timeStr hrs',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue.shade700,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    entry.key,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')} hrs',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey.shade400,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 );
-              },
+              }).toList(),
+
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  // Show project detail dialog with form
+  void _showProjectDetailDialog(
+      String dateStr,
+      DateTime actualDate,
+      String projectName,
+      List<AttendanceModel> projectRecords,
+      String status,
+      bool isEditable,
+      ) {
+    final checkIn = projectRecords.firstWhere(
+          (r) => r.type == AttendanceType.checkIn,
+      orElse: () => projectRecords.first,
+    );
+    final checkOut = projectRecords.lastWhere(
+          (r) => r.type == AttendanceType.checkOut,
+      orElse: () => projectRecords.last,
+    );
+
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(checkOut.timestamp);
+    String selectedType = checkOut.timestamp.hour < 12 ? 'AM' : 'PM';
+    final noteController = TextEditingController(
+      text: isEditable ? '' : 'Previous justification text here...',
+    );
+
+    // Mock manager comment based on status
+    String managerComment = '';
+    if (status == 'Pending') {
+      managerComment = 'Your request is under review by the manager.';
+    } else if (status == 'Rejected') {
+      managerComment = 'Insufficient justification provided. Please provide more details.';
+    } else if (status == 'Approved') {
+      managerComment = 'Request approved successfully. Hours have been regularized.';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Icon(Icons.edit_calendar, color: Color(0xFF4A90E2), size: 24),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          isEditable ? 'Regularisation Request' : 'Request Details',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      StatusBadge(status: status, fontSize: 11),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+
+                  // Date Card
+                  _buildInfoCard(
+                    icon: Icons.calendar_today,
+                    label: 'Date',
+                    value: dateStr,
+                    color: Color(0xFF4A90E2),
+                  ),
+                  SizedBox(height: 12),
+
+                  // Project Card
+                  _buildInfoCard(
+                    icon: Icons.folder_outlined,
+                    label: 'Project',
+                    value: projectName,
+                    color: Color(0xFF4A90E2),
+                  ),
+                  SizedBox(height: 12),
+
+                  // Hours Card
+                  _buildInfoCard(
+                    icon: Icons.access_time,
+                    label: 'Worked Hours',
+                    value: '${checkOut.timestamp.difference(checkIn.timestamp).inHours}:${(checkOut.timestamp.difference(checkIn.timestamp).inMinutes % 60).toString().padLeft(2, '0')} hrs',
+                    color: Color(0xFF4A90E2),
+                  ),
+                  SizedBox(height: 20),
+
+                  if (isEditable) ...[
+                    // Time Picker
+                    Text(
+                      'Regularisation Time',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final time = await showTimePicker(
+                          context: context,
+                          initialTime: selectedTime,
+                        );
+                        if (time != null) {
+                          setDialogState(() => selectedTime = time);
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.schedule, color: Color(0xFF4A90E2), size: 20),
+                            SizedBox(width: 12),
+                            Text(
+                              selectedTime.format(context),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // Type Selection
+                    Text(
+                      'Period',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTypeOption(
+                            'AM',
+                            selectedType == 'AM',
+                                () => setDialogState(() => selectedType = 'AM'),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTypeOption(
+                            'PM',
+                            selectedType == 'PM',
+                                () => setDialogState(() => selectedType = 'PM'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+
+                    // Justification
+                    Text(
+                      'Justification',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: noteController,
+                      maxLines: 4,
+                      enabled: isEditable,
+                      decoration: InputDecoration(
+                        hintText: 'Explain the reason for regularisation...',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF4A90E2), width: 2),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // View only mode - show submitted details
+                    _buildInfoCard(
+                      icon: Icons.schedule,
+                      label: 'Submitted Time',
+                      value: '${selectedTime.format(context)} $selectedType',
+                      color: Color(0xFF4A90E2),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Justification',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Text(
+                        noteController.text.isEmpty ? 'No justification provided' : noteController.text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Manager Comment Section
+                  if (status != 'Apply') ...[
+                    SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: status == 'Approved'
+                            ? Colors.green.shade50
+                            : status == 'Rejected'
+                            ? Colors.red.shade50
+                            : Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: status == 'Approved'
+                              ? Colors.green.shade200
+                              : status == 'Rejected'
+                              ? Colors.red.shade200
+                              : Colors.orange.shade200,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                status == 'Approved'
+                                    ? Icons.check_circle
+                                    : status == 'Rejected'
+                                    ? Icons.cancel
+                                    : Icons.info,
+                                color: status == 'Approved'
+                                    ? Colors.green.shade700
+                                    : status == 'Rejected'
+                                    ? Colors.red.shade700
+                                    : Colors.orange.shade700,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Manager Comment',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: status == 'Approved'
+                                      ? Colors.green.shade900
+                                      : status == 'Rejected'
+                                      ? Colors.red.shade900
+                                      : Colors.orange.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            managerComment,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (isEditable) ...[
+                        SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (noteController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Please provide justification'),
+                                    backgroundColor: Colors.orange,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              context.read<RegularisationProvider>().submitRegularisation(
+                                date: dateStr,
+                                projectName: projectName,
+                                time: selectedTime,
+                                type: selectedType,
+                                notes: noteController.text.trim(),
+                                description: '',
+                              );
+
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: Colors.white),
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text('Request submitted successfully'),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF4A90E2),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Submit Request',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTableRow(
+  Widget _buildTypeOption(String label, bool isSelected, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Color(0xFF4A90E2) : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Color(0xFF4A90E2) : Colors.grey.shade300,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : Colors.black54,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttendanceCard(
       String date,
       String hours,
       String shortfall,
@@ -440,122 +729,193 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       List<AttendanceModel> dayRecords,
       ) {
     final provider = context.read<RegularisationProvider>();
-    final canEdit = provider.canEditRecord(actualDate, status);
+    final projectGroups = provider.getProjectGroups(dayRecords);
+    final canInteract = true; // All statuses are now clickable
 
-    return InkWell(
-      onTap: canEdit
-          ? () => _showRegularisationDialog(date, actualDate, dayRecords)
-          : null,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: canEdit ? Colors.white : Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: canEdit ? Colors.blue.shade200 : Colors.grey.shade300,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 1,
+        shadowColor: Colors.black,
+        child: InkWell(
+          onTap: canInteract
+              ? () => _showRegularisationDetails(date, actualDate, dayRecords, status)
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                // Header Row
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF4A90E2).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.calendar_today,
+                        color: Color(0xFF4A90E2),
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            date,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('EEEE').format(actualDate),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    StatusBadge(status: status, fontSize: 11),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // Stats Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        icon: Icons.access_time,
+                        label: 'Hours',
+                        value: hours,
+                        color: Color(0xFF4A90E2),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: Colors.grey.shade200,
+                    ),
+                    Expanded(
+                      child: _buildStatItem(
+                        icon: Icons.trending_down,
+                        label: 'Shortfall',
+                        value: shortfall,
+                        color: shortfall == '00:00' ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (projectGroups.length > 0) ...[
+                  SizedBox(height: 16),
+                  Divider(height: 1, color: Colors.grey),
+                  SizedBox(height: 16),
+
+                  // Projects Section
+                  Row(
                     children: [
-                      Text(
-                        date,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Icon(
+                        Icons.folder_outlined,
+                        size: 16,
+                        color: Colors.grey.shade600,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(width: 6),
                       Text(
-                        DateFormat('EEEE').format(actualDate),
+                        '${projectGroups.length} Project${projectGroups.length > 1 ? 's' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
                         ),
                       ),
+                      Spacer(),
+                      if (canInteract)
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Color(0xFF4A90E2),
+                        ),
                     ],
                   ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        hours,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: projectGroups.keys.take(3).map((projectName) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF4A90E2).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Color(0xFF4A90E2).withOpacity(0.2),
+                          ),
                         ),
-                      ),
-                      Text(
-                        'hours',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                        child: Text(
+                          projectName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF4A90E2),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      );
+                    }).toList(),
                   ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        shortfall,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: shortfall == '00:00' ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      Text(
-                        'shortfall',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: StatusBadge(
-                    status: status,
-                    fontSize: 11,
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                  ),
-                ),
+                ],
               ],
             ),
-            _buildProjectSwiper(dayRecords),
-            if (canEdit)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'Tap to apply for regularisation',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.blue.shade600,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            SizedBox(width: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -568,22 +928,45 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       allRecords.addAll(records);
     }
 
+    // Sort by date descending
+    allRecords.sort((a, b) {
+      final dateA = a['actualDate'] as DateTime;
+      final dateB = b['actualDate'] as DateTime;
+      return dateB.compareTo(dateA);
+    });
+
     if (allRecords.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.calendar_today,
-              size: 64,
-              color: Colors.grey.shade300,
+            Container(
+              padding: EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.calendar_today_outlined,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 20),
             Text(
-              'No attendance records found',
+              'No Records Found',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'No attendance records for this month',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
               ),
             ),
           ],
@@ -592,11 +975,11 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       itemCount: allRecords.length,
       itemBuilder: (context, index) {
         final record = allRecords[index];
-        return _buildTableRow(
+        return _buildAttendanceCard(
           record['date'],
           record['hours'],
           record['shortfall'],
@@ -622,15 +1005,18 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'Regularisation',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
-          backgroundColor: const Color(0xFF4A90E2),
+          backgroundColor: Color(0xFF4A90E2),
           foregroundColor: Colors.white,
           elevation: 0,
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
+            preferredSize: Size.fromHeight(48),
             child: Consumer<RegularisationProvider>(
               builder: (context, provider, _) {
                 return Container(
@@ -639,52 +1025,49 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                     controller: _tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    indicator: const UnderlineTabIndicator(
+                    indicator: UnderlineTabIndicator(
                       borderSide: BorderSide(
                         color: Color(0xFF4A90E2),
                         width: 3,
                       ),
                       insets: EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    labelColor: const Color(0xFF4A90E2),
+                    labelColor: Color(0xFF4A90E2),
                     unselectedLabelColor: Colors.grey,
-                    labelStyle: const TextStyle(
+                    labelStyle: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
-                    unselectedLabelStyle: const TextStyle(
+                    unselectedLabelStyle: TextStyle(
                       fontWeight: FontWeight.normal,
                       fontSize: 15,
                     ),
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 20),
-                    tabs: provider.availableMonths
-                        .map((month) {
-                      final isCurrentMonth =
-                          month.month == DateTime.now().month &&
-                              month.year == DateTime.now().year;
+                    labelPadding: EdgeInsets.symmetric(horizontal: 20),
+                    tabs: provider.availableMonths.map((month) {
+                      final isCurrentMonth = month.month == DateTime.now().month &&
+                          month.year == DateTime.now().year;
                       return Tab(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(DateFormat('MMM yyyy').format(month)),
                             if (isCurrentMonth) ...[
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2),
                               Container(
                                 width: 6,
                                 height: 6,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: Color(0xFF4A90E2),
                                   shape: BoxShape.circle,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                           ],
                         ),
                       );
-                    })
-                        .toList(),
+                    }).toList(),
                   ),
                 );
               },
@@ -694,13 +1077,21 @@ class _RegularisationScreenState extends State<RegularisationScreen>
         body: Consumer<RegularisationProvider>(
           builder: (context, provider, _) {
             if (provider.isLoading) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4A90E2)),
+                    ),
                     SizedBox(height: 16),
-                    Text('Loading attendance data...'),
+                    Text(
+                      'Loading attendance data...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -711,17 +1102,45 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
+                      size: 64,
+                      color: Colors.red.shade300,
                     ),
-                    const SizedBox(height: 16),
-                    Text(provider.errorMessage!),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
+                    SizedBox(height: 20),
+                    Text(
+                      'Oops! Something went wrong',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        provider.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    ElevatedButton.icon(
                       onPressed: provider.loadAttendance,
-                      child: const Text('Retry'),
+                      icon: Icon(Icons.refresh),
+                      label: Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF4A90E2),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
