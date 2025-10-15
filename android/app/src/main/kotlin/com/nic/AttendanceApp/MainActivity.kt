@@ -1,4 +1,4 @@
-package com.example.AttendenceApp
+package com.nic.AttendanceApp
 
 import io.flutter.embedding.android.FlutterActivity
 
