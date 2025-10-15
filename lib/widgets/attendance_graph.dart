@@ -17,7 +17,7 @@ class AttendanceGraph extends StatelessWidget {
     return Container(
       height: 220,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.gradientStart, AppColors.gradientEnd],

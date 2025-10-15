@@ -1,4 +1,5 @@
 
+import 'package:AttendenceApp/utils/app_styles.dart';
 import 'package:AttendenceApp/widgets/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -102,11 +103,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBody(AppProvider provider) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppColors.primaryBlue, AppColors.darkBlue],
+          colors: [AppColors.primaryBlue, AppColors.primaryBlue],
         ),
       ),
       child: SafeArea(
@@ -191,19 +192,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text(
             DateTimeUtils.formatDateTime(DateTime.now()),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+            style: AppStyles.time,
           ),
           const SizedBox(height: 5),
           Text(
             DateTimeUtils.formatTime(DateTime.now()),
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
+            style: AppStyles.textMedium,
           ),
           const SizedBox(height: 10),
           Text(
@@ -226,7 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: CustomButton(
             text: provider.isCheckingIn ? 'CHECKING IN...' : 'CHECK IN',
             icon: Icons.login,
-            color: AppColors.checkInGreen,
+            color: AppColors.successGreen,
             loading: provider.isCheckingIn,
             onPressed: provider.canCheckIn ? _handleCheckIn : null,
           ),
@@ -236,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: CustomButton(
             text: provider.isCheckingOut ? 'CHECKING OUT...' : 'CHECK OUT',
             icon: Icons.logout,
-            color: AppColors.checkInGreen,
+            color: AppColors.successGreen,
             loading: provider.isCheckingOut,
             onPressed: provider.canCheckOut ? _handleCheckOut : null,
           ),
@@ -254,18 +248,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const Text(
               'Mapped Projects',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              style: AppStyles.headingLarge,
             ),
             Text(
               '${provider.user?.projects.length ?? 0} Projects',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: AppStyles.text,
             ),
           ],
         ),
@@ -284,10 +271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? Center(
         child: Text(
           "No projects mapped",
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-          ),
+          style: AppStyles.text
         ),
       )
           : ListView.builder(
@@ -334,11 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Text(
               project.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: AppStyles.text1,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -360,7 +340,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 13, color: Colors.white70),
+            style: AppStyles.text,
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -377,11 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const Text(
               'Attendance Graph',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              style: AppStyles.headingLarge,
             ),
             TextButton.icon(
               onPressed: () {

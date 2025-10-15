@@ -1,13 +1,61 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primaryBlue = Color(0xFF4A90E2);
-  static const Color darkBlue = Color(0xFF357ABD);
-  static const Color checkInGreen = Color(0xFF4CAF50);
-  static const Color checkOutOrange = Color(0xFFFF5722);
-  static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color textDark = Colors.black87;
-  static const Color textLight = Colors.white;
+  // Primary Colors
+  static const primaryBlue = Color(0xFF4A90E2);
+  static const textDark = Colors.black87;
+  static const textLight = Colors.white;
+  static const background = Color(0xFFF5F5F5);
+  static const primaryLight = Color(0xFF6BA4EC);
+  static const primaryDark = Color(0xFF2171C9);
+  // Background Colors
+  static const white = Colors.white;
+  static const cardBackground = Colors.white;
+
+  // Text Colors
+  static const textPrimary = Colors.black87;
+  static const textSecondary = Colors.black54;
+  static const textHint = Colors.grey;
+
+  // Status Colors
+  static const success = Colors.green;
+  static const error = Colors.red;
+  static const warning = Colors.orange;
+  static const info = Colors.blue;
+
+  // Border Colors
+  static Color borderLight = Colors.grey.shade300;
+  static Color borderMedium = Colors.grey.shade400;
+
+  // Shadow Colors
+  static Color shadowColor = Colors.black.withOpacity(0.05);
+  static Color shadowColorDark = Colors.black.withOpacity(0.1);
+
+  // Other Colors
+  static Color greyLight = Colors.grey.shade50;
+  static Color greyMedium = Colors.grey.shade100;
+  static Color greyDark = Colors.grey.shade600;
+
+  // Leave Type Colors (for pie chart)
+  static const sickLeave = Color(0xFFE57373);
+  static const casualLeave = Color(0xFF64B5F6);
+  static const earnedLeave = Color(0xFF81C784);
+  static const unpaidLeave = Color(0xFFFFD54F);
+
+  // Gray Shades
+  static const grey50 = Color(0xFFFAFAFA);
+  static const grey100 = Color(0xFFF5F5F5);
+  static const grey200 = Color(0xFFEEEEEE);
+  static const grey300 = Color(0xFFE0E0E0);
+  static const grey400 = Color(0xFFBDBDBD);
+  static const grey600 = Color(0xFF757575);
+  static const grey700 = Color(0xFF616161);
+
+  // Additional Colors (add as needed)
+  static const divider = Color(0xFFE0E0E0);
+
+  // Private constructor to prevent instantiation
+  AppColors._();
 
   // Additional colors for reuse
   static const Color successGreen = Color(0xFF4CAF50);
