@@ -1,7 +1,10 @@
+import 'package:AttendenceApp/utils/app_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/project_model.dart';
 import '../providers/dashboard_provider.dart';
+import '../utils/app_colors.dart';
+import '../utils/app_text.dart';
 
 class ProjectDetailsScreen extends StatelessWidget {
   const ProjectDetailsScreen({super.key});
@@ -14,7 +17,7 @@ class ProjectDetailsScreen extends StatelessWidget {
     if (project == null) {
       return const Scaffold(
         body: Center(
-          child: Text('No project selected'),
+          child: Text(AppText.NoProject),
         ),
       );
     }
@@ -23,10 +26,10 @@ class ProjectDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           project.name ?? "Project Details",
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.textLight),
         ),
-        backgroundColor: const Color(0xFF4A90E2),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: AppColors.primaryBlue,
+        iconTheme: const IconThemeData(color: AppColors.textLight),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -46,32 +49,25 @@ class ProjectDetailsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.textLight.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.work_outline,
                       size: 50,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                   const SizedBox(height: 15),
                   Text(
                     project.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: AppStyles.name,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'ID: ${project.id}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: AppStyles.id,
                   ),
                 ],
               ),
@@ -118,11 +114,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(15),
                         child: Text(
                           project.description,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.black87,
-                            height: 1.5,
-                          ),
+                          style: AppStyles.description
                         ),
                       ),
                     ],
@@ -133,19 +125,14 @@ class ProjectDetailsScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4A90E2),
+                        backgroundColor: AppColors.primaryBlue,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Back to Dashboard',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: const Text(AppText.BackDash,
+                        style: AppStyles.heading,
                       ),
                     ),
                   ),
@@ -161,11 +148,11 @@ class ProjectDetailsScreen extends StatelessWidget {
   Widget _buildDetailCard(String title, List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: AppColors.grey700.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -179,11 +166,7 @@ class ProjectDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(15),
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4A90E2),
-              ),
+              style: AppStyles.title,
             ),
           ),
           const Divider(height: 1),
@@ -206,19 +189,12 @@ class ProjectDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: AppStyles.caption,
                 ),
                 const SizedBox(height: 3),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
+                  style: AppStyles.label,
                 ),
               ],
             ),

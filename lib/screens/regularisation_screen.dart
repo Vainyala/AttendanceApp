@@ -1,10 +1,16 @@
+import 'package:AttendenceApp/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/regularisation_provider.dart';
 import '../models/attendance_model.dart';
+import '../utils/app_colors.dart';
+import '../utils/app_styles.dart';
+import '../utils/app_helpers.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/info_card.dart';
+import '../widgets/stat_item.dart';
 
 class RegularisationScreen extends StatefulWidget {
   const RegularisationScreen({super.key});
@@ -57,7 +63,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     final isEditable = status == 'Apply' || status == 'Rejected' || status == 'Pending';
 
     if (projectGroups.length == 1) {
-      // Single project - show direct edit form
       final projectEntry = projectGroups.entries.first;
       _showProjectDetailDialog(
         dateStr,
@@ -68,7 +73,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
         isEditable,
       );
     } else {
-      // Multiple projects - show project selection
       _showProjectSelectionDialog(
         dateStr,
         actualDate,
@@ -97,38 +101,23 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Fixed: removed extra comma after Row
+              // Header
               Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: Color(0xFF4A90E2), size: 20),
+                  Icon(Icons.calendar_today, color: AppColors.primaryBlue, size: 20),
                   const SizedBox(width: 8),
-                  Text(
-                    dateStr,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
+                  Text(dateStr, style: AppStyles.label),
                   const Spacer(),
                   StatusBadge(status: status, fontSize: 12),
                 ],
               ),
               const SizedBox(height: 20),
-              Text(
-                'Select Project',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Text(AppText.selectpro, style: AppStyles.heading),
               const SizedBox(height: 12),
 
-              // ✅ Loop through projects
+              // Project list
               ...projectGroups.entries.map((entry) {
                 final projectRecords = entry.value;
-
                 final checkIn = projectRecords.firstWhere(
                       (r) => r.type == AttendanceType.checkIn,
                   orElse: () => projectRecords.first,
@@ -139,13 +128,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 );
 
                 final duration = checkOut.timestamp.difference(checkIn.timestamp);
-                final hours = duration.inHours;
-                final minutes = duration.inMinutes % 60;
+                final durationText = AppHelpers.formatDuration(duration);
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: Material(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     borderRadius: BorderRadius.circular(12),
                     elevation: 2,
                     child: InkWell(
@@ -166,7 +154,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF4A90E2).withOpacity(0.3),
+                            color: AppColors.primaryBlue.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
@@ -174,12 +162,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF4A90E2).withOpacity(0.1),
+                                color: AppColors.primaryBlue.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
                                 Icons.folder_outlined,
-                                color: Color(0xFF4A90E2),
+                                color: AppColors.primaryBlue,
                                 size: 24,
                               ),
                             ),
@@ -188,29 +176,16 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    entry.key,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
+                                  Text(entry.key, style: AppStyles.heading),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')} hrs',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
+                                  Text('$durationText hrs', style: AppStyles.text),
                                 ],
                               ),
                             ),
                             Icon(
                               Icons.arrow_forward_ios,
                               size: 16,
-                              color: Colors.grey.shade400,
+                              color: AppColors.grey300,
                             ),
                           ],
                         ),
@@ -225,7 +200,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: const Text(AppText.cancel),
                 ),
               ),
             ],
@@ -234,7 +209,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       ),
     );
   }
-
 
   // Show project detail dialog with form
   void _showProjectDetailDialog(
@@ -261,14 +235,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
 
     // Mock manager comment based on status
-    String managerComment = '';
-    if (status == 'Pending') {
-      managerComment = 'Your request is under review by the manager.';
-    } else if (status == 'Rejected') {
-      managerComment = 'Insufficient justification provided. Please provide more details.';
-    } else if (status == 'Approved') {
-      managerComment = 'Request approved successfully. Hours have been regularized.';
-    }
+    String managerComment = _getManagerComment(status);
 
     showDialog(
       context: context,
@@ -283,356 +250,65 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
-                  Row(
-                    children: [
-                      Icon(Icons.edit_calendar, color: Color(0xFF4A90E2), size: 24),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          isEditable ? 'Regularisation Request' : 'Request Details',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                      StatusBadge(status: status, fontSize: 11),
-                    ],
-                  ),
-                  SizedBox(height: 20),
+                  _buildDialogHeader(status, isEditable),
+                  const SizedBox(height: 20),
 
-                  // Date Card
-                  _buildInfoCard(
+                  // Info Cards
+                  InfoCard(
                     icon: Icons.calendar_today,
                     label: 'Date',
                     value: dateStr,
-                    color: Color(0xFF4A90E2),
+                    color: AppColors.primaryBlue,
                   ),
-                  SizedBox(height: 12),
-
-                  // Project Card
-                  _buildInfoCard(
+                  const SizedBox(height: 12),
+                  InfoCard(
                     icon: Icons.folder_outlined,
                     label: 'Project',
                     value: projectName,
-                    color: Color(0xFF4A90E2),
+                    color: AppColors.primaryBlue,
                   ),
-                  SizedBox(height: 12),
-
-                  // Hours Card
-                  _buildInfoCard(
+                  const SizedBox(height: 12),
+                  InfoCard(
                     icon: Icons.access_time,
                     label: 'Worked Hours',
-                    value: '${checkOut.timestamp.difference(checkIn.timestamp).inHours}:${(checkOut.timestamp.difference(checkIn.timestamp).inMinutes % 60).toString().padLeft(2, '0')} hrs',
-                    color: Color(0xFF4A90E2),
+                    value: AppHelpers.formatDuration(
+                      checkOut.timestamp.difference(checkIn.timestamp),
+                    ) + ' hrs',
+                    color: AppColors.primaryBlue,
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   if (isEditable) ...[
-                    // Time Picker
-                    Text(
-                      'Regularisation Time',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    InkWell(
-                      onTap: () async {
-                        final time = await showTimePicker(
-                          context: context,
-                          initialTime: selectedTime,
-                        );
-                        if (time != null) {
-                          setDialogState(() => selectedTime = time);
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.schedule, color: Color(0xFF4A90E2), size: 20),
-                            SizedBox(width: 12),
-                            Text(
-                              selectedTime.format(context),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-
-                    // Type Selection
-                    Text(
-                      'Period',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTypeOption(
-                            'AM',
-                            selectedType == 'AM',
-                                () => setDialogState(() => selectedType = 'AM'),
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTypeOption(
-                            'PM',
-                            selectedType == 'PM',
-                                () => setDialogState(() => selectedType = 'PM'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-
-                    // Justification
-                    Text(
-                      'Justification',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    TextField(
-                      controller: noteController,
-                      maxLines: 4,
-                      enabled: isEditable,
-                      decoration: InputDecoration(
-                        hintText: 'Explain the reason for regularisation...',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF4A90E2), width: 2),
-                        ),
-                      ),
+                    _buildEditableForm(
+                      context,
+                      setDialogState,
+                      selectedTime,
+                      selectedType,
+                      noteController,
+                          (time) => selectedTime = time,
+                          (type) => selectedType = type,
                     ),
                   ] else ...[
-                    // View only mode - show submitted details
-                    _buildInfoCard(
-                      icon: Icons.schedule,
-                      label: 'Submitted Time',
-                      value: '${selectedTime.format(context)} $selectedType',
-                      color: Color(0xFF4A90E2),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Justification',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Text(
-                        noteController.text.isEmpty ? 'No justification provided' : noteController.text,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
+                    _buildViewOnlyMode(selectedTime, selectedType, noteController),
                   ],
 
                   // Manager Comment Section
                   if (status != 'Apply') ...[
-                    SizedBox(height: 20),
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: status == 'Approved'
-                            ? Colors.green.shade50
-                            : status == 'Rejected'
-                            ? Colors.red.shade50
-                            : Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: status == 'Approved'
-                              ? Colors.green.shade200
-                              : status == 'Rejected'
-                              ? Colors.red.shade200
-                              : Colors.orange.shade200,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                status == 'Approved'
-                                    ? Icons.check_circle
-                                    : status == 'Rejected'
-                                    ? Icons.cancel
-                                    : Icons.info,
-                                color: status == 'Approved'
-                                    ? Colors.green.shade700
-                                    : status == 'Rejected'
-                                    ? Colors.red.shade700
-                                    : Colors.orange.shade700,
-                                size: 20,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Manager Comment',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: status == 'Approved'
-                                      ? Colors.green.shade900
-                                      : status == 'Rejected'
-                                      ? Colors.red.shade900
-                                      : Colors.orange.shade900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            managerComment,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black87,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 20),
+                    _buildManagerCommentSection(status, managerComment),
                   ],
 
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   // Action Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Close',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (isEditable) ...[
-                        SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (noteController.text.trim().isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Please provide justification'),
-                                    backgroundColor: Colors.orange,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              context.read<RegularisationProvider>().submitRegularisation(
-                                date: dateStr,
-                                projectName: projectName,
-                                time: selectedTime,
-                                type: selectedType,
-                                notes: noteController.text.trim(),
-                                description: '',
-                              );
-
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Icon(Icons.check_circle, color: Colors.white),
-                                      SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text('Request submitted successfully'),
-                                      ),
-                                    ],
-                                  ),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF4A90E2),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 14),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Submit Request',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                  _buildActionButtons(
+                    context,
+                    isEditable,
+                    dateStr,
+                    projectName,
+                    selectedTime,
+                    selectedType,
+                    noteController,
                   ),
                 ],
               ),
@@ -643,76 +319,317 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 18),
+  String _getManagerComment(String status) {
+    if (status == 'Pending') {
+      return 'Your request is under review by the manager.';
+    } else if (status == 'Rejected') {
+      return 'Insufficient justification provided. Please provide more details.';
+    } else if (status == 'Approved') {
+      return 'Request approved successfully. Hours have been regularized.';
+    }
+    return '';
+  }
+
+  Widget _buildDialogHeader(String status, bool isEditable) {
+    return Row(
+      children: [
+        const Icon(Icons.edit_calendar, color: AppColors.primaryBlue, size: 24),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            isEditable ? AppText.regu_request : AppText.requ_details,
+            style: AppStyles.headingLarge,
           ),
-          SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
+        ),
+        StatusBadge(status: status, fontSize: 11),
+      ],
+    );
+  }
+
+  Widget _buildEditableForm(
+      BuildContext context,
+      StateSetter setDialogState,
+      TimeOfDay selectedTime,
+      String selectedType,
+      TextEditingController noteController,
+      Function(TimeOfDay) onTimeChanged,
+      Function(String) onTypeChanged,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Time Picker
+        Text(AppText.regu_time, style: AppStyles.heading),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () async {
+            final time = await showTimePicker(
+              context: context,
+              initialTime: selectedTime,
+            );
+            if (time != null) {
+              setDialogState(() => onTimeChanged(time));
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.grey50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.grey300),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.schedule, color: AppColors.primaryBlue, size: 20),
+                const SizedBox(width: 12),
+                Text(selectedTime.format(context), style: AppStyles.heading),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Period Selection
+        Text(AppText.period, style: AppStyles.heading),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTypeOption(
+                'AM',
+                selectedType == 'AM',
+                    () => setDialogState(() => onTypeChanged('AM')),
               ),
-              SizedBox(height: 2),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeOption(
+                'PM',
+                selectedType == 'PM',
+                    () => setDialogState(() => onTypeChanged('PM')),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // Justification
+        Text(AppText.justification, style: AppStyles.heading),
+        const SizedBox(height: 8),
+        TextField(
+          controller: noteController,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Explain the reason for regularisation...',
+            filled: true,
+            fillColor: AppColors.grey50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.grey300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.grey300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildViewOnlyMode(
+      TimeOfDay selectedTime,
+      String selectedType,
+      TextEditingController noteController,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InfoCard(
+          icon: Icons.schedule,
+          label: 'Submitted Time',
+          value: '${selectedTime.format(context)} $selectedType',
+          color: AppColors.primaryBlue,
+        ),
+        const SizedBox(height: 12),
+        Text(AppText.justification, style: AppStyles.label),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.grey50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.grey200),
+          ),
+          child: Text(
+            noteController.text.isEmpty
+                ? AppText.no_justification
+                : noteController.text,
+            style: AppStyles.text.copyWith(height: 1.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManagerCommentSection(String status, String comment) {
+    Color bgColor, borderColor, iconColor, textColor;
+
+    if (status == 'Approved') {
+      bgColor = AppColors.success.shade50;
+      borderColor = AppColors.success.shade200;
+      iconColor = AppColors.success.shade700;
+      textColor = AppColors.success.shade900;
+    } else if (status == 'Rejected') {
+      bgColor = AppColors.error.shade50;
+      borderColor = AppColors.error.shade200;
+      iconColor = AppColors.error.shade700;
+      textColor = AppColors.error.shade900;
+    } else {
+      bgColor = AppColors.warning.shade50;
+      borderColor = AppColors.warning.shade200;
+      iconColor = AppColors.warning.shade700;
+      textColor = AppColors.warning.shade900;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                status == 'Approved'
+                    ? Icons.check_circle
+                    : status == 'Rejected'
+                    ? Icons.cancel
+                    : Icons.info,
+                color: iconColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
               Text(
-                value,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                AppText.managercommert,
+                style: AppStyles.label.copyWith(color: textColor),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            comment,
+            style: AppStyles.text.copyWith(height: 1.4),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildActionButtons(
+      BuildContext context,
+      bool isEditable,
+      String dateStr,
+      String projectName,
+      TimeOfDay selectedTime,
+      String selectedType,
+      TextEditingController noteController,
+      ) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(AppText.close, style: AppStyles.text),
+          ),
+        ),
+        if (isEditable) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: () => _handleSubmit(
+                context,
+                dateStr,
+                projectName,
+                selectedTime,
+                selectedType,
+                noteController,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: AppColors.textLight,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(AppText.submit_rqu, style: AppStyles.buttonText),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _handleSubmit(
+      BuildContext context,
+      String dateStr,
+      String projectName,
+      TimeOfDay selectedTime,
+      String selectedType,
+      TextEditingController noteController,
+      ) {
+    if (noteController.text.trim().isEmpty) {
+      AppHelpers.showErrorSnackbar(context, 'Please provide justification');
+      return;
+    }
+
+    context.read<RegularisationProvider>().submitRegularisation(
+      date: dateStr,
+      projectName: projectName,
+      time: selectedTime,
+      type: selectedType,
+      notes: noteController.text.trim(),
+      description: '',
+    );
+
+    Navigator.pop(context);
+    AppHelpers.showSuccessSnackbar(context, 'Request submitted successfully');
+  }
+
   Widget _buildTypeOption(String label, bool isSelected, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFF4A90E2) : Colors.grey.shade100,
+          color: isSelected ? AppColors.primaryBlue : AppColors.grey100,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Color(0xFF4A90E2) : Colors.grey.shade300,
+            color: isSelected ? AppColors.primaryBlue : AppColors.grey300,
           ),
         ),
         child: Center(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : Colors.black54,
+            style: AppStyles.buttonText.copyWith(
+              color: isSelected ? AppColors.textLight : Colors.black54,
             ),
           ),
         ),
@@ -730,22 +647,19 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       ) {
     final provider = context.read<RegularisationProvider>();
     final projectGroups = provider.getProjectGroups(dayRecords);
-    final canInteract = true; // All statuses are now clickable
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(16),
         elevation: 1,
         shadowColor: Colors.black,
         child: InkWell(
-          onTap: canInteract
-              ? () => _showRegularisationDetails(date, actualDate, dayRecords, status)
-              : null,
+          onTap: () => _showRegularisationDetails(date, actualDate, dayRecords, status),
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -753,36 +667,26 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Color(0xFF4A90E2).withOpacity(0.1),
+                        color: AppColors.primaryBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.calendar_today,
-                        color: Color(0xFF4A90E2),
+                        color: AppColors.primaryBlue,
                         size: 20,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            date,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
+                          Text(date, style: AppStyles.heading),
                           Text(
                             DateFormat('EEEE').format(actualDate),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
+                            style: AppStyles.text,
                           ),
                         ],
                       ),
@@ -790,39 +694,39 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                     StatusBadge(status: status, fontSize: 11),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Stats Row
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatItem(
+                      child: StatItem(
                         icon: Icons.access_time,
                         label: 'Hours',
                         value: hours,
-                        color: Color(0xFF4A90E2),
+                        color: AppColors.primaryBlue,
                       ),
                     ),
                     Container(
                       width: 1,
                       height: 40,
-                      color: Colors.grey.shade200,
+                      color: AppColors.grey200,
                     ),
                     Expanded(
-                      child: _buildStatItem(
+                      child: StatItem(
                         icon: Icons.trending_down,
                         label: 'Shortfall',
                         value: shortfall,
-                        color: shortfall == '00:00' ? Colors.green : Colors.red,
+                        color: shortfall == '00:00' ? AppColors.success : AppColors.error,
                       ),
                     ),
                   ],
                 ),
 
-                if (projectGroups.length > 0) ...[
-                  SizedBox(height: 16),
-                  Divider(height: 1, color: Colors.grey),
-                  SizedBox(height: 16),
+                if (projectGroups.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Divider(height: 1, color: AppColors.grey200),
+                  const SizedBox(height: 16),
 
                   // Projects Section
                   Row(
@@ -830,45 +734,39 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                       Icon(
                         Icons.folder_outlined,
                         size: 16,
-                        color: Colors.grey.shade600,
+                        color: AppColors.grey600,
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
                         '${projectGroups.length} Project${projectGroups.length > 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
+                        style: AppStyles.text.copyWith(fontWeight: FontWeight.w600),
                       ),
-                      Spacer(),
-                      if (canInteract)
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Color(0xFF4A90E2),
-                        ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: AppColors.primaryBlue,
+                      ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: projectGroups.keys.take(3).map((projectName) {
                       return Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Color(0xFF4A90E2).withOpacity(0.08),
+                          color: AppColors.primaryBlue.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Color(0xFF4A90E2).withOpacity(0.2),
+                            color: AppColors.primaryBlue.withOpacity(0.2),
                           ),
                         ),
                         child: Text(
                           projectName,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF4A90E2),
+                          style: AppStyles.text.copyWith(
+                            color: AppColors.primaryBlue,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -884,41 +782,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: color),
-            SizedBox(width: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildRecordsList(DateTime month) {
     final provider = context.read<RegularisationProvider>();
     final categorized = provider.getCategorizedRecords(month);
@@ -928,7 +791,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       allRecords.addAll(records);
     }
 
-    // Sort by date descending
     allRecords.sort((a, b) {
       final dateA = a['actualDate'] as DateTime;
       final dateB = b['actualDate'] as DateTime;
@@ -941,33 +803,26 @@ class _RegularisationScreenState extends State<RegularisationScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(32),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppColors.grey100,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.calendar_today_outlined,
                 size: 64,
-                color: Colors.grey.shade400,
+                color: AppColors.grey300,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              'No Records Found',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
+              AppText.no_reco_foun,
+              style: AppStyles.headingLarge.copyWith(color: AppColors.grey600),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'No attendance records for this month',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
+              AppText.no_reco,
+              style: AppStyles.text,
             ),
           ],
         ),
@@ -975,7 +830,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: allRecords.length,
       itemBuilder: (context, index) {
         final record = allRecords[index];
@@ -1003,46 +858,39 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     return ScreenWithBottomNav(
       currentIndex: 1,
       child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(
-            'Regularisation',
+          title: const Text(AppText.regula,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 24,
             ),
           ),
-          backgroundColor: Color(0xFF4A90E2),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primaryBlue,
+          foregroundColor: AppColors.textLight,
           elevation: 0,
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(48),
+            preferredSize: const Size.fromHeight(48),
             child: Consumer<RegularisationProvider>(
               builder: (context, provider, _) {
                 return Container(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   child: TabBar(
                     controller: _tabController,
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    indicator: UnderlineTabIndicator(
+                    indicator: const UnderlineTabIndicator(
                       borderSide: BorderSide(
-                        color: Color(0xFF4A90E2),
+                        color: AppColors.primaryBlue,
                         width: 3,
                       ),
                       insets: EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    labelColor: Color(0xFF4A90E2),
-                    unselectedLabelColor: Colors.grey,
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                    unselectedLabelStyle: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 15,
-                    ),
-                    labelPadding: EdgeInsets.symmetric(horizontal: 20),
+                    labelColor: AppColors.primaryBlue,
+                    unselectedLabelColor: AppColors.grey600,
+                    labelStyle: AppStyles.label,
+                    unselectedLabelStyle: AppStyles.text,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 20),
                     tabs: provider.availableMonths.map((month) {
                       final isCurrentMonth = month.month == DateTime.now().month &&
                           month.year == DateTime.now().year;
@@ -1050,20 +898,20 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(DateFormat('MMM yyyy').format(month)),
                             if (isCurrentMonth) ...[
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Container(
                                 width: 6,
                                 height: 6,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF4A90E2),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primaryBlue,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                             ],
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                           ],
                         ),
                       );
@@ -1081,17 +929,11 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4A90E2)),
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Loading attendance data...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    const SizedBox(height: 16),
+                    Text(AppText.loading_data, style: AppStyles.text),
                   ],
                 ),
               );
@@ -1105,38 +947,31 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                     Icon(
                       Icons.error_outline,
                       size: 64,
-                      color: Colors.red.shade300,
+                      color: AppColors.error.shade300,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
-                      'Oops! Something went wrong',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
+                      AppText.oops,
+                      style: AppStyles.headingLarge,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Text(
                         provider.errorMessage!,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: AppStyles.text,
                       ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: provider.loadAttendance,
-                      icon: Icon(Icons.refresh),
-                      label: Text('Retry'),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text(AppText.retry),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF4A90E2),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        backgroundColor: AppColors.primaryBlue,
+                        foregroundColor: AppColors.textLight,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

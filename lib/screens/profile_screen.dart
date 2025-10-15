@@ -1,6 +1,9 @@
+import 'package:AttendenceApp/utils/app_styles.dart';
+import 'package:AttendenceApp/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
+import '../utils/app_colors.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,11 +13,10 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text(
-          'Profile',
+        title: const Text(AppText.profile,
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
         actions: [
           IconButton(
@@ -66,7 +68,7 @@ class ProfileScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.textLight,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -75,39 +77,25 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: Icon(Icons.camera_alt, size: 18, color: Colors.blue.shade700),
+                          child: Icon(Icons.camera_alt, size: 18, color: AppColors.primaryBlue),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 15),
                   // Name
-                  const Text(
-                    'Vainyala Samal',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  const Text(AppText.name,
+                    style: AppStyles.name,
                   ),
                   const SizedBox(height: 5),
                   // Role
-                  const Text(
-                    'Flutter Developer',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const Text(AppText.flutterdev,
+                    style: AppStyles.buttonText,
                   ),
                   const SizedBox(height: 5),
                   // Company
-                  const Text(
-                    'Nutantek Solutions',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white60,
-                    ),
+                  const Text(AppText.nutantek,
+                    style: AppStyles.id,
                   ),
                   const SizedBox(height: 25),
                 ],
@@ -257,11 +245,11 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppColors.grey600.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -274,11 +262,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Text(
               title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
-              ),
+              style: AppStyles.title,
             ),
           ),
           const Divider(height: 1),
@@ -308,7 +292,7 @@ class ProfileScreen extends StatelessWidget {
                 color: Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Colors.blue.shade700, size: 22),
+              child: Icon(icon, color: AppColors.primaryBlue, size: 22),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -317,27 +301,19 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: AppStyles.caption,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
+                    style: AppStyles.label,
                   ),
                 ],
               ),
             ),
             if (isEditable)
               IconButton(
-                icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700, size: 20),
+                icon: Icon(Icons.edit_outlined, color: AppColors.primaryBlue, size: 20),
                 onPressed: onEdit,
               ),
           ],
@@ -358,7 +334,7 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.textLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isDestructive ? Colors.red.shade200 : Colors.grey.shade200,
@@ -368,7 +344,7 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isDestructive ? Colors.red : Colors.blue.shade700,
+              color: isDestructive ? AppColors.errorRed : AppColors.primaryBlue,
               size: 22,
             ),
             const SizedBox(width: 15),
@@ -377,14 +353,14 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isDestructive ? Colors.red : Colors.black87,
+                color: isDestructive ? AppColors.errorRed : AppColors.textDark,
               ),
             ),
             const Spacer(),
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: isDestructive ? Colors.red : Colors.grey.shade400,
+              color: isDestructive ? AppColors.errorRed : AppColors.grey400,
             ),
           ],
         ),
@@ -408,7 +384,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppText.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -416,7 +392,7 @@ class ProfileScreen extends StatelessWidget {
               Navigator.pop(context);
               _showSnackBar(context, '$fieldName updated successfully');
             },
-            child: const Text('Save'),
+            child: Text(AppText.save),
           ),
         ],
       ),
@@ -427,12 +403,12 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
-        content: const Text('Select a field to edit from the Contact Details section.'),
+        title: const Text(AppText.edit),
+        content: const Text(AppText.selectfield),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text(AppText.ok),
           ),
         ],
       ),
@@ -443,20 +419,20 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(AppText.logout),
+        content:  Text(AppText.wanttolog),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppText.cancel),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
             onPressed: () {
               Navigator.pop(context);
               _showSnackBar(context, 'Logged out successfully');
             },
-            child: const Text('Logout'),
+            child: Text(AppText.logout),
           ),
         ],
       ),
