@@ -6,18 +6,21 @@ import '../services/storage_service.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
 
-class AppProvider extends ChangeNotifier {
-  // User Data
-  UserModel? _user;
+enum EmployeeStatus {
+  notCheckedIn,
+  checkedIn,
+  outOfRange,
+  outOfRangeWillReturn,
+  returned,
+}
 
-  // Attendance Data
+class AppProvider extends ChangeNotifier {
+  UserModel? _user;
   List<AttendanceModel> _todayAttendance = [];
   List<AttendanceModel> _weeklyAttendance = [];
   List<AttendanceModel> _allAttendance = [];
-
   ProjectModel? _selectedProject;
-  ProjectModel? get selectedProject => _selectedProject;
-  // Location & Geofence Status
+
   bool _isLocationEnabled = false;
   bool _isInGeofence = false;
   bool _canCheckIn = false;
@@ -26,15 +29,20 @@ class AppProvider extends ChangeNotifier {
   String _statusMessage = "Checking location...";
   String _geofenceStatus = "You Are Not In Range Of Nutantek";
 
-  // Statistics
   double _weeklyAvgHours = 0.0;
   double _monthlyAvgHours = 0.0;
 
-  // Loading States
   bool _isLoadingUser = false;
   bool _isLoadingAttendance = false;
   bool _isCheckingIn = false;
   bool _isCheckingOut = false;
+
+  // NEW: Employee status tracking
+  EmployeeStatus _employeeStatus = EmployeeStatus.notCheckedIn;
+  bool _pendingVerification = false;
+  String? _currentNotificationPayload;
+  DateTime? _lastOutOfRangeTime;
+  bool _wentOutDuringOfficeHours = false;
 
   // Getters
   UserModel? get user => _user;
@@ -52,8 +60,13 @@ class AppProvider extends ChangeNotifier {
   bool get isLoadingAttendance => _isLoadingAttendance;
   bool get isCheckingIn => _isCheckingIn;
   bool get isCheckingOut => _isCheckingOut;
+  ProjectModel? get selectedProject => _selectedProject;
 
-  // Initialize User Data
+  // NEW getters
+  EmployeeStatus get employeeStatus => _employeeStatus;
+  bool get pendingVerification => _pendingVerification;
+  bool get showVerificationAlert => _pendingVerification;
+
   Future<void> loadUserData() async {
     _isLoadingUser = true;
     notifyListeners();
@@ -84,30 +97,6 @@ class AppProvider extends ChangeNotifier {
           techStack: 'React, Node.js',
           assignedDate: DateTime.now(),
         ),
-        ProjectModel(
-          id: 'P003',
-          name: 'eMulakat App',
-          site: 'WFH',
-          shift: 'Morning',
-          clientName: 'Client A',
-          clientContact: '1234567890',
-          manager: 'Manager A',
-          description: 'Office attendance app',
-          techStack: 'Flutter, Firebase',
-          assignedDate: DateTime.now(),
-        ),
-        ProjectModel(
-          id: 'P004',
-          name: 'Attedance App',
-          site: 'WFH',
-          shift: 'Morning',
-          clientName: 'Client A',
-          clientContact: '1234567890',
-          manager: 'Manager A',
-          description: 'Office attendance app',
-          techStack: 'Flutter, Firebase',
-          assignedDate: DateTime.now(),
-        ),
       ];
 
       _user = UserModel(
@@ -129,7 +118,7 @@ class AppProvider extends ChangeNotifier {
     _selectedProject = project;
     notifyListeners();
   }
-  // Load Today's Attendance
+
   Future<void> loadTodayAttendance() async {
     _isLoadingAttendance = true;
     notifyListeners();
@@ -137,7 +126,6 @@ class AppProvider extends ChangeNotifier {
     try {
       _allAttendance = await StorageService.getAttendanceHistory();
 
-      // Generate dummy data if empty
       if (_allAttendance.isEmpty) {
         final dummyAttendance = _generateDummyAttendance();
         for (var record in dummyAttendance) {
@@ -152,6 +140,9 @@ class AppProvider extends ChangeNotifier {
             record.timestamp.month == today.month &&
             record.timestamp.day == today.day;
       }).toList();
+
+      // Update employee status based on today's attendance
+      _updateEmployeeStatus();
     } catch (e) {
       debugPrint('Error loading today attendance: $e');
     } finally {
@@ -160,7 +151,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Load Weekly Attendance
   Future<void> loadWeeklyAttendance() async {
     try {
       final weekAgo = DateTime.now().subtract(const Duration(days: 7));
@@ -175,7 +165,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Generate Dummy Attendance
   List<AttendanceModel> _generateDummyAttendance() {
     List<AttendanceModel> dummyData = [];
     final now = DateTime.now();
@@ -205,7 +194,6 @@ class AppProvider extends ChangeNotifier {
     return dummyData;
   }
 
-  // Calculate Statistics
   void _calculateAverages() {
     double weeklyHours = 0;
     int weeklyDays = 0;
@@ -243,7 +231,33 @@ class AppProvider extends ChangeNotifier {
     _monthlyAvgHours = monthlyHours;
   }
 
-  // Update Location Status
+  // NEW: Update employee status based on attendance and location
+  void _updateEmployeeStatus() {
+    if (_todayAttendance.isEmpty) {
+      _employeeStatus = EmployeeStatus.notCheckedIn;
+    } else if (_todayAttendance.last.type == AttendanceType.enter) {
+      if (_isInGeofence) {
+        _employeeStatus = EmployeeStatus.checkedIn;
+      } else {
+        _employeeStatus = _wentOutDuringOfficeHours
+            ? EmployeeStatus.outOfRangeWillReturn
+            : EmployeeStatus.outOfRange;
+      }
+    }
+  }
+
+  // NEW: Check if it's office hours (9 AM to 6 PM)
+  bool _isOfficeHours() {
+    final now = DateTime.now();
+    return now.hour >= 9 && now.hour < 18;
+  }
+
+  // NEW: Check if it's after office hours
+  bool _isAfterOfficeHours() {
+    final now = DateTime.now();
+    return now.hour >= 18;
+  }
+
   Future<void> updateLocationStatus() async {
     try {
       final position = await LocationService.getCurrentPosition();
@@ -261,20 +275,12 @@ class AppProvider extends ChangeNotifier {
         }
       }
 
-      // Check if geofence state changed
+      // Handle geofence state changes
       if (insideAnyGeofence != _wasInsideGeofence) {
         if (insideAnyGeofence) {
-          await NotificationService.showGeofenceNotification(
-            title: 'Welcome to $geofenceName',
-            body: 'You are now in range. You can check in.',
-            isEntering: true,
-          );
+          await _handleEnteringGeofence(geofenceName);
         } else {
-          await NotificationService.showGeofenceNotification(
-            title: 'Left Geofence Area',
-            body: 'You are no longer in range of Nutantek.',
-            isEntering: false,
-          );
+          await _handleLeavingGeofence();
         }
         _wasInsideGeofence = insideAnyGeofence;
       }
@@ -284,16 +290,7 @@ class AppProvider extends ChangeNotifier {
           ? "You Are In Range Of $geofenceName"
           : "You Are Not In Range Of Nutantek";
 
-      if (insideAnyGeofence) {
-        _canCheckIn = _todayAttendance.isEmpty ||
-            _todayAttendance.last.type == AttendanceType.exit;
-        _canCheckOut = _todayAttendance.isNotEmpty &&
-            _todayAttendance.last.type == AttendanceType.enter;
-      } else {
-        _canCheckIn = false;
-        _canCheckOut = false;
-      }
-
+      _updateCheckInOutPermissions();
       _statusMessage = _geofenceStatus;
       notifyListeners();
     } catch (e) {
@@ -301,7 +298,69 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Update Geofence Status (Manual)
+  Future<void> _handleEnteringGeofence(String geofenceName) async {
+    if (_employeeStatus == EmployeeStatus.notCheckedIn) {
+      // First time entering - show check-in notification
+      final payload = 'checkin_${DateTime.now().millisecondsSinceEpoch}';
+      _currentNotificationPayload = payload;
+
+      await NotificationService.showGeofenceNotification(
+        title: 'Welcome to $geofenceName',
+        body: 'Tap to complete face verification and check in',
+        isEntering: true,
+        payload: payload,
+      );
+
+      _pendingVerification = true;
+    } else if (_employeeStatus == EmployeeStatus.outOfRange ||
+        _employeeStatus == EmployeeStatus.outOfRangeWillReturn) {
+      // Employee returning - needs verification
+      _pendingVerification = true;
+      _employeeStatus = EmployeeStatus.returned;
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> _handleLeavingGeofence() async {
+    if (_employeeStatus == EmployeeStatus.checkedIn) {
+      _lastOutOfRangeTime = DateTime.now();
+
+      if (_isOfficeHours()) {
+        // During office hours - show choice notification
+        _wentOutDuringOfficeHours = true;
+        await NotificationService.showOutOfRangeNotification(
+          title: 'You are out of range',
+          body: 'Please verify: Face (not returning) or Fingerprint (will return)',
+          payload: 'out_of_range_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        _pendingVerification = true;
+      } else if (_isAfterOfficeHours()) {
+        // After office hours - only face verification
+        await NotificationService.showOutOfRangeNotification(
+          title: 'End of Day',
+          body: 'Please complete face verification to check out',
+          payload: 'checkout_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        _pendingVerification = true;
+      }
+    }
+
+    notifyListeners();
+  }
+
+  void _updateCheckInOutPermissions() {
+    if (_isInGeofence) {
+      _canCheckIn = _todayAttendance.isEmpty ||
+          _todayAttendance.last.type == AttendanceType.exit;
+      _canCheckOut = _todayAttendance.isNotEmpty &&
+          _todayAttendance.last.type == AttendanceType.enter;
+    } else {
+      _canCheckIn = false;
+      _canCheckOut = false;
+    }
+  }
+
   void updateGeofenceStatus({
     required bool inGeofence,
     required bool canCheckIn,
@@ -315,7 +374,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Set Location Enabled
   void setLocationEnabled(bool enabled) {
     _isLocationEnabled = enabled;
     _statusMessage = enabled
@@ -327,10 +385,15 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Handle Check In
-  Future<String> handleCheckIn() async {
+  // NEW: Handle check-in with verification status
+  Future<String> handleCheckIn({bool verified = false}) async {
     if (!_isLocationEnabled) {
       return 'Please enable location services';
+    }
+
+    // Check if verification is required but not completed
+    if (_pendingVerification && !verified) {
+      return 'Please complete face verification first';
     }
 
     if (!_canCheckIn) {
@@ -366,6 +429,9 @@ class AppProvider extends ChangeNotifier {
           await StorageService.saveAttendanceRecord(attendance);
           await loadTodayAttendance();
           await loadWeeklyAttendance();
+
+          _pendingVerification = false;
+          _employeeStatus = EmployeeStatus.checkedIn;
           await updateLocationStatus();
 
           await NotificationService.showAttendanceNotification(
@@ -390,10 +456,15 @@ class AppProvider extends ChangeNotifier {
     return 'Check-in failed';
   }
 
-  // Handle Check Out
-  Future<String> handleCheckOut() async {
+  // NEW: Handle check-out with verification
+  Future<String> handleCheckOut({bool verified = false}) async {
     if (!_isLocationEnabled) {
       return 'Please enable location services';
+    }
+
+    // After office hours, verification is required
+    if (_isAfterOfficeHours() && !verified) {
+      return 'Please complete face verification first';
     }
 
     if (!_canCheckOut) {
@@ -421,6 +492,10 @@ class AppProvider extends ChangeNotifier {
       await StorageService.saveAttendanceRecord(attendance);
       await loadTodayAttendance();
       await loadWeeklyAttendance();
+
+      _pendingVerification = false;
+      _employeeStatus = EmployeeStatus.notCheckedIn;
+      _wentOutDuringOfficeHours = false;
       await updateLocationStatus();
 
       await NotificationService.showAttendanceNotification(
@@ -437,14 +512,38 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Refresh All Data
+  // NEW: Handle out of range verification
+  Future<void> handleOutOfRangeVerification(bool willReturn) async {
+    if (willReturn) {
+      _employeeStatus = EmployeeStatus.outOfRangeWillReturn;
+    } else {
+      _employeeStatus = EmployeeStatus.outOfRange;
+      // Treat as checkout if not returning
+      await handleCheckOut(verified: true);
+    }
+
+    _pendingVerification = false;
+    notifyListeners();
+  }
+
+  // NEW: Clear pending verification
+  void clearPendingVerification() {
+    _pendingVerification = false;
+    notifyListeners();
+  }
+
+  // NEW: Check if notification is valid
+  bool isNotificationValid(String? payload) {
+    if (payload == null) return false;
+    return NotificationService.isNotificationValid(payload);
+  }
+
   Future<void> refreshAllData() async {
     await loadTodayAttendance();
     await loadWeeklyAttendance();
     await updateLocationStatus();
   }
 
-  // Helper method
   String _formatTime(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
   }

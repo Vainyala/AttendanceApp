@@ -2,7 +2,7 @@
 
   class AttendanceModel {
     final String id;
-    final String userId;
+    final String? userId;
     final DateTime timestamp;
     final AttendanceType type;
     final GeofenceModel? geofence;

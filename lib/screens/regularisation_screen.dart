@@ -1,4 +1,4 @@
-import 'package:AttendenceApp/utils/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +7,7 @@ import '../models/attendance_model.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_styles.dart';
 import '../utils/app_helpers.dart';
+import '../utils/app_text.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/info_card.dart';

@@ -1,4 +1,4 @@
-import 'package:AttendenceApp/utils/app_styles.dart';
+import 'package:AttendanceApp/utils/app_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/project_model.dart';
