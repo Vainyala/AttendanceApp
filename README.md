@@ -1,16 +1,46 @@
-# attendenceapp
+# 🕒 Attendance App
 
-A new Flutter project.
+A mobile attendance app for employees with biometric authentication, face detection, geofencing, and advanced attendance management. Built using **Flutter** and **Firebase**.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📌 Features
 
-A few resources to get you started if this is your first Flutter project:
+### ✅ Attendance
+- Mark attendance using face detection, fingerprint, or manually.
+- View attendance graphs and reports.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 📝 Regularisation
+- Apply for corrections of missed attendance entries.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 🏖 Leave Management
+- Apply and track leaves easily.
+
+### ⏱ Timesheet
+- Record project-wise work hours.
+
+### 📊 Dashboard
+- Overview of attendance, pending requests, and visual graphs.
+
+### 🌐 Geofencing & Location
+- Restrict attendance marking to designated locations.
+- Receive entry/exit notifications.
+
+### 👤 Face Detection
+- Liveness detection with blink verification.
+- Capture images for verification.
+
+### 🔒 Fingerprint Authentication
+- Quick and secure check-ins.
+
+---
+
+## 💻 Technologies Used
+- **Flutter** – Cross-platform app development
+- **Dart** – Programming language
+- **Google ML Kit** – Face detection & liveness verification
+- **CameraX & Fingerprint** – Biometric authentication
+- **Provider** – State management
+
+
+
