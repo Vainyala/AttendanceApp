@@ -97,30 +97,6 @@ class AppProvider extends ChangeNotifier {
           techStack: 'React, Node.js',
           assignedDate: DateTime.now(),
         ),
-        ProjectModel(
-          id: 'P003',
-          name: 'eMulakat App',
-          site: 'WFH',
-          shift: 'Morning',
-          clientName: 'Client A',
-          clientContact: '1234567890',
-          manager: 'Manager A',
-          description: 'Office attendance app',
-          techStack: 'Flutter, Firebase',
-          assignedDate: DateTime.now(),
-        ),
-        ProjectModel(
-          id: 'P004',
-          name: 'Attedance App',
-          site: 'WFH',
-          shift: 'Morning',
-          clientName: 'Client A',
-          clientContact: '1234567890',
-          manager: 'Manager A',
-          description: 'Office attendance app',
-          techStack: 'Flutter, Firebase',
-          assignedDate: DateTime.now(),
-        ),
       ];
 
       _user = UserModel(

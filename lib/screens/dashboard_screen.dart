@@ -17,7 +17,9 @@ import '../widgets/attendance_graph.dart';
 import 'attendance_history_screen.dart';
 import 'project_details_screen.dart';
 import 'auth_verification_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'face_detection_screen.dart'; // Your existing face detection screen
+import '../main.dart' show cameras;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -33,14 +35,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
-    WidgetsBindingObserver.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _initializeApp();
     _setupNotificationHandler();
   }
 
   @override
   void dispose() {
-    WidgetsBindingObserver.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -192,22 +194,40 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
+      Future<bool> _checkCameraPermission() async {
+        final status = await Permission.camera.status;
 
-  void _navigateToFaceVerification(VerificationReason reason) {
-    // Navigate to your existing face detection screen
-    // You'll need to pass a callback to handle success
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FaceDetectionScreen(
-          cameras: [], // Pass your cameras list
-          onVerificationComplete: () {
-            _handleFaceVerificationSuccess(reason);
-          },
-        ),
-      ),
-    );
-  }
+        if (status.isDenied) {
+          final result = await Permission.camera.request();
+          return result.isGranted;
+        }
+
+        return status.isGranted;
+      }
+      Future<void> _navigateToFaceVerification(VerificationReason reason) async {
+        // Check camera permission
+        final hasPermission = await _checkCameraPermission();
+
+        if (!hasPermission) {
+          _showMessage('Camera permission is required for verification');
+          return;
+        }
+
+        // Check if cameras available
+        if (cameras.isEmpty) {
+          _showMessage('No camera found on this device');
+          return;
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FaceDetectionScreen(
+              cameras: cameras, // ✅ Global list
+              onVerificationComplete: () {_handleFaceVerificationSuccess(reason);},
+            ),
+          ),
+        );
+      }
 
   void _handleVerificationSuccess(VerificationType type, VerificationReason reason) {
     final provider = context.read<AppProvider>();
