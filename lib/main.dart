@@ -1,6 +1,6 @@
-import 'package:AttendenceApp/providers/dashboard_provider.dart';
-import 'package:AttendenceApp/providers/splash_provider.dart';
-import 'package:AttendenceApp/providers/regularisation_provider.dart'; // 👈 ADD THIS IMPORT
+import 'package:AttendanceApp/providers/dashboard_provider.dart';
+import 'package:AttendanceApp/providers/regularisation_provider.dart';
+import 'package:AttendanceApp/providers/splash_provider.dart'; // 👈 ADD THIS IMPORT
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/notification_service.dart';

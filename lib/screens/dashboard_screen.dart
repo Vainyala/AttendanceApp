@@ -1,6 +1,3 @@
-
-import 'package:AttendenceApp/utils/app_styles.dart';
-import 'package:AttendenceApp/widgets/menu_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -8,15 +5,19 @@ import '../services/location_service.dart';
 import '../services/geofencing_service.dart';
 import '../services/notification_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_styles.dart';
 import '../widgets/attendance_chart_utils.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custome_stat_row.dart';
 import '../widgets/date_time_utils.dart';
+import '../widgets/menu_drawer.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/attendance_graph.dart';
 import 'attendance_history_screen.dart';
 import 'project_details_screen.dart';
+import 'auth_verification_screen.dart';
+import 'face_detection_screen.dart'; // Your existing face detection screen
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,13 +26,229 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _verificationAlertShowing = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBindingObserver.addObserver(this);
     _initializeApp();
+    _setupNotificationHandler();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBindingObserver.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Check for pending verification when app comes to foreground
+      _checkPendingVerification();
+    }
+  }
+
+  void _setupNotificationHandler() {
+    // Set up notification tap handler
+    NotificationService.onNotificationTap = (payload) {
+      if (payload != null) {
+        _handleNotificationTap(payload);
+      }
+    };
+  }
+
+  void _handleNotificationTap(String payload) {
+    final provider = context.read<AppProvider>();
+
+    // Check if notification is expired (5 minutes)
+    if (!provider.isNotificationValid(payload)) {
+      _showExpiredNotificationDialog();
+      return;
+    }
+
+    // Determine verification type based on payload
+    if (payload.startsWith('checkin_')) {
+      _navigateToFaceVerification(VerificationReason.checkIn);
+    } else if (payload.startsWith('out_of_range_')) {
+      _navigateToAuthChoice();
+    } else if (payload.startsWith('checkout_')) {
+      _navigateToFaceVerification(VerificationReason.checkOut);
+    }
+  }
+
+  void _showExpiredNotificationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 30),
+            SizedBox(width: 10),
+            Text('Notification Expired'),
+          ],
+        ),
+        content: Text(
+          'This notification has expired (5 minutes limit). Check-in is disabled for this instance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _checkPendingVerification() {
+    final provider = context.read<AppProvider>();
+
+    if (provider.pendingVerification && !_verificationAlertShowing) {
+      // Show repeating alert
+      _showVerificationAlert();
+    }
+  }
+
+  void _showVerificationAlert() {
+    if (_verificationAlertShowing) return;
+
+    _verificationAlertShowing = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.orange, size: 30),
+              SizedBox(width: 10),
+              Text('Verification Required'),
+            ],
+          ),
+          content: Text(
+            'You need to complete verification to continue. Please complete face or fingerprint authentication.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _verificationAlertShowing = false;
+                _navigateToAuthChoice();
+              },
+              child: Text('Verify Now', style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        ),
+      ),
+    ).then((_) {
+      _verificationAlertShowing = false;
+
+      // Check again after dialog closes if still pending
+      Future.delayed(Duration(seconds: 10), () {
+        if (mounted) {
+          _checkPendingVerification();
+        }
+      });
+    });
+  }
+
+  void _navigateToAuthChoice() {
+    final provider = context.read<AppProvider>();
+
+    // Determine reason and whether fingerprint is allowed
+    VerificationReason reason;
+    bool allowFingerprint = false;
+
+    if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+      reason = VerificationReason.checkIn;
+    } else if (provider.employeeStatus == EmployeeStatus.checkedIn) {
+      // Going out during office hours
+      reason = VerificationReason.goingOut;
+      allowFingerprint = true;
+    } else if (provider.employeeStatus == EmployeeStatus.returned) {
+      reason = VerificationReason.returning;
+      allowFingerprint = true;
+    } else {
+      reason = VerificationReason.checkOut;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AuthVerificationScreen(
+          reason: reason,
+          allowFingerprint: allowFingerprint,
+          onVerificationSuccess: (verificationType) {
+            _handleVerificationSuccess(verificationType, reason);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToFaceVerification(VerificationReason reason) {
+    // Navigate to your existing face detection screen
+    // You'll need to pass a callback to handle success
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FaceDetectionScreen(
+          cameras: [], // Pass your cameras list
+          onVerificationComplete: () {
+            _handleFaceVerificationSuccess(reason);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _handleVerificationSuccess(VerificationType type, VerificationReason reason) {
+    final provider = context.read<AppProvider>();
+
+    if (type == VerificationType.faceBlinking) {
+      _navigateToFaceVerification(reason);
+    } else {
+      // Fingerprint verification
+      if (reason == VerificationReason.goingOut) {
+        provider.handleOutOfRangeVerification(true); // Will return
+        _showMessage('Going out - Will return later');
+      } else if (reason == VerificationReason.returning) {
+        provider.clearPendingVerification();
+        _showMessage('Return verified successfully');
+      }
+    }
+  }
+
+  void _handleFaceVerificationSuccess(VerificationReason reason) async {
+    final provider = context.read<AppProvider>();
+
+    switch (reason) {
+      case VerificationReason.checkIn:
+        await provider.handleCheckIn(verified: true);
+        _showMessage('Check-in successful!');
+        break;
+      case VerificationReason.goingOut:
+        await provider.handleOutOfRangeVerification(false); // Not returning
+        _showMessage('Going out - Not returning today');
+        break;
+      case VerificationReason.returning:
+        provider.clearPendingVerification();
+        _showMessage('Return verified successfully');
+        break;
+      case VerificationReason.checkOut:
+        await provider.handleCheckOut(verified: true);
+        _showMessage('Check-out successful!');
+        break;
+      default:
+        break;
+    }
   }
 
   Future<void> _initializeApp() async {
@@ -42,6 +259,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await _checkLocationAndStartMonitoring();
     await provider.loadTodayAttendance();
     await provider.loadWeeklyAttendance();
+
+    // Check for pending verification after initialization
+    _checkPendingVerification();
   }
 
   Future<void> _checkLocationAndStartMonitoring() async {
@@ -69,12 +289,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _handleCheckIn() async {
     final provider = context.read<AppProvider>();
+
+    // If verification pending, show auth screen
+    if (provider.pendingVerification) {
+      _navigateToAuthChoice();
+      return;
+    }
+
     final message = await provider.handleCheckIn();
     _showMessage(message);
   }
 
   Future<void> _handleCheckOut() async {
     final provider = context.read<AppProvider>();
+
+    // After office hours, require face verification
+    if (provider.employeeStatus == EmployeeStatus.checkedIn) {
+      final now = DateTime.now();
+      if (now.hour >= 18) {
+        _navigateToFaceVerification(VerificationReason.checkOut);
+        return;
+      }
+    }
+
     final message = await provider.handleCheckOut();
     _showMessage(message);
   }
@@ -94,10 +331,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Scaffold(
             key: _scaffoldKey,
             backgroundColor: Colors.transparent,
-            body: _buildBody(provider),
+            body: Stack(
+              children: [
+                _buildBody(provider),
+
+                // Show persistent verification banner
+                if (provider.pendingVerification)
+                  _buildVerificationBanner(),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildVerificationBanner() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        child: Container(
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.orange,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.white, size: 24),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Verification Required - Tap to verify',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.arrow_forward, color: Colors.white),
+                onPressed: _navigateToAuthChoice,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -222,7 +512,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icons.login,
             color: AppColors.successGreen,
             loading: provider.isCheckingIn,
-            onPressed: provider.canCheckIn ? _handleCheckIn : null,
+            onPressed: provider.canCheckIn || provider.pendingVerification
+                ? _handleCheckIn
+                : null,
           ),
         ),
         const SizedBox(width: 15),
@@ -270,8 +562,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           : provider.user == null || provider.user!.projects.isEmpty
           ? Center(
         child: Text(
-          "No projects mapped",
-          style: AppStyles.text
+            "No projects mapped",
+            style: AppStyles.text
         ),
       )
           : ListView.builder(
