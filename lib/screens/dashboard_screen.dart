@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:AttendanceApp/models/attendance_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -21,6 +24,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'face_detection_screen.dart'; // Your existing face detection screen
 import '../main.dart' show cameras;
 
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -32,16 +36,22 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _verificationAlertShowing = false;
 
+  // NEW: Timer variables
+  Timer? _countdownTimer;
+  Duration? _remainingTime;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
     _setupNotificationHandler();
+    _startCountdownTimer(); // NEW: Start countdown
   }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel(); // NEW: Cancel timer
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -49,13 +59,53 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Check for pending verification when app comes to foreground
       _checkPendingVerification();
     }
   }
 
+  // NEW: Countdown Timer Logic
+  void _startCountdownTimer() {
+    _countdownTimer?.cancel();
+
+    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (mounted) {
+        final provider = context.read<AppProvider>();
+
+        if (provider.checkInTime != null &&
+            provider.checkOutTime == null) {
+
+          final checkInTime = provider.checkInTime!;
+          final targetTime = checkInTime.add(Duration(hours: 9));
+          final now = DateTime.now();
+
+          final difference = targetTime.difference(now);
+
+          setState(() {
+            if (difference.isNegative) {
+              _remainingTime = Duration.zero;
+            } else {
+              _remainingTime = difference;
+            }
+          });
+        } else {
+          setState(() {
+            _remainingTime = null;
+          });
+        }
+      }
+    });
+  }
+
+  // NEW: Format countdown time
+  String _formatCountdown(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   void _setupNotificationHandler() {
-    // Set up notification tap handler
     NotificationService.onNotificationTap = (payload) {
       if (payload != null) {
         _handleNotificationTap(payload);
@@ -66,13 +116,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   void _handleNotificationTap(String payload) {
     final provider = context.read<AppProvider>();
 
-    // Check if notification is expired (5 minutes)
     if (!provider.isNotificationValid(payload)) {
       _showExpiredNotificationDialog();
       return;
     }
 
-    // Determine verification type based on payload
     if (payload.startsWith('checkin_')) {
       _navigateToFaceVerification(VerificationReason.checkIn);
     } else if (payload.startsWith('out_of_range_')) {
@@ -109,8 +157,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   void _checkPendingVerification() {
     final provider = context.read<AppProvider>();
 
-    if (provider.pendingVerification && !_verificationAlertShowing) {
-      // Show repeating alert
+    if (provider.pendingVerification &&
+        !_verificationAlertShowing &&
+        ModalRoute.of(context)?.isCurrent == true) {
       _showVerificationAlert();
     }
   }
@@ -152,9 +201,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     ).then((_) {
       _verificationAlertShowing = false;
 
-      // Check again after dialog closes if still pending
       Future.delayed(Duration(seconds: 10), () {
-        if (mounted) {
+        if (mounted && ModalRoute.of(context)?.isCurrent == true) {
           _checkPendingVerification();
         }
       });
@@ -164,14 +212,16 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   void _navigateToAuthChoice() {
     final provider = context.read<AppProvider>();
 
-    // Determine reason and whether fingerprint is allowed
+    setState(() {
+      _verificationAlertShowing = false;
+    });
+
     VerificationReason reason;
     bool allowFingerprint = false;
 
     if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
       reason = VerificationReason.checkIn;
     } else if (provider.employeeStatus == EmployeeStatus.checkedIn) {
-      // Going out during office hours
       reason = VerificationReason.goingOut;
       allowFingerprint = true;
     } else if (provider.employeeStatus == EmployeeStatus.returned) {
@@ -194,40 +244,43 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
-      Future<bool> _checkCameraPermission() async {
-        final status = await Permission.camera.status;
 
-        if (status.isDenied) {
-          final result = await Permission.camera.request();
-          return result.isGranted;
-        }
+  Future<bool> _checkCameraPermission() async {
+    final status = await Permission.camera.status;
 
-        return status.isGranted;
-      }
-      Future<void> _navigateToFaceVerification(VerificationReason reason) async {
-        // Check camera permission
-        final hasPermission = await _checkCameraPermission();
+    if (status.isDenied) {
+      final result = await Permission.camera.request();
+      return result.isGranted;
+    }
 
-        if (!hasPermission) {
-          _showMessage('Camera permission is required for verification');
-          return;
-        }
+    return status.isGranted;
+  }
 
-        // Check if cameras available
-        if (cameras.isEmpty) {
-          _showMessage('No camera found on this device');
-          return;
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FaceDetectionScreen(
-              cameras: cameras, // ✅ Global list
-              onVerificationComplete: () {_handleFaceVerificationSuccess(reason);},
-            ),
-          ),
-        );
-      }
+  Future<void> _navigateToFaceVerification(VerificationReason reason) async {
+    final hasPermission = await _checkCameraPermission();
+
+    if (!hasPermission) {
+      _showMessage('Camera permission is required for verification');
+      return;
+    }
+
+    if (cameras.isEmpty) {
+      _showMessage('No camera found on this device');
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FaceDetectionScreen(
+          cameras: cameras,
+          onVerificationComplete: () {
+            _handleFaceVerificationSuccess(reason);
+          },
+        ),
+      ),
+    );
+  }
 
   void _handleVerificationSuccess(VerificationType type, VerificationReason reason) {
     final provider = context.read<AppProvider>();
@@ -235,9 +288,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     if (type == VerificationType.faceBlinking) {
       _navigateToFaceVerification(reason);
     } else {
-      // Fingerprint verification
       if (reason == VerificationReason.goingOut) {
-        provider.handleOutOfRangeVerification(true); // Will return
+        provider.handleOutOfRangeVerification(true);
         _showMessage('Going out - Will return later');
       } else if (reason == VerificationReason.returning) {
         provider.clearPendingVerification();
@@ -253,9 +305,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       case VerificationReason.checkIn:
         await provider.handleCheckIn(verified: true);
         _showMessage('Check-in successful!');
+        _startCountdownTimer(); // Restart timer after check-in
         break;
       case VerificationReason.goingOut:
-        await provider.handleOutOfRangeVerification(false); // Not returning
+        await provider.handleOutOfRangeVerification(false);
         _showMessage('Going out - Not returning today');
         break;
       case VerificationReason.returning:
@@ -280,7 +333,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     await provider.loadTodayAttendance();
     await provider.loadWeeklyAttendance();
 
-    // Check for pending verification after initialization
     _checkPendingVerification();
   }
 
@@ -310,7 +362,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Future<void> _handleCheckIn() async {
     final provider = context.read<AppProvider>();
 
-    // If verification pending, show auth screen
     if (provider.pendingVerification) {
       _navigateToAuthChoice();
       return;
@@ -323,7 +374,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Future<void> _handleCheckOut() async {
     final provider = context.read<AppProvider>();
 
-    // After office hours, require face verification
     if (provider.employeeStatus == EmployeeStatus.checkedIn) {
       final now = DateTime.now();
       if (now.hour >= 18) {
@@ -355,7 +405,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               children: [
                 _buildBody(provider),
 
-                // Show persistent verification banner
                 if (provider.pendingVerification)
                   _buildVerificationBanner(),
               ],
@@ -496,28 +545,147 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
+  // UPDATED: New DateTime Status Widget
   Widget _buildDateTimeStatus(AppProvider provider) {
+    final hasCheckedIn = provider.checkInTime != null;
+    final hasCheckedOut = provider.checkOutTime != null;
+    final showCheckInTime = hasCheckedIn && !hasCheckedOut;
+
     return Center(
       child: Column(
         children: [
+          // Date at top
           Text(
             DateTimeUtils.formatDateTime(DateTime.now()),
             style: AppStyles.time,
           ),
-          const SizedBox(height: 5),
-          Text(
-            DateTimeUtils.formatTime(DateTime.now()),
-            style: AppStyles.textMedium,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            provider.statusMessage,
-            style: TextStyle(
-              fontSize: 14,
-              color: provider.canCheckIn || provider.canCheckOut ? Colors.green : Colors.red,
-              fontWeight: FontWeight.w500,
+          const SizedBox(height: 15),
+
+          // Check-in time and Countdown Timer Row
+          if (showCheckInTime)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left: Check-in Time
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Check-in Time',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.login,
+                              color: Colors.green,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              DateTimeUtils.formatTimeOnly(
+                                  provider.checkInTime!
+                              ),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Divider
+                  Container(
+                    height: 20,
+                    width: 1,
+                    color: Colors.black,
+                  ),
+
+                  // Right: Countdown Timer
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Time Remaining',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(
+                              Icons.timer,
+                              color: _remainingTime != null &&
+                                  _remainingTime!.inMinutes > 0
+                                  ? Colors.orange
+                                  : Colors.red,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _remainingTime != null
+                                  ? _formatCountdown(_remainingTime!)
+                                  : '00:00:00',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _remainingTime != null &&
+                                    _remainingTime!.inMinutes > 0
+                                    ? Colors.orange
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+          // Show status message only when not checked in
+          if (!showCheckInTime) ...[
+            const SizedBox(height: 10),
+            Text(
+              provider.statusMessage,
+              style: TextStyle(
+                fontSize: 14,
+                color: provider.canCheckIn || provider.canCheckOut
+                    ? Colors.green
+                    : Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -725,3 +893,4 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 }
+

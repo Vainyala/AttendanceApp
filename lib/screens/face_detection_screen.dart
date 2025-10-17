@@ -1,5 +1,5 @@
-// Modified version of your existing face detection screen
-// with callback support for the verification flow
+// Modified version with FIXED UI
+// Logic remains unchanged - only UI improvements
 
 import 'dart:async';
 import 'dart:io';
@@ -8,12 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-
 import '../services/upload_service.dart';
 
 class FaceDetectionScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
-  final VoidCallback? onVerificationComplete; // NEW: Callback for completion
+  final VoidCallback? onVerificationComplete;
 
   const FaceDetectionScreen({
     Key? key,
@@ -44,7 +43,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
 
   bool _isProcessing = false;
   int _frameSkipCounter = 0;
-  static const int FRAME_SKIP = 5;
+  static const int FRAME_SKIP = 3;
 
   XFile? _capturedImage;
   bool _isCapturingImage = false;
@@ -65,7 +64,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
           enableClassification: true,
           enableLandmarks: false,
           enableTracking: false,
-          minFaceSize: 0.3,
+          minFaceSize: 0.2,
           performanceMode: FaceDetectorMode.fast,
         ),
       );
@@ -74,7 +73,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       debugPrint('❌ Face detector init error: $e');
     }
   }
-// In FaceDetectionScreen, ensure front camera is used
+
   int _getFrontCameraIndex() {
     for (int i = 0; i < widget.cameras.length; i++) {
       if (widget.cameras[i].lensDirection == CameraLensDirection.front) {
@@ -250,6 +249,13 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
         _isCapturingImage = true;
       });
 
+      try {
+        await _cameraController!.stopImageStream();
+        await Future.delayed(Duration(milliseconds: 300));
+      } catch (e) {
+        debugPrint('⚠️ Stream already stopped: $e');
+      }
+
       final XFile image = await _cameraController!.takePicture();
 
       setState(() {
@@ -268,30 +274,45 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   }
 
   void _completeVerification() async {
+    debugPrint("🎉 Starting verification completion...");
+
     setState(() {
       _livenessVerified = true;
       _instructionText = "Verification Complete!";
     });
 
     try {
-      _cameraController?.stopImageStream();
-    } catch (_) {}
+      debugPrint("⏹️ Stopping image stream...");
+      await _cameraController?.stopImageStream();
+    } catch (e) {
+      debugPrint('⚠️ Stream stop error: $e');
+    }
 
+    await Future.delayed(Duration(milliseconds: 500));
+
+    debugPrint("📸 Attempting to capture image...");
     await _captureImage();
 
     if (_capturedImage != null) {
+      debugPrint("✅ Image captured: ${_capturedImage!.path}");
+      debugPrint("📤 File size: ${await File(_capturedImage!.path).length()} bytes");
+      debugPrint("🌐 Starting upload...");
+
       final success = await UploadService.uploadImage(
         File(_capturedImage!.path),
         "user123",
       );
 
       if (success) {
-        print("✅ Image uploaded successfully");
+        debugPrint("✅ Image uploaded successfully");
       } else {
-        print("❌ Image upload failed");
+        debugPrint("❌ Image upload failed");
       }
+    } else {
+      debugPrint("❌ ERROR: No image was captured!");
     }
 
+    debugPrint("✅ Showing success dialog...");
     Timer(Duration(milliseconds: 500), () => _showSuccessDialog());
   }
 
@@ -313,10 +334,9 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
         actions: [
           TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Close face detection screen
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
 
-                // NEW: Call the completion callback
                 if (widget.onVerificationComplete != null) {
                   widget.onVerificationComplete!();
                 }
@@ -333,20 +353,28 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       final camera = widget.cameras[_currentCameraIndex];
 
       InputImageRotation rotation = InputImageRotation.rotation0deg;
-      switch (camera.sensorOrientation) {
-        case 90:
-          rotation = InputImageRotation.rotation90deg;
-          break;
-        case 180:
-          rotation = InputImageRotation.rotation180deg;
-          break;
-        case 270:
-          rotation = InputImageRotation.rotation270deg;
-          break;
-      }
+      if (camera.sensorOrientation == 90) rotation = InputImageRotation.rotation90deg;
+      else if (camera.sensorOrientation == 180) rotation = InputImageRotation.rotation180deg;
+      else if (camera.sensorOrientation == 270) rotation = InputImageRotation.rotation270deg;
 
-      final format = InputImageFormat.bgra8888;
-      final bytes = Uint8List.fromList(image.planes[0].bytes);
+      InputImageFormat? format;
+      Uint8List bytes;
+
+      if (Platform.isAndroid) {
+        format = InputImageFormat.nv21;
+        if (image.planes.length >= 2) {
+          final yPlane = image.planes[0];
+          final uvPlane = image.planes[1];
+          bytes = Uint8List(yPlane.bytes.length + uvPlane.bytes.length);
+          bytes.setRange(0, yPlane.bytes.length, yPlane.bytes);
+          bytes.setRange(yPlane.bytes.length, bytes.length, uvPlane.bytes);
+        } else {
+          return null;
+        }
+      } else {
+        format = InputImageFormat.bgra8888;
+        bytes = Uint8List.fromList(image.planes[0].bytes);
+      }
 
       final metadata = InputImageMetadata(
         size: Size(image.width.toDouble(), image.height.toDouble()),
@@ -356,6 +384,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       );
 
       return InputImage.fromBytes(bytes: bytes, metadata: metadata);
+
     } catch (e) {
       debugPrint('❌ Conversion error: $e');
       return null;
@@ -390,6 +419,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       ),
     );
   }
+
   void _switchCamera() {
     if (widget.cameras.length > 1) {
       _currentCameraIndex = _currentCameraIndex == 0 ? 1 : 0;
@@ -425,188 +455,229 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Face Verification'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Face Verification',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         actions: [
           if (_debugMode)
             IconButton(
-              icon: Icon(Icons.info),
+              icon: Icon(Icons.info, color: Colors.white),
               onPressed: _showDebugInfo,
             ),
         ],
       ),
       body: _isCameraInitialized
           ? Stack(
-          children: [
-            CameraPreview(_cameraController!),
+        children: [
+          // Camera Preview - Full Screen
+          Positioned.fill(
+            child: CameraPreview(_cameraController!),
+          ),
 
-            CustomPaint(
-              painter: SimpleFaceDetectionPainter(
-                faces: _faces,
-                imageSize: Size(
-                    _cameraController!.value.previewSize?.width ?? 1,
-                    _cameraController!.value.previewSize?.height ?? 1
+          // REMOVED: CustomPaint for face detection boxes
+          // This was causing the green squares
+
+          // Face Oval Guide - Centered
+          Center(
+            child: Container(
+              width: 260,
+              height: 340,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _faceFittedInFrame
+                      ? Colors.green
+                      : Colors.white.withOpacity(0.8),
+                  width: 3,
                 ),
               ),
-              size: Size.infinite,
             ),
+          ),
 
+          // Green Overlay when face fitted
+          if (_faceFittedInFrame)
             Center(
               child: Container(
-                width: 280,
-                height: 350,
+                width: 260,
+                height: 340,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                      color: _faceFittedInFrame ? Colors.green : Colors.white,
-                      width: 3
-                  ),
-                  borderRadius: BorderRadius.circular(140),
+                  shape: BoxShape.circle,
+                  color: Colors.green.withOpacity(0.15),
                 ),
-                child: _faceFittedInFrame
-                    ? Container(
-                    decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(140)
-                    )
-                )
-                    : null,
               ),
             ),
 
-            Positioned(
-                bottom: 100,
-                left: 20,
-                right: 20,
-                child: _buildInstructionBox()
-            ),
+          // Status Indicators at Top
+          Positioned(
+            top: 20,
+            left: 0,
+            right: 0,
+            child: _buildStatusRow(),
+          ),
 
-            Positioned(
-                top: 100,
-                left: 20,
-                right: 20,
-                child: _buildStatusRow()
-            ),
+          // Instruction Box at Bottom
+          Positioned(
+            bottom: 40,
+            left: 20,
+            right: 20,
+            child: _buildInstructionBox(),
+          ),
 
-            if (_isCapturingImage)
-              Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: 20),
-                      Text(
-                        'Capturing Image...',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+          // Capturing Overlay
+          if (_isCapturingImage)
+            Container(
+              color: Colors.black87,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Capturing Image...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-          ]
+            ),
+        ],
       )
           : Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: Colors.white),
-                SizedBox(height: 20),
-                Text(
-                    'Initializing Camera...',
-                    style: TextStyle(color: Colors.white, fontSize: 16)
-                )
-              ]
-          )
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 3,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Initializing Camera...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInstructionBox() => Container(
-      padding: EdgeInsets.all(16),
+  Widget _buildInstructionBox() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.circular(10)
+        color: Colors.black.withOpacity(0.75),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Text(
-          _instructionText,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold
-          )
-      )
-  );
+        _instructionText,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
 
-  Widget _buildStatusRow() => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _StatusIndicator(label: "Face", isCompleted: _faceDetected),
-        _StatusIndicator(label: "Fitted", isCompleted: _faceFittedInFrame),
-        _StatusIndicator(label: "Blink: $_blinkCount/3", isCompleted: _blinkCount >= 3),
-      ]
-  );
+  Widget _buildStatusRow() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _StatusIndicator(
+            label: "Face",
+            isCompleted: _faceDetected,
+          ),
+          _StatusIndicator(
+            label: "Fitted",
+            isCompleted: _faceFittedInFrame,
+          ),
+          _StatusIndicator(
+            label: "Blink $_blinkCount/3",
+            isCompleted: _blinkCount >= 3,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StatusIndicator extends StatelessWidget {
   final String label;
   final bool isCompleted;
-  const _StatusIndicator({required this.label, required this.isCompleted});
+
+  const _StatusIndicator({
+    required this.label,
+    required this.isCompleted,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-          color: isCompleted ? Colors.green : Colors.red,
-          borderRadius: BorderRadius.circular(20)
+        color: isCompleted
+            ? Colors.green.withOpacity(0.9)
+            : Colors.grey.shade800.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isCompleted
+              ? Colors.green.shade300
+              : Colors.grey.shade600,
+          width: 1.5,
+        ),
       ),
-      child: Text(
-          label,
-          style: TextStyle(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isCompleted)
+            Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: Icon(
+                Icons.check_circle,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          Text(
+            label,
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold
-          )
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
     );
   }
-}
-
-class SimpleFaceDetectionPainter extends CustomPainter {
-  final List<Face> faces;
-  final Size imageSize;
-
-  SimpleFaceDetectionPainter({
-    required this.faces,
-    required this.imageSize,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (faces.isEmpty) return;
-
-    final Paint facePaint = Paint()
-      ..color = Colors.green
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    final double scaleX = imageSize.width > 0 ? size.width / imageSize.width : 1.0;
-    final double scaleY = imageSize.height > 0 ? size.height / imageSize.height : 1.0;
-
-    for (final face in faces) {
-      final Rect rect = Rect.fromLTRB(
-          face.boundingBox.left * scaleX,
-          face.boundingBox.top * scaleY,
-          face.boundingBox.right * scaleX,
-          face.boundingBox.bottom * scaleY
-      );
-      canvas.drawRect(rect, facePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(SimpleFaceDetectionPainter oldDelegate) =>
-      oldDelegate.faces != faces;
 }

@@ -150,6 +150,25 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  DateTime? get checkInTime {
+    try {
+      return _todayAttendance
+          .firstWhere((a) => a.type == AttendanceType.enter)
+          .timestamp;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DateTime? get checkOutTime {
+    try {
+      return _todayAttendance
+          .firstWhere((a) => a.type == AttendanceType.exit)
+          .timestamp;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> loadWeeklyAttendance() async {
     try {
