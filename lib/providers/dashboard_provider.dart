@@ -37,7 +37,7 @@ class AppProvider extends ChangeNotifier {
   bool _isCheckingIn = false;
   bool _isCheckingOut = false;
 
-  // NEW: Employee status tracking
+  // Employee status tracking
   EmployeeStatus _employeeStatus = EmployeeStatus.notCheckedIn;
   bool _pendingVerification = false;
   String? _currentNotificationPayload;
@@ -62,10 +62,30 @@ class AppProvider extends ChangeNotifier {
   bool get isCheckingOut => _isCheckingOut;
   ProjectModel? get selectedProject => _selectedProject;
 
-  // NEW getters
   EmployeeStatus get employeeStatus => _employeeStatus;
   bool get pendingVerification => _pendingVerification;
   bool get showVerificationAlert => _pendingVerification;
+
+  // FIXED: Check-in and Check-out time getters
+  DateTime? get checkInTime {
+    try {
+      return _todayAttendance
+          .firstWhere((a) => a.type == AttendanceType.enter)
+          .timestamp;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DateTime? get checkOutTime {
+    try {
+      return _todayAttendance
+          .firstWhere((a) => a.type == AttendanceType.exit)
+          .timestamp;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> loadUserData() async {
     _isLoadingUser = true;
@@ -150,25 +170,6 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  DateTime? get checkInTime {
-    try {
-      return _todayAttendance
-          .firstWhere((a) => a.type == AttendanceType.enter)
-          .timestamp;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  DateTime? get checkOutTime {
-    try {
-      return _todayAttendance
-          .firstWhere((a) => a.type == AttendanceType.exit)
-          .timestamp;
-    } catch (_) {
-      return null;
-    }
-  }
 
   Future<void> loadWeeklyAttendance() async {
     try {
@@ -250,7 +251,7 @@ class AppProvider extends ChangeNotifier {
     _monthlyAvgHours = monthlyHours;
   }
 
-  // NEW: Update employee status based on attendance and location
+  // Update employee status based on attendance and location
   void _updateEmployeeStatus() {
     if (_todayAttendance.isEmpty) {
       _employeeStatus = EmployeeStatus.notCheckedIn;
@@ -265,13 +266,13 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // NEW: Check if it's office hours (9 AM to 6 PM)
+  // Check if it's office hours (9 AM to 6 PM)
   bool _isOfficeHours() {
     final now = DateTime.now();
     return now.hour >= 9 && now.hour < 18;
   }
 
-  // NEW: Check if it's after office hours
+  // Check if it's after office hours
   bool _isAfterOfficeHours() {
     final now = DateTime.now();
     return now.hour >= 18;
@@ -319,7 +320,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _handleEnteringGeofence(String geofenceName) async {
     if (_employeeStatus == EmployeeStatus.notCheckedIn) {
-      // First time entering - show check-in notification
+      // FIXED: First time entering - show check-in notification (FACE ONLY)
       final payload = 'checkin_${DateTime.now().millisecondsSinceEpoch}';
       _currentNotificationPayload = payload;
 
@@ -346,7 +347,7 @@ class AppProvider extends ChangeNotifier {
       _lastOutOfRangeTime = DateTime.now();
 
       if (_isOfficeHours()) {
-        // During office hours - show choice notification
+        // FIXED: During office hours - show choice notification (FACE + FINGERPRINT)
         _wentOutDuringOfficeHours = true;
         await NotificationService.showOutOfRangeNotification(
           title: 'You are out of range',
@@ -355,7 +356,7 @@ class AppProvider extends ChangeNotifier {
         );
         _pendingVerification = true;
       } else if (_isAfterOfficeHours()) {
-        // After office hours - only face verification
+        // FIXED: After office hours - only face verification
         await NotificationService.showOutOfRangeNotification(
           title: 'End of Day',
           body: 'Please complete face verification to check out',
@@ -404,14 +405,16 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // NEW: Handle check-in with verification status
+  // FIXED: Handle check-in with verification status
   Future<String> handleCheckIn({bool verified = false}) async {
     if (!_isLocationEnabled) {
       return 'Please enable location services';
     }
 
-    // Check if verification is required but not completed
-    if (_pendingVerification && !verified) {
+    // FIXED: For first check-in, always require verification
+    if (_employeeStatus == EmployeeStatus.notCheckedIn && !verified) {
+      _pendingVerification = true;
+      notifyListeners();
       return 'Please complete face verification first';
     }
 
@@ -458,6 +461,7 @@ class AppProvider extends ChangeNotifier {
             body: 'You have successfully checked in at ${_formatTime(DateTime.now())}',
           );
 
+          notifyListeners();
           return 'Check-in successful!';
         }
       }
@@ -475,7 +479,7 @@ class AppProvider extends ChangeNotifier {
     return 'Check-in failed';
   }
 
-  // NEW: Handle check-out with verification
+  // FIXED: Handle check-out with verification
   Future<String> handleCheckOut({bool verified = false}) async {
     if (!_isLocationEnabled) {
       return 'Please enable location services';
@@ -522,6 +526,7 @@ class AppProvider extends ChangeNotifier {
         body: 'You have successfully checked out at ${_formatTime(DateTime.now())}',
       );
 
+      notifyListeners();
       return 'Check-out successful!';
     } catch (e) {
       return 'Check-out failed: $e';
@@ -531,7 +536,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // NEW: Handle out of range verification
+  // Handle out of range verification
   Future<void> handleOutOfRangeVerification(bool willReturn) async {
     if (willReturn) {
       _employeeStatus = EmployeeStatus.outOfRangeWillReturn;
@@ -545,13 +550,13 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // NEW: Clear pending verification
+  // Clear pending verification
   void clearPendingVerification() {
     _pendingVerification = false;
     notifyListeners();
   }
 
-  // NEW: Check if notification is valid
+  // Check if notification is valid
   bool isNotificationValid(String? payload) {
     if (payload == null) return false;
     return NotificationService.isNotificationValid(payload);

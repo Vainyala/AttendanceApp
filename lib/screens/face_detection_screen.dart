@@ -1,6 +1,3 @@
-// Modified version with FIXED UI
-// Logic remains unchanged - only UI improvements
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -24,10 +21,9 @@ class FaceDetectionScreen extends StatefulWidget {
   _FaceDetectionScreenState createState() => _FaceDetectionScreenState();
 }
 
-class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
+class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerProviderStateMixin {
   CameraController? _cameraController;
   FaceDetector? _faceDetector;
-  bool _debugMode = false;
   bool _isDetecting = false;
   bool _isCameraInitialized = false;
   int _currentCameraIndex = 0;
@@ -48,12 +44,36 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   XFile? _capturedImage;
   bool _isCapturingImage = false;
 
+  late AnimationController _pulseController;
+  late AnimationController _successController;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _successAnimation;
+
   @override
   void initState() {
     super.initState();
     _currentCameraIndex = _getFrontCameraIndex();
     _initializeFaceDetector();
     _initializeCamera();
+
+    _pulseController = AnimationController(
+      duration: Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _successController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _successAnimation = CurvedAnimation(
+      parent: _successController,
+      curve: Curves.elasticOut,
+    );
   }
 
   void _initializeFaceDetector() {
@@ -68,7 +88,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
           performanceMode: FaceDetectorMode.fast,
         ),
       );
-      debugPrint("✅ Fast face detector initialized");
+      debugPrint("✅ Face detector initialized");
     } catch (e) {
       debugPrint('❌ Face detector init error: $e');
     }
@@ -77,11 +97,9 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   int _getFrontCameraIndex() {
     for (int i = 0; i < widget.cameras.length; i++) {
       if (widget.cameras[i].lensDirection == CameraLensDirection.front) {
-        print("✅ Front camera found at index $i");
         return i;
       }
     }
-    print("⚠️ No front camera, using camera 0");
     return 0;
   }
 
@@ -91,7 +109,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
     try {
       _cameraController = CameraController(
         widget.cameras[_currentCameraIndex],
-        ResolutionPreset.low,
+        ResolutionPreset.medium,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.bgra8888,
       );
@@ -107,7 +125,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
     } catch (e) {
       debugPrint('❌ Camera init failed: $e');
       if (mounted) {
-        setState(() => _instructionText = "Failed to initialize camera");
+        setState(() => _instructionText = "Camera initialization failed");
       }
     }
   }
@@ -162,9 +180,12 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
     }
 
     final face = detectedFaces.first;
-    setState(() {
-      _faceDetected = true;
-    });
+
+    if (!_faceDetected) {
+      setState(() {
+        _faceDetected = true;
+      });
+    }
 
     final faceRect = face.boundingBox;
 
@@ -172,28 +193,20 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       if (!_faceFittedInFrame) {
         setState(() {
           _faceFittedInFrame = true;
-          _instructionText = "Great! Now blink 3 times";
+          _instructionText = "Perfect! Now blink 3 times";
         });
       }
 
       if (_faceFittedInFrame && !_livenessVerified) {
-        if (_blinkCount == 0) {
-          setState(() {
-            _instructionText = "Blink now (0/3)";
-          });
-        } else if (_blinkCount < 3) {
-          setState(() {
-            _instructionText = "Keep blinking ($_blinkCount/3)";
-          });
-        }
-
         _detectBlinking(face);
       }
     } else {
-      setState(() {
-        _faceFittedInFrame = false;
-        _instructionText = "Move face closer to center";
-      });
+      if (_faceFittedInFrame) {
+        setState(() {
+          _faceFittedInFrame = false;
+          _instructionText = "Move closer to center";
+        });
+      }
     }
   }
 
@@ -206,11 +219,9 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    bool inFrame = w > 30 && h > 30 &&
+    return w > 30 && h > 30 &&
         cx > 0 && cx < screenWidth &&
         cy > 50 && cy < (screenHeight - 80);
-
-    return inFrame;
   }
 
   void _detectBlinking(Face face) {
@@ -222,16 +233,17 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
     const double openThreshold = 0.4;
     final eyesOpen = (leftProb > openThreshold) && (rightProb > openThreshold);
 
-    if (_previousEyesOpen && !eyesOpen) {
-      debugPrint("👁️ Eyes closed detected");
-    } else if (!_previousEyesOpen && eyesOpen) {
+    if (!_previousEyesOpen && eyesOpen) {
       setState(() {
         _blinkCount++;
+        if (_blinkCount == 1) {
+          _instructionText = "Great! Blink 2 more times";
+        } else if (_blinkCount == 2) {
+          _instructionText = "Almost there! One more blink";
+        }
       });
 
-      debugPrint("✅ BLINK detected! Count: $_blinkCount");
-
-      if (mounted && _blinkCount >= 3) {
+      if (_blinkCount >= 3) {
         _completeVerification();
       }
     }
@@ -240,110 +252,140 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   }
 
   Future<void> _captureImage() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized || _isCapturingImage) {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return;
     }
 
     try {
-      setState(() {
-        _isCapturingImage = true;
-      });
-
-      try {
-        await _cameraController!.stopImageStream();
-        await Future.delayed(Duration(milliseconds: 300));
-      } catch (e) {
-        debugPrint('⚠️ Stream already stopped: $e');
-      }
+      await _cameraController!.stopImageStream();
+      await Future.delayed(Duration(milliseconds: 200));
 
       final XFile image = await _cameraController!.takePicture();
 
       setState(() {
         _capturedImage = image;
-        _isCapturingImage = false;
       });
 
-      debugPrint("✅ Image captured successfully: ${image.path}");
-
+      debugPrint("✅ Image captured: ${image.path}");
     } catch (e) {
       debugPrint('❌ Error capturing image: $e');
-      setState(() {
-        _isCapturingImage = false;
-      });
     }
   }
 
   void _completeVerification() async {
-    debugPrint("🎉 Starting verification completion...");
+    if (_livenessVerified) return;
 
     setState(() {
       _livenessVerified = true;
       _instructionText = "Verification Complete!";
+      _isCapturingImage = true;
     });
 
+    _successController.forward();
+
     try {
-      debugPrint("⏹️ Stopping image stream...");
       await _cameraController?.stopImageStream();
     } catch (e) {
       debugPrint('⚠️ Stream stop error: $e');
     }
 
-    await Future.delayed(Duration(milliseconds: 500));
-
-    debugPrint("📸 Attempting to capture image...");
+    await Future.delayed(Duration(milliseconds: 300));
     await _captureImage();
 
+    // Upload image in background
     if (_capturedImage != null) {
-      debugPrint("✅ Image captured: ${_capturedImage!.path}");
-      debugPrint("📤 File size: ${await File(_capturedImage!.path).length()} bytes");
-      debugPrint("🌐 Starting upload...");
-
-      final success = await UploadService.uploadImage(
+      UploadService.uploadImage(
         File(_capturedImage!.path),
         "user123",
-      );
-
-      if (success) {
-        debugPrint("✅ Image uploaded successfully");
-      } else {
-        debugPrint("❌ Image upload failed");
-      }
-    } else {
-      debugPrint("❌ ERROR: No image was captured!");
+      ).then((success) {
+        debugPrint(success ? "✅ Upload success" : "❌ Upload failed");
+      });
     }
 
-    debugPrint("✅ Showing success dialog...");
-    Timer(Duration(milliseconds: 500), () => _showSuccessDialog());
+    // Show success immediately
+    await Future.delayed(Duration(milliseconds: 400));
+    _showSuccessDialog();
   }
 
   void _showSuccessDialog() {
-    debugPrint("🔵 Showing success dialog");
-
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: Row(
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green.shade400, Colors.green.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 30),
-              SizedBox(width: 10),
-              Text('Success!')
-            ]
+              ScaleTransition(
+                scale: _successAnimation,
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    size: 60,
+                    color: Colors.green.shade600,
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Verified!',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Face liveness verified successfully',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  widget.onVerificationComplete?.call();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.green.shade600,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Continue',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        content: Text('Face liveness verified successfully!'),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-
-                if (widget.onVerificationComplete != null) {
-                  widget.onVerificationComplete!();
-                }
-              },
-              child: Text('OK')
-          )
-        ],
       ),
     );
   }
@@ -384,66 +426,16 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       );
 
       return InputImage.fromBytes(bytes: bytes, metadata: metadata);
-
     } catch (e) {
       debugPrint('❌ Conversion error: $e');
       return null;
     }
   }
 
-  void _showDebugInfo() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Debug Info'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Cameras: ${widget.cameras.length}'),
-            Text('Current camera: $_currentCameraIndex'),
-            Text('Camera initialized: $_isCameraInitialized'),
-            Text('Face detected: $_faceDetected'),
-            Text('Face fitted: $_faceFittedInFrame'),
-            Text('Blinks: $_blinkCount/3'),
-            Text('Processing: $_isProcessing'),
-            Text('Faces found: ${_faces.length}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _switchCamera() {
-    if (widget.cameras.length > 1) {
-      _currentCameraIndex = _currentCameraIndex == 0 ? 1 : 0;
-
-      try {
-        _cameraController?.dispose();
-      } catch (_) {}
-
-      _initializeCamera();
-
-      setState(() {
-        _faceDetected = false;
-        _faceFittedInFrame = false;
-        _blinkCount = 0;
-        _livenessVerified = false;
-        _instructionText = "Position your face in the frame";
-        _previousEyesOpen = true;
-        _capturedImage = null;
-      });
-    }
-  }
-
   @override
   void dispose() {
+    _pulseController.dispose();
+    _successController.dispose();
     try {
       _cameraController?.stopImageStream();
     } catch (_) {}
@@ -456,101 +448,125 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.arrow_back, color: Colors.white, size: 20),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Face Verification',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        actions: [
-          if (_debugMode)
-            IconButton(
-              icon: Icon(Icons.info, color: Colors.white),
-              onPressed: _showDebugInfo,
-            ),
-        ],
       ),
       body: _isCameraInitialized
           ? Stack(
         children: [
-          // Camera Preview - Full Screen
+          // Camera Preview
           Positioned.fill(
             child: CameraPreview(_cameraController!),
           ),
 
-          // REMOVED: CustomPaint for face detection boxes
-          // This was causing the green squares
-
-          // Face Oval Guide - Centered
-          Center(
+          // Dark overlay for better contrast
+          Positioned.fill(
             child: Container(
-              width: 260,
-              height: 340,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _faceFittedInFrame
-                      ? Colors.green
-                      : Colors.white.withOpacity(0.8),
-                  width: 3,
-                ),
-              ),
+              color: Colors.black.withOpacity(0.3),
             ),
           ),
 
-          // Green Overlay when face fitted
-          if (_faceFittedInFrame)
+          // Animated Face Oval Guide
+          Center(
+            child: AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _faceFittedInFrame ? 1.0 : _pulseAnimation.value,
+                  child: Container(
+                    width: 280,
+                    height: 360,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _livenessVerified
+                            ? Colors.green
+                            : _faceFittedInFrame
+                            ? Colors.green
+                            : Colors.white.withOpacity(0.6),
+                        width: _faceFittedInFrame ? 4 : 3,
+                      ),
+                      boxShadow: _faceFittedInFrame
+                          ? [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ]
+                          : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Green overlay when verified
+          if (_livenessVerified)
             Center(
               child: Container(
-                width: 260,
-                height: 340,
+                width: 280,
+                height: 360,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.green.withOpacity(0.15),
+                  color: Colors.green.withOpacity(0.2),
                 ),
               ),
             ),
 
-          // Status Indicators at Top
+          // Status Pills
           Positioned(
-            top: 20,
-            left: 0,
-            right: 0,
+            top: 100,
+            left: 20,
+            right: 20,
             child: _buildStatusRow(),
           ),
 
-          // Instruction Box at Bottom
+          // Instruction Box
           Positioned(
-            bottom: 40,
+            bottom: 60,
             left: 20,
             right: 20,
             child: _buildInstructionBox(),
           ),
 
-          // Capturing Overlay
-          if (_isCapturingImage)
+          // Capturing overlay
+          if (_isCapturingImage && !_livenessVerified)
             Container(
               color: Colors.black87,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 4,
+                      ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 24),
                     Text(
-                      'Capturing Image...',
+                      'Capturing...',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -559,121 +575,165 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
             ),
         ],
       )
-          : Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: Colors.white,
-              strokeWidth: 3,
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Initializing Camera...',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+          : Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade900, Colors.black],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 4,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 24),
+              Text(
+                'Initializing Camera...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInstructionBox() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.75),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+        gradient: LinearGradient(
+          colors: _livenessVerified
+              ? [Colors.green.shade600, Colors.green.shade700]
+              : [Colors.black.withOpacity(0.8), Colors.black.withOpacity(0.9)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _livenessVerified
+                ? Colors.green.withOpacity(0.5)
+                : Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+        ],
       ),
-      child: Text(
-        _instructionText,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusRow() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _StatusIndicator(
-            label: "Face",
-            isCompleted: _faceDetected,
-          ),
-          _StatusIndicator(
-            label: "Fitted",
-            isCompleted: _faceFittedInFrame,
-          ),
-          _StatusIndicator(
-            label: "Blink $_blinkCount/3",
-            isCompleted: _blinkCount >= 3,
+          if (_livenessVerified)
+            Icon(Icons.check_circle, color: Colors.white, size: 24),
+          if (_livenessVerified) SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              _instructionText,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildStatusRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _StatusPill(
+          icon: Icons.face,
+          label: "Face",
+          isActive: _faceDetected,
+        ),
+        SizedBox(width: 12),
+        _StatusPill(
+          icon: Icons.center_focus_strong,
+          label: "Aligned",
+          isActive: _faceFittedInFrame,
+        ),
+        SizedBox(width: 12),
+        _StatusPill(
+          icon: Icons.remove_red_eye,
+          label: "$_blinkCount/3",
+          isActive: _blinkCount >= 3,
+        ),
+      ],
+    );
+  }
 }
 
-class _StatusIndicator extends StatelessWidget {
+class _StatusPill extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final bool isCompleted;
+  final bool isActive;
 
-  const _StatusIndicator({
+  const _StatusPill({
+    required this.icon,
     required this.label,
-    required this.isCompleted,
+    required this.isActive,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isCompleted
-            ? Colors.green.withOpacity(0.9)
-            : Colors.grey.shade800.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
+        gradient: isActive
+            ? LinearGradient(
+          colors: [Colors.green.shade400, Colors.green.shade600],
+        )
+            : null,
+        color: isActive ? null : Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: isCompleted
-              ? Colors.green.shade300
-              : Colors.grey.shade600,
-          width: 1.5,
+          color: isActive ? Colors.green.shade300 : Colors.white.withOpacity(0.3),
+          width: 2,
         ),
+        boxShadow: isActive
+            ? [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.4),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ]
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isCompleted)
-            Padding(
-              padding: EdgeInsets.only(right: 6),
-              child: Icon(
-                Icons.check_circle,
-                color: Colors.white,
-                size: 16,
-              ),
-            ),
+          Icon(
+            isActive ? Icons.check_circle : icon,
+            color: Colors.white,
+            size: 18,
+          ),
+          SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

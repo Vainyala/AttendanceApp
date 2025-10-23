@@ -7,11 +7,11 @@ enum VerificationType {
 }
 
 enum VerificationReason {
-  checkIn,           // Initial check-in
-  goingOut,          // Going out, not returning
-  goingOutReturning, // Going out, will return
-  returning,         // Coming back after going out
-  checkOut,          // End of day checkout
+  checkIn,
+  goingOut,
+  goingOutReturning,
+  returning,
+  checkOut,
 }
 
 class AuthVerificationScreen extends StatefulWidget {
@@ -32,15 +32,34 @@ class AuthVerificationScreen extends StatefulWidget {
   State<AuthVerificationScreen> createState() => _AuthVerificationScreenState();
 }
 
-class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
+class _AuthVerificationScreenState extends State<AuthVerificationScreen>
+    with SingleTickerProviderStateMixin {
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _isAuthenticating = false;
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Show expiry message if notification expired
+    _animController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+
+    _animController.forward();
+
     if (widget.isNotificationExpired) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showExpiryMessage();
@@ -48,31 +67,83 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
   void _showExpiryMessage() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 30),
-            SizedBox(width: 10),
-            Text('Notification Expired'),
-          ],
-        ),
-        content: Text(
-          'This notification has expired (5 minutes limit). Check-in is disabled for this instance.',
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close auth screen
-            },
-            child: Text('OK', style: TextStyle(fontSize: 16)),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.access_time_filled,
+                  color: Colors.red.shade600,
+                  size: 48,
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Session Expired',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade900,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'This verification session has expired (5 minutes limit). Please request a new check-in.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
+              ),
+              SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade600,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Got it',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -80,39 +151,65 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
   String _getTitle() {
     switch (widget.reason) {
       case VerificationReason.checkIn:
-        return 'Check-In Verification';
+        return 'Check-In';
       case VerificationReason.goingOut:
       case VerificationReason.goingOutReturning:
-        return 'Going Out Verification';
+        return 'Going Out';
       case VerificationReason.returning:
-        return 'Return Verification';
+        return 'Welcome Back';
       case VerificationReason.checkOut:
-        return 'Check-Out Verification';
+        return 'Check-Out';
     }
   }
 
-  String _getDescription() {
+  String _getSubtitle() {
     switch (widget.reason) {
       case VerificationReason.checkIn:
-        return 'Complete face verification to check in';
+        return 'Verify your identity to start your day';
       case VerificationReason.goingOut:
-        return 'Choose verification method';
       case VerificationReason.goingOutReturning:
-        return 'Choose verification method';
+        return 'Choose your verification method';
       case VerificationReason.returning:
-        return 'Verify to mark your return';
+        return 'Verify to confirm your return';
       case VerificationReason.checkOut:
-        return 'Complete face verification to check out';
+        return 'Verify to complete your day';
+    }
+  }
+
+  IconData _getHeaderIcon() {
+    switch (widget.reason) {
+      case VerificationReason.checkIn:
+        return Icons.login;
+      case VerificationReason.goingOut:
+      case VerificationReason.goingOutReturning:
+        return Icons.exit_to_app;
+      case VerificationReason.returning:
+        return Icons.home;
+      case VerificationReason.checkOut:
+        return Icons.logout;
+    }
+  }
+
+  Color _getHeaderColor() {
+    switch (widget.reason) {
+      case VerificationReason.checkIn:
+        return Colors.green;
+      case VerificationReason.goingOut:
+      case VerificationReason.goingOutReturning:
+        return Colors.orange;
+      case VerificationReason.returning:
+        return Colors.blue;
+      case VerificationReason.checkOut:
+        return Colors.purple;
     }
   }
 
   Future<void> _handleFaceVerification() async {
-    Navigator.pop(context); // Close this screen
+    // Add haptic feedback
+    await Future.delayed(Duration(milliseconds: 100));
 
-    // Navigate to face detection screen
-    // You'll need to import your FaceDetectionScreen
-    // For now, simulating navigation with callback
     widget.onVerificationSuccess(VerificationType.faceBlinking);
+    Navigator.pop(context);
   }
 
   Future<void> _handleFingerprintVerification() async {
@@ -125,13 +222,13 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
       final isDeviceSupported = await _localAuth.isDeviceSupported();
 
       if (!canAuthenticate || !isDeviceSupported) {
-        _showError('Fingerprint authentication is not available on this device');
+        _showError('Fingerprint not available on this device');
         setState(() => _isAuthenticating = false);
         return;
       }
 
       final authenticated = await _localAuth.authenticate(
-        localizedReason: 'Verify your identity with fingerprint',
+        localizedReason: 'Verify your fingerprint',
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
@@ -140,12 +237,33 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
 
       if (authenticated) {
         widget.onVerificationSuccess(VerificationType.fingerprint);
+
+        // Show quick success feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Verified successfully!'),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            duration: Duration(milliseconds: 1500),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+
+        await Future.delayed(Duration(milliseconds: 500));
         Navigator.pop(context);
       } else {
-        _showError('Fingerprint verification failed');
+        _showError('Verification failed. Please try again.');
       }
     } catch (e) {
-      _showError('Error: $e');
+      _showError('Authentication error occurred');
     } finally {
       setState(() => _isAuthenticating = false);
     }
@@ -154,93 +272,196 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red.shade600,
         duration: Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // If notification expired, show nothing (dialog handles it)
     if (widget.isNotificationExpired) {
       return Scaffold(
         backgroundColor: Colors.black87,
-        body: Container(), // Empty, dialog will show
+        body: Container(),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.black87,
-      appBar: AppBar(
-        title: Text(_getTitle()),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              _getHeaderColor().shade700,
+              _getHeaderColor().shade900,
+              Colors.black,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.security,
-                size: 80,
-                color: Colors.white,
-              ),
-              SizedBox(height: 30),
-              Text(
-                _getTitle(),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              // Custom App Bar
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 15),
-              Text(
-                _getDescription(),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 50),
-
-              // Face Authentication Button
-              _buildVerificationButton(
-                icon: Icons.face,
-                title: 'Face Verification',
-                subtitle: _getFaceSubtitle(),
-                color: Colors.blue,
-                onTap: _handleFaceVerification,
               ),
 
-              if (widget.allowFingerprint) ...[
-                SizedBox(height: 20),
-                Text(
-                  'OR',
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+              Expanded(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Header Icon
+                          Container(
+                            padding: EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              _getHeaderIcon(),
+                              size: 64,
+                              color: Colors.white,
+                            ),
+                          ),
+
+                          SizedBox(height: 32),
+
+                          // Title
+                          Text(
+                            _getTitle(),
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+
+                          SizedBox(height: 12),
+
+                          // Subtitle
+                          Text(
+                            _getSubtitle(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.white.withOpacity(0.85),
+                              height: 1.4,
+                            ),
+                          ),
+
+                          SizedBox(height: 60),
+
+                          // Face Verification Button
+                          _buildVerificationCard(
+                            icon: Icons.face_rounded,
+                            title: 'Face Verification',
+                            subtitle: widget.reason == VerificationReason.goingOut ||
+                                widget.reason == VerificationReason.goingOutReturning
+                                ? 'Not returning today'
+                                : 'Blink 3 times to verify',
+                            gradient: LinearGradient(
+                              colors: [Colors.blue.shade400, Colors.blue.shade600],
+                            ),
+                            onTap: _handleFaceVerification,
+                          ),
+
+                          if (widget.allowFingerprint) ...[
+                            SizedBox(height: 20),
+
+                            // OR Divider
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    color: Colors.white.withOpacity(0.3),
+                                    thickness: 1,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'OR',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    color: Colors.white.withOpacity(0.3),
+                                    thickness: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 20),
+
+                            // Fingerprint Verification Button
+                            _buildVerificationCard(
+                              icon: Icons.fingerprint,
+                              title: 'Fingerprint',
+                              subtitle: 'Will return later today',
+                              gradient: LinearGradient(
+                                colors: [Colors.green.shade400, Colors.green.shade600],
+                              ),
+                              onTap: _isAuthenticating ? null : _handleFingerprintVerification,
+                              loading: _isAuthenticating,
+                            ),
+                          ],
+
+                          SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(height: 20),
-
-                // Fingerprint Authentication Button
-                _buildVerificationButton(
-                  icon: Icons.fingerprint,
-                  title: 'Fingerprint Verification',
-                  subtitle: _getFingerprintSubtitle(),
-                  color: Colors.green,
-                  onTap: _isAuthenticating ? null : _handleFingerprintVerification,
-                  loading: _isAuthenticating,
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -248,67 +469,77 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen> {
     );
   }
 
-  String _getFaceSubtitle() {
-    if (widget.reason == VerificationReason.goingOut ||
-        widget.reason == VerificationReason.goingOutReturning) {
-      return 'Going out, not returning today';
-    }
-    return 'Complete 3 eye blinks';
-  }
-
-  String _getFingerprintSubtitle() {
-    return 'Going out, will return later';
-  }
-
-  Widget _buildVerificationButton({
+  Widget _buildVerificationCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
+    required Gradient gradient,
     required VoidCallback? onTap,
     bool loading = false,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
         width: double.infinity,
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: onTap == null ? Colors.grey : color,
-          borderRadius: BorderRadius.circular(15),
+          gradient: onTap == null && !loading ? null : gradient,
+          color: onTap == null && !loading ? Colors.grey.shade700 : null,
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 10,
-              offset: Offset(0, 5),
+              color: onTap == null && !loading
+                  ? Colors.black.withOpacity(0.3)
+                  : _getHeaderColor().withOpacity(0.4),
+              blurRadius: 20,
+              offset: Offset(0, 10),
             ),
           ],
         ),
         child: loading
             ? Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 3,
+            ),
+          ),
         )
             : Column(
           children: [
-            Icon(icon, size: 60, color: Colors.white),
-            SizedBox(height: 15),
+            // Icon
+            Icon(
+              icon,
+              size: 56,
+              color: Colors.white,
+            ),
+
+            SizedBox(height: 16),
+
+            // Title
             Text(
               title,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              textAlign: TextAlign.center,
             ),
+
             SizedBox(height: 8),
+
+            // Subtitle
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
               textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white.withOpacity(0.9),
+                height: 1.3,
+              ),
             ),
           ],
         ),

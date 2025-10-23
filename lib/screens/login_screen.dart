@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../providers/dashboard_provider.dart';
-import '../providers/splash_provider.dart';
-import 'dashboard_screen.dart';
+import '../providers/auth_provider.dart';
+import 'role_selection_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,6 +20,14 @@ class _LoginScreenState extends State<LoginScreen> {
   String _selectedCountryCode = '+91';
 
   @override
+  void initState() {
+    super.initState();
+    // Prefill test credentials for now
+    _phoneController.text = '9999999999';
+    _passwordController.text = '123456';
+  }
+
+  @override
   void dispose() {
     _phoneController.dispose();
     _passwordController.dispose();
@@ -29,23 +36,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final provider = context.read<SplashProvider>();
+      final phone = _phoneController.text.trim();
+      final password = _passwordController.text.trim();
 
-      final error = await provider.login(
+      // ✅ Allow test login without AuthProvider check
+      if (phone == '9999999999' && password == '123456') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+        );
+        return;
+      }
+
+      // 🔐 Normal login flow for other users
+      final authProvider = context.read<AuthProvider>();
+      final error = await authProvider.login(
         _selectedCountryCode,
-        _phoneController.text,
-        _passwordController.text,
+        phone,
+        password,
       );
 
       if (mounted) {
         if (error == null) {
-          // Login successful, navigate to dashboard
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
           );
         } else {
-          // Show error dialog
           _showErrorDialog(error);
         }
       }
@@ -70,9 +87,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppProvider>(
-      builder: (context, provider, child) {
-        final isLoading = provider.isLoadingUser;
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final isLoading = authProvider.isLoading;
 
         return Scaffold(
           body: Container(
@@ -181,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           border: InputBorder.none,
                                           contentPadding:
                                           EdgeInsets.symmetric(vertical: 16),
-                                          counterText: '', // Hide counter text
+                                          counterText: '',
                                         ),
                                         style: const TextStyle(
                                           fontSize: 16,
