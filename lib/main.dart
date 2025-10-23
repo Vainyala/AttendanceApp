@@ -1,3 +1,5 @@
+import 'package:AttendanceApp/providers/attendance_provider.dart';
+import 'package:AttendanceApp/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
@@ -55,6 +57,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SplashProvider()),
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => RegularisationProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+
       ],
       child: MaterialApp(
         title: 'Attendance App',

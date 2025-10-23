@@ -21,7 +21,7 @@ import 'attendance_history_screen.dart';
 import 'project_details_screen.dart';
 import 'auth_verification_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'face_detection_screen.dart'; // Your existing face detection screen
+import 'face_detection_screen.dart';
 import '../main.dart' show cameras;
 
 
@@ -36,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _verificationAlertShowing = false;
 
-  // NEW: Timer variables
+  // Timer variables
   Timer? _countdownTimer;
   Duration? _remainingTime;
 
@@ -46,12 +46,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
     _setupNotificationHandler();
-    _startCountdownTimer(); // NEW: Start countdown
   }
 
   @override
   void dispose() {
-    _countdownTimer?.cancel(); // NEW: Cancel timer
+    _countdownTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -60,10 +59,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _checkPendingVerification();
+      _startCountdownTimer(); // Restart timer when app resumes
     }
   }
 
-  // NEW: Countdown Timer Logic
+  // FIXED: Countdown Timer Logic - Counts DOWN from 9 hours
   void _startCountdownTimer() {
     _countdownTimer?.cancel();
 
@@ -71,9 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       if (mounted) {
         final provider = context.read<AppProvider>();
 
-        if (provider.checkInTime != null &&
-            provider.checkOutTime == null) {
-
+        if (provider.checkInTime != null && provider.checkOutTime == null) {
           final checkInTime = provider.checkInTime!;
           final targetTime = checkInTime.add(Duration(hours: 9));
           final now = DateTime.now();
@@ -96,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     });
   }
 
-  // NEW: Format countdown time
+  // Format countdown time (HH:MM:SS)
   String _formatCountdown(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
@@ -122,10 +120,13 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     }
 
     if (payload.startsWith('checkin_')) {
+      // FIXED: First check-in should ONLY do face verification
       _navigateToFaceVerification(VerificationReason.checkIn);
     } else if (payload.startsWith('out_of_range_')) {
+      // Going out during office hours - show both options
       _navigateToAuthChoice();
     } else if (payload.startsWith('checkout_')) {
+      // Checkout after 6 PM - only face verification
       _navigateToFaceVerification(VerificationReason.checkOut);
     }
   }
@@ -191,7 +192,15 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               onPressed: () {
                 Navigator.pop(context);
                 _verificationAlertShowing = false;
-                _navigateToAuthChoice();
+
+                final provider = context.read<AppProvider>();
+
+                // FIXED: If first check-in, go directly to face verification
+                if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+                  _navigateToFaceVerification(VerificationReason.checkIn);
+                } else {
+                  _navigateToAuthChoice();
+                }
               },
               child: Text('Verify Now', style: TextStyle(fontSize: 16)),
             ),
@@ -219,16 +228,20 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     VerificationReason reason;
     bool allowFingerprint = false;
 
+    // FIXED: First check-in should NOT show fingerprint option
     if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+      // This should never happen now - we go directly to face verification
       reason = VerificationReason.checkIn;
+      allowFingerprint = false;
     } else if (provider.employeeStatus == EmployeeStatus.checkedIn) {
       reason = VerificationReason.goingOut;
-      allowFingerprint = true;
+      allowFingerprint = true; // Allow fingerprint when going out
     } else if (provider.employeeStatus == EmployeeStatus.returned) {
       reason = VerificationReason.returning;
-      allowFingerprint = true;
+      allowFingerprint = true; // Allow fingerprint when returning
     } else {
       reason = VerificationReason.checkOut;
+      allowFingerprint = false; // No fingerprint for final checkout
     }
 
     Navigator.push(
@@ -305,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       case VerificationReason.checkIn:
         await provider.handleCheckIn(verified: true);
         _showMessage('Check-in successful!');
-        _startCountdownTimer(); // Restart timer after check-in
+        _startCountdownTimer(); // FIXED: Start timer after check-in
         break;
       case VerificationReason.goingOut:
         await provider.handleOutOfRangeVerification(false);
@@ -318,6 +331,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       case VerificationReason.checkOut:
         await provider.handleCheckOut(verified: true);
         _showMessage('Check-out successful!');
+        _countdownTimer?.cancel(); // Stop timer on checkout
         break;
       default:
         break;
@@ -332,7 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     await _checkLocationAndStartMonitoring();
     await provider.loadTodayAttendance();
     await provider.loadWeeklyAttendance();
-
+    _startCountdownTimer(); // Start timer after loading data
     _checkPendingVerification();
   }
 
@@ -363,12 +377,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     final provider = context.read<AppProvider>();
 
     if (provider.pendingVerification) {
-      _navigateToAuthChoice();
+      // FIXED: Direct to face verification for first check-in
+      _navigateToFaceVerification(VerificationReason.checkIn);
       return;
     }
 
     final message = await provider.handleCheckIn();
     _showMessage(message);
+
+    if (message.contains('successful')) {
+      _startCountdownTimer(); // Start timer on successful check-in
+    }
   }
 
   Future<void> _handleCheckOut() async {
@@ -384,6 +403,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
     final message = await provider.handleCheckOut();
     _showMessage(message);
+
+    if (message.contains('successful')) {
+      _countdownTimer?.cancel(); // Stop timer on successful checkout
+    }
   }
 
   void _showMessage(String message) {
@@ -451,7 +474,16 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               ),
               IconButton(
                 icon: Icon(Icons.arrow_forward, color: Colors.white),
-                onPressed: _navigateToAuthChoice,
+                onPressed: () {
+                  final provider = context.read<AppProvider>();
+
+                  // FIXED: Check if first check-in
+                  if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+                    _navigateToFaceVerification(VerificationReason.checkIn);
+                  } else {
+                    _navigateToAuthChoice();
+                  }
+                },
               ),
             ],
           ),
@@ -471,7 +503,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
       child: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () => provider.refreshAllData(),
+          onRefresh: () async {
+            await provider.refreshAllData();
+            _startCountdownTimer(); // Restart timer after refresh
+          },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
@@ -545,11 +580,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-  // UPDATED: New DateTime Status Widget
+  // FIXED: Date Time Status Widget with proper layout
   Widget _buildDateTimeStatus(AppProvider provider) {
     final hasCheckedIn = provider.checkInTime != null;
     final hasCheckedOut = provider.checkOutTime != null;
-    final showCheckInTime = hasCheckedIn && !hasCheckedOut;
+    final showTimer = hasCheckedIn && !hasCheckedOut;
 
     return Center(
       child: Column(
@@ -561,8 +596,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           ),
           const SizedBox(height: 15),
 
-          // Check-in time and Countdown Timer Row
-          if (showCheckInTime)
+          // FIXED: Check-in time and Countdown Timer Row
+          if (showTimer && _remainingTime != null) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
@@ -619,12 +654,12 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
                   // Divider
                   Container(
-                    height: 20,
+                    height: 40,
                     width: 1,
-                    color: Colors.black,
+                    color: Colors.grey.shade300,
                   ),
 
-                  // Right: Countdown Timer
+                  // Right: Countdown Timer (Counts DOWN)
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -643,24 +678,24 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                           children: [
                             Icon(
                               Icons.timer,
-                              color: _remainingTime != null &&
-                                  _remainingTime!.inMinutes > 0
+                              color: _remainingTime!.inMinutes > 60
+                                  ? Colors.green
+                                  : (_remainingTime!.inMinutes > 0
                                   ? Colors.orange
-                                  : Colors.red,
+                                  : Colors.red),
                               size: 18,
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              _remainingTime != null
-                                  ? _formatCountdown(_remainingTime!)
-                                  : '00:00:00',
+                              _formatCountdown(_remainingTime!),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: _remainingTime != null &&
-                                    _remainingTime!.inMinutes > 0
+                                color: _remainingTime!.inMinutes > 60
+                                    ? Colors.green
+                                    : (_remainingTime!.inMinutes > 0
                                     ? Colors.orange
-                                    : Colors.red,
+                                    : Colors.red),
                               ),
                             ),
                           ],
@@ -671,9 +706,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 ],
               ),
             ),
-
-          // Show status message only when not checked in
-          if (!showCheckInTime) ...[
+          ] else ...[
+            // Show status message when not checked in
             const SizedBox(height: 10),
             Text(
               provider.statusMessage,
@@ -893,4 +927,3 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 }
-
