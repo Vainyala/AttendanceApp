@@ -9,7 +9,7 @@ class AuthService {
   final _storage = const FlutterSecureStorage();
   final _dbHelper = DatabaseHelper.instance;
 
-  static const String _baseUrl = 'YOUR_API_BASE_URL'; // Replace with your API URL
+  static const String _baseUrl = 'http://localhost:5000/api/auth/login'; // Replace with your API URL
   static const String _tokenKey = 'jwt_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userIdKey = 'user_id';
@@ -79,7 +79,7 @@ class AuthService {
       if (refreshToken == null) return false;
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/auth/refresh'),
+        Uri.parse('$_baseUrl/auth/refresh-token'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       );

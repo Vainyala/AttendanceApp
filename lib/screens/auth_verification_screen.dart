@@ -303,8 +303,8 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              _getHeaderColor().shade700,
-              _getHeaderColor().shade900,
+              _getHeaderColor().withOpacity(0.8),
+              _getHeaderColor().withOpacity(0.9),
               Colors.black,
             ],
             begin: Alignment.topCenter,

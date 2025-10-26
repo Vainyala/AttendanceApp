@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import '../models/attendance_status.dart';
 import '../models/user_model.dart';
 import '../models/attendance_model.dart';
 import '../models/project_model.dart';
+import '../services/geofencing_service.dart';
 import '../services/storage_service.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
@@ -20,7 +24,8 @@ class AppProvider extends ChangeNotifier {
   List<AttendanceModel> _weeklyAttendance = [];
   List<AttendanceModel> _allAttendance = [];
   ProjectModel? _selectedProject;
-
+  Timer? _checkoutTimer;
+  bool _checkoutNotificationShown = false;
   bool _isLocationEnabled = false;
   bool _isInGeofence = false;
   bool _canCheckIn = false;
@@ -28,10 +33,11 @@ class AppProvider extends ChangeNotifier {
   bool _wasInsideGeofence = false;
   String _statusMessage = "Checking location...";
   String _geofenceStatus = "You Are Not In Range Of Nutantek";
-
+  bool _trackingEnabled = false;
+  bool get trackingEnabled => _trackingEnabled;
   double _weeklyAvgHours = 0.0;
   double _monthlyAvgHours = 0.0;
-
+  String? _lastUsedGeofence;
   bool _isLoadingUser = false;
   bool _isLoadingAttendance = false;
   bool _isCheckingIn = false;
@@ -184,7 +190,22 @@ class AppProvider extends ChangeNotifier {
       debugPrint('Error loading weekly attendance: $e');
     }
   }
+  Future<void> toggleTracking(bool enabled) async {
+    _trackingEnabled = enabled;
 
+    if (enabled) {
+      // Start monitoring
+      await GeofencingService.startMonitoring();
+      await updateLocationStatus();
+      _statusMessage = "Tracking enabled";
+    } else {
+      // Stop monitoring
+      await GeofencingService.stopMonitoring();
+      _statusMessage = "Tracking disabled";
+    }
+
+    notifyListeners();
+  }
   List<AttendanceModel> _generateDummyAttendance() {
     List<AttendanceModel> dummyData = [];
     final now = DateTime.now();
@@ -318,9 +339,28 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  // Update _handleEnteringGeofence method
   Future<void> _handleEnteringGeofence(String geofenceName) async {
+    // Check if geofence changed - require re-authentication
+    if (_lastUsedGeofence != null &&
+        _lastUsedGeofence != geofenceName &&
+        _employeeStatus == EmployeeStatus.checkedIn) {
+
+      debugPrint("⚠️ Geofence changed! Requiring re-authentication");
+      _pendingVerification = true;
+
+      await NotificationService.showGeofenceNotification(
+        title: 'Location Changed',
+        body: 'Different office detected. Please verify again.',
+        isEntering: true,
+        payload: 'geofence_change_${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      notifyListeners();
+      return;
+    }
+
     if (_employeeStatus == EmployeeStatus.notCheckedIn) {
-      // FIXED: First time entering - show check-in notification (FACE ONLY)
       final payload = 'checkin_${DateTime.now().millisecondsSinceEpoch}';
       _currentNotificationPayload = payload;
 
@@ -332,9 +372,9 @@ class AppProvider extends ChangeNotifier {
       );
 
       _pendingVerification = true;
+      _lastUsedGeofence = geofenceName; // Store geofence
     } else if (_employeeStatus == EmployeeStatus.outOfRange ||
         _employeeStatus == EmployeeStatus.outOfRangeWillReturn) {
-      // Employee returning - needs verification
       _pendingVerification = true;
       _employeeStatus = EmployeeStatus.returned;
     }
@@ -342,12 +382,82 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Add this method for auto checkout after notification expires
+  Future<void> _startCheckoutTimer() async {
+    _checkoutTimer?.cancel();
+
+    // Wait 5 minutes for user to respond
+    _checkoutTimer = Timer(Duration(minutes: 5), () async {
+      if (_pendingVerification && _isAfterOfficeHours()) {
+        // Auto checkout using geofence
+        await _autoCheckoutWithGeofence();
+      }
+    });
+  }
+// Add method to check and mark absences
+  Future<void> checkAndMarkAbsences() async {
+    final now = DateTime.now();
+
+    // If it's past 10 AM and no check-in, mark as absent
+    if (now.hour >= 10 &&
+        _employeeStatus == EmployeeStatus.notCheckedIn &&
+        _todayAttendance.isEmpty) {
+
+      final absentRecord = AttendanceModel(
+        id: 'absent_${now.millisecondsSinceEpoch}',
+        userId: _user?.id ?? '',
+        timestamp: now,
+        type: AttendanceType.enter,
+        latitude: 0,
+        longitude: 0,
+        status: AttendanceStatus.absent,
+        notes: 'Marked absent - No check-in by 10 AM',
+      );
+
+      await StorageService.saveAttendanceRecord(absentRecord);
+      await loadTodayAttendance();
+
+      debugPrint("❌ Marked as ABSENT - No check-in by 10 AM");
+    }
+
+    notifyListeners();
+  }
+  Future<void> _autoCheckoutWithGeofence() async {
+    debugPrint("⏰ Auto checkout - Face auth expired, using geofence");
+
+    final position = await LocationService.getCurrentPosition();
+    if (position == null) return;
+
+    final attendance = AttendanceModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: _user?.id ?? '',
+      timestamp: DateTime.now(),
+      type: AttendanceType.exit,
+      latitude: position.latitude,
+      longitude: position.longitude,
+      notes: 'Auto checkout - Face auth not completed',
+    );
+
+    await StorageService.saveAttendanceRecord(attendance);
+    await loadTodayAttendance();
+
+    _pendingVerification = false;
+    _employeeStatus = EmployeeStatus.notCheckedIn;
+
+    await NotificationService.showAttendanceNotification(
+      title: 'Auto Check-Out',
+      body: 'Checked out automatically using geofence',
+    );
+
+    notifyListeners();
+  }
+
+// Update _handleLeavingGeofence method
   Future<void> _handleLeavingGeofence() async {
     if (_employeeStatus == EmployeeStatus.checkedIn) {
       _lastOutOfRangeTime = DateTime.now();
 
       if (_isOfficeHours()) {
-        // FIXED: During office hours - show choice notification (FACE + FINGERPRINT)
         _wentOutDuringOfficeHours = true;
         await NotificationService.showOutOfRangeNotification(
           title: 'You are out of range',
@@ -356,13 +466,14 @@ class AppProvider extends ChangeNotifier {
         );
         _pendingVerification = true;
       } else if (_isAfterOfficeHours()) {
-        // FIXED: After office hours - only face verification
         await NotificationService.showOutOfRangeNotification(
           title: 'End of Day',
           body: 'Please complete face verification to check out',
           payload: 'checkout_${DateTime.now().millisecondsSinceEpoch}',
         );
         _pendingVerification = true;
+        _checkoutNotificationShown = true;
+        _startCheckoutTimer(); // Start 5-minute timer
       }
     }
 
