@@ -22,9 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Prefill test credentials for now
-    _phoneController.text = '9999999999';
-    _passwordController.text = '123456';
+    // // Prefill test credentials for now
+    // _phoneController.text = '9999999999';
+    // _passwordController.text = '123456';
   }
 
   @override

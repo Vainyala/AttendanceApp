@@ -363,11 +363,12 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       provider.setLocationEnabled(false);
     }
   }
-
   void _startPeriodicLocationCheck() {
     Future.delayed(const Duration(seconds: 30), () {
       if (mounted) {
-        context.read<AppProvider>().updateLocationStatus();
+        final provider = context.read<AppProvider>();
+        provider.updateLocationStatus();
+        provider.checkAndMarkAbsences(); // Add this
         _startPeriodicLocationCheck();
       }
     });
@@ -512,6 +513,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             child: Column(
               children: [
                 _buildTopBar(),
+                _buildTrackingToggle(provider),
                 _buildProfileHeader(provider),
                 const SizedBox(height: 30),
                 _buildMainContent(provider),
@@ -541,7 +543,63 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
-
+  Widget _buildTrackingToggle(AppProvider provider) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(
+                provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+                color: Colors.white,
+                size: 24,
+              ),
+              SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tracking Mode',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    provider.trackingEnabled ? 'Active' : 'Inactive',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Switch(
+            value: provider.trackingEnabled,
+            onChanged: (value) {
+              provider.toggleTracking(value);
+            },
+            activeColor: Colors.green,
+            activeTrackColor: Colors.green.shade300,
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildProfileHeader(AppProvider provider) {
     return ProfileHeader(
       name: provider.user?.name,

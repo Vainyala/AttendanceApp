@@ -1,4 +1,5 @@
-  import 'geofence_model.dart';
+  import 'attendance_status.dart';
+import 'geofence_model.dart';
 
   class AttendanceModel {
     final String id;
@@ -9,6 +10,8 @@
     final double latitude;
     final double longitude;
     final String projectName;
+    final String? notes; // Add this
+    final AttendanceStatus? status; // Add this
 
     AttendanceModel({
       required this.id,
@@ -19,6 +22,8 @@
       required this.longitude,
       required this.userId,
       this.projectName = 'Default Project',
+      this.notes,
+      this.status,
     });
 
     Map<String, dynamic> toJson() => {
@@ -28,6 +33,8 @@
       'geofence': geofence?.toJson(),
       'latitude': latitude,
       'longitude': longitude,
+      'notes': notes,
+      'status': status?.toString(),
     };
 
     factory AttendanceModel.fromJson(Map<String, dynamic> json) => AttendanceModel(
@@ -42,10 +49,15 @@
       latitude: json['latitude'],
       longitude: json['longitude'],
       userId:json['userid'],
+      notes: json['notes'],
+      status: json['status'] != null
+          ? AttendanceStatus.values.firstWhere(
+            (e) => e.toString() == json['status'],
+      )
+          : null,
     );
 
     String get date => "${timestamp.toLocal()}";
-    String get status => type.toString().split('.').last;
   }
 
   enum AttendanceType { checkIn, checkOut, enter, exit }
