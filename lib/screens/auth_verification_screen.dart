@@ -361,18 +361,18 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                             ),
                             child: Icon(
                               _getHeaderIcon(),
-                              size: 64,
+                              size: 54,
                               color: Colors.white,
                             ),
                           ),
 
-                          SizedBox(height: 32),
+                          SizedBox(height: 25),
 
                           // Title
                           Text(
                             _getTitle(),
                             style: TextStyle(
-                              fontSize: 36,
+                              fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               letterSpacing: 0.5,
@@ -392,7 +392,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                             ),
                           ),
 
-                          SizedBox(height: 60),
+                          SizedBox(height: 30),
 
                           // Face Verification Button
                           _buildVerificationCard(

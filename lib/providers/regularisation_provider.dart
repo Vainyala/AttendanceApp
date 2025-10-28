@@ -8,7 +8,7 @@ class RegularisationProvider extends ChangeNotifier {
   String? _errorMessage;
   List<DateTime> _availableMonths = [];
   int _currentMonthIndex = 0;
-  Map<String, Map<String, int>> _monthlyStats = {};
+  Map<String, Map<String, dynamic>> _monthlyStats = {};
 
   // Getters
   List<AttendanceModel> get attendance => _attendance;
@@ -16,7 +16,6 @@ class RegularisationProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<DateTime> get availableMonths => _availableMonths;
   int get currentMonthIndex => _currentMonthIndex;
-  Map<String, Map<String, int>> get monthlyStats => _monthlyStats;
 
   // Initialize available months
   void initializeMonths() {
@@ -56,9 +55,9 @@ class RegularisationProvider extends ChangeNotifier {
     }
   }
 
-  // Calculate monthly statistics
+  // Calculate monthly statistics including average shortfall
   void _calculateMonthlyStats(List<AttendanceModel> records) {
-    final stats = <String, Map<String, int>>{};
+    final stats = <String, Map<String, dynamic>>{};
 
     for (var month in _availableMonths) {
       final monthKey = DateFormat('yyyy-MM').format(month);
@@ -67,6 +66,9 @@ class RegularisationProvider extends ChangeNotifier {
         'Approved': 0,
         'Pending': 0,
         'Rejected': 0,
+        'totalDays': 0,
+        'totalShortfallMinutes': 0,
+        'avgShortfall': '00:00',
       };
     }
 
@@ -85,12 +87,50 @@ class RegularisationProvider extends ChangeNotifier {
       final monthKey = DateFormat('yyyy-MM').format(date);
       final status = getStatusForDay(date, shortfall);
 
-      if (stats.containsKey(monthKey) && stats[monthKey]!.containsKey(status)) {
-        stats[monthKey]![status] = stats[monthKey]![status]! + 1;
+      if (stats.containsKey(monthKey)) {
+        // Count status
+        if (stats[monthKey]!.containsKey(status)) {
+          stats[monthKey]![status] = stats[monthKey]![status]! + 1;
+        }
+
+        // Calculate shortfall minutes
+        final shortfallParts = shortfall.split(':');
+        final shortfallMinutes = int.parse(shortfallParts[0]) * 60 + int.parse(shortfallParts[1]);
+
+        stats[monthKey]!['totalDays'] = stats[monthKey]!['totalDays']! + 1;
+        stats[monthKey]!['totalShortfallMinutes'] =
+            stats[monthKey]!['totalShortfallMinutes']! + shortfallMinutes;
+      }
+    }
+
+    // Calculate average shortfall
+    for (var monthKey in stats.keys) {
+      final totalDays = stats[monthKey]!['totalDays'] as int;
+      final totalShortfallMinutes = stats[monthKey]!['totalShortfallMinutes'] as int;
+
+      if (totalDays > 0) {
+        final avgMinutes = totalShortfallMinutes ~/ totalDays;
+        final hours = avgMinutes ~/ 60;
+        final minutes = avgMinutes % 60;
+        stats[monthKey]!['avgShortfall'] =
+        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
       }
     }
 
     _monthlyStats = stats;
+  }
+
+  // Get monthly statistics for a specific month
+  Map<String, dynamic> getMonthlyStatistics(DateTime month) {
+    final monthKey = DateFormat('yyyy-MM').format(month);
+    return _monthlyStats[monthKey] ?? {
+      'Apply': 0,
+      'Approved': 0,
+      'Pending': 0,
+      'Rejected': 0,
+      'totalDays': 0,
+      'avgShortfall': '00:00',
+    };
   }
 
   // Create dummy attendance data
@@ -104,8 +144,8 @@ class RegularisationProvider extends ChangeNotifier {
     ];
 
     final projectNames = [
-      'Project A', 'Project B', 'Project C', 'Project D',
-      'Project Alpha', 'Project Beta', 'Project Gamma'
+      'Project Alpha', 'Project Beta', 'Project Gamma', 'Project Delta',
+      'Project Epsilon', 'Project Zeta', 'Project Eta'
     ];
 
     for (var month in _availableMonths) {
@@ -118,9 +158,11 @@ class RegularisationProvider extends ChangeNotifier {
         final currentDate = DateTime(month.year, month.month, day);
         final dateKey = DateFormat('yyyy-MM-dd').format(currentDate);
 
+        // Skip Sundays and holidays
         if (currentDate.weekday == DateTime.sunday) continue;
         if (holidays.contains(dateKey)) continue;
 
+        // Determine number of projects for this day (1-3)
         final numProjects = 1 + ((day * month.month) % 3);
         final dayProjects = <String>[];
 
@@ -132,6 +174,7 @@ class RegularisationProvider extends ChangeNotifier {
           }
         }
 
+        // Create variations in work hours
         final dayVariation = (day * 3 + month.month * 7) % 10;
 
         for (int i = 0; i < dayProjects.length; i++) {
@@ -140,16 +183,21 @@ class RegularisationProvider extends ChangeNotifier {
           int workHours;
           int workMinutes;
 
+          // Create realistic shortfalls
           if (dayVariation < 2) {
+            // Major shortfall (2.5-3 hours)
             workHours = 2;
             workMinutes = 30 + ((day + i) % 30);
           } else if (dayVariation < 4) {
+            // Moderate shortfall (3-3.5 hours)
             workHours = 3;
             workMinutes = ((day * i) % 60);
           } else if (dayVariation < 7) {
+            // Minor shortfall (3.5-4 hours)
             workHours = 3;
             workMinutes = 30 + ((day - i) % 30);
           } else {
+            // Near complete or complete hours (4-4.5 hours)
             workHours = 4;
             workMinutes = ((day + month.month + i) % 45);
           }
@@ -233,33 +281,12 @@ class RegularisationProvider extends ChangeNotifier {
     }
   }
 
-  // Calculate clock hours for a specific project
-  String calculateClockHoursForProject(List<AttendanceModel> projectRecords) {
-    try {
-      final checkIn = projectRecords.firstWhere(
-            (r) => r.type == AttendanceType.checkIn,
-        orElse: () => projectRecords.first,
-      );
-      final checkOut = projectRecords.lastWhere(
-            (r) => r.type == AttendanceType.checkOut,
-        orElse: () => projectRecords.last,
-      );
-
-      final duration = checkOut.timestamp.difference(checkIn.timestamp);
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes % 60;
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return '00:00';
-    }
-  }
-
   // Calculate shortfall hours
   String calculateShortfall(String clockHours) {
     try {
       final parts = clockHours.split(':');
       final workedMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
-      final standardMinutes = 8 * 60;
+      final standardMinutes = 8 * 60; // 8 hours standard
 
       if (workedMinutes >= standardMinutes) return '00:00';
 
@@ -278,18 +305,21 @@ class RegularisationProvider extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
+    // Future dates and today are automatically approved
     if (checkDate.isAtSameMomentAs(today) || checkDate.isAfter(today)) {
       return 'Approved';
     }
 
+    // No shortfall means approved
     if (shortfall == '00:00') return 'Approved';
 
+    // Generate pseudo-random status based on date
     final random = (date.day * 3 + date.month * 7) % 20;
 
-    if (random < 5) return 'Apply';
-    if (random < 9) return 'Pending';
-    if (random < 12) return 'Rejected';
-    return 'Approved';
+    if (random < 5) return 'Apply';      // 25% need to apply
+    if (random < 9) return 'Pending';    // 20% pending
+    if (random < 12) return 'Rejected';  // 15% rejected
+    return 'Approved';                   // 40% approved
   }
 
   // Check if record can be edited
@@ -304,7 +334,7 @@ class RegularisationProvider extends ChangeNotifier {
     }
 
     // Can edit Apply and Rejected statuses
-    return status == 'Apply' || status == 'Rejected' || status == 'Pending';
+    return status == 'Apply' || status == 'Rejected';
   }
 
   // Get categorized records by status
@@ -366,16 +396,16 @@ class RegularisationProvider extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 500));
 
     // In a real app, you would send this to your backend
-    // and update the attendance status accordingly
     print('Submitting regularisation:');
     print('Date: $date');
     print('Project: $projectName');
-    print('Time: ${time.format}');
+    print('Time: ${time.hour}:${time.minute}');
     print('Type: $type');
     print('Description: $description');
     print('Notes: $notes');
 
-    notifyListeners();
+    // Reload attendance to reflect changes
+    await loadAttendance();
   }
 
   // Set current month index
