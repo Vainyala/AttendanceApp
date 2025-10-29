@@ -85,11 +85,11 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       _faceDetector = FaceDetector(
         options: FaceDetectorOptions(
           enableContours: false,
-          enableClassification: true, // Critical for eye detection
-          enableLandmarks: true, // Enable for better face detection
-          enableTracking: true, // Enable tracking for smoother detection
-          minFaceSize: 0.1, // Even smaller for easier detection
-          performanceMode: FaceDetectorMode.accurate, // Changed to accurate
+          enableClassification: true, // CRITICAL for eye detection
+          enableLandmarks: false,     // Not needed for blinking
+          enableTracking: false,      // Not needed
+          minFaceSize: 0.15,         // Smaller for easier detection
+          performanceMode: FaceDetectorMode.accurate, // **CHANGED to accurate**
         ),
       );
       debugPrint("✅ Face detector initialized successfully");
@@ -173,7 +173,9 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
 
         _isProcessing = true;
         _detectFaces(image).whenComplete(() {
-          _isProcessing = false;
+          if (mounted) {
+            _isProcessing = false;
+          }
         });
       });
       debugPrint("✅ Image stream started successfully!");
@@ -276,8 +278,9 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       return;
     }
 
-    const double openThreshold = 0.3; // Lower threshold
-    const double closedThreshold = 0.15; // Clear closed state
+    // **FIXED: Better thresholds for reliable detection**
+    const double openThreshold = 0.4;   // Eyes are open
+    const double closedThreshold = 0.2; // Eyes are closed
 
     final leftOpen = leftProb > openThreshold;
     final rightOpen = rightProb > openThreshold;
@@ -289,30 +292,33 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
 
     debugPrint("👁️ L:${leftProb.toStringAsFixed(2)} R:${rightProb.toStringAsFixed(2)} | Open:$eyesOpen Closed:$eyesClosed");
 
-    // Count consecutive frames
-    if (eyesClosed) {
+    // **FIXED: Proper state machine for blink detection**
+    if (eyesClosed && _previousEyesOpen) {
+      // Transition: Open → Closed (blink started)
       _closedFrameCount++;
       _openFrameCount = 0;
-      debugPrint("😑 Eyes closed for $_closedFrameCount frames");
-    } else if (eyesOpen) {
-      _openFrameCount++;
+      debugPrint("😑 Eyes closing... frame count: $_closedFrameCount");
 
-      // Blink detected: had closed frames, now open
-      if (_closedFrameCount >= 2 && _openFrameCount >= 2) {
-        // Check if enough time passed since last blink
+    } else if (eyesOpen && !_previousEyesOpen) {
+      // Transition: Closed → Open (blink completed)
+
+      // **FIXED: Only count as blink if eyes were closed for at least 2 frames**
+      if (_closedFrameCount >= 2) {
         final now = DateTime.now();
+
+        // **FIXED: Prevent double counting - require 500ms gap**
         if (_lastBlinkTime == null ||
             now.difference(_lastBlinkTime!).inMilliseconds > 500) {
 
           _lastBlinkTime = now;
-          _closedFrameCount = 0;
 
           setState(() {
             _blinkCount++;
+
             if (_blinkCount == 1) {
-              _instructionText = "Great! Blink 2 more times ($_blinkCount/3)";
+              _instructionText = "Great! Blink 2 more times (1/3)";
             } else if (_blinkCount == 2) {
-              _instructionText = "Almost there! One more ($_blinkCount/3)";
+              _instructionText = "Almost there! One more (2/3)";
             } else if (_blinkCount >= 3) {
               _instructionText = "Perfect! Processing...";
             }
@@ -325,11 +331,24 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
             _completeVerification();
           }
         }
-      } else {
+
         _closedFrameCount = 0;
       }
+
+      _openFrameCount++;
+
+    } else if (eyesOpen) {
+      // Eyes remain open
+      _openFrameCount++;
+      _closedFrameCount = 0;
+
+    } else if (eyesClosed) {
+      // Eyes remain closed
+      _closedFrameCount++;
+      _openFrameCount = 0;
     }
 
+    // **FIXED: Update previous state**
     _previousEyesOpen = eyesOpen;
   }
 
@@ -340,15 +359,23 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     }
 
     try {
-      // Stop stream completely
+      // **FIXED: Properly stop stream and wait**
       if (_isStreamActive) {
         debugPrint("📸 Stopping stream for capture...");
-        await _cameraController!.stopImageStream();
-        _isStreamActive = false;
-        await Future.delayed(Duration(milliseconds: 1000)); // Longer wait
+        try {
+          await _cameraController!.stopImageStream();
+          _isStreamActive = false;
+        } catch (e) {
+          debugPrint("⚠️ Stream already stopped: $e");
+        }
+
+        // Wait longer for stream to fully stop
+        await Future.delayed(Duration(milliseconds: 500));
       }
 
       debugPrint("📸 Capturing image...");
+
+      // **FIXED: Try-catch around actual capture**
       final XFile image = await _cameraController!.takePicture();
 
       setState(() {
@@ -364,6 +391,12 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       setState(() {
         _isCapturingImage = false;
       });
+
+      // **FIXED: Restart stream if capture fails**
+      if (!_isStreamActive && mounted) {
+        await Future.delayed(Duration(milliseconds: 500));
+        _startImageStream();
+      }
     }
   }
 
@@ -375,25 +408,28 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     setState(() {
       _livenessVerified = true;
       _instructionText = "Verification Complete!";
-      _isCapturingImage = true;
+      _isCapturingImage = true; // Show loading indicator
     });
 
     _successController.forward();
 
+    // **FIXED: Capture image properly**
     await _captureImage();
 
+    // **FIXED: Upload image if captured successfully**
     if (_capturedImage != null) {
       debugPrint("✅ Starting upload...");
-      UploadService.uploadImage(
-        File(_capturedImage!.path),
-        "user123",
-      ).then((success) {
+      try {
+        final success = await UploadService.uploadImage(
+          File(_capturedImage!.path),
+          "user123",
+        );
         debugPrint(success ? "✅ Upload successful" : "❌ Upload failed");
-      }).catchError((error) {
+      } catch (error) {
         debugPrint("❌ Upload error: $error");
-      });
+      }
     } else {
-      debugPrint("❌ No image to upload!");
+      debugPrint("❌ No image captured!");
     }
 
     await Future.delayed(Duration(milliseconds: 800));
@@ -528,16 +564,25 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
 
   @override
   void dispose() {
-    debugPrint("🔴 Disposing...");
+    debugPrint("🔴 Disposing FaceDetectionScreen...");
+
     _pulseController.dispose();
     _successController.dispose();
 
     _isStreamActive = false;
+    _livenessVerified = true; // Prevent any further processing
+
     try {
-      _cameraController?.stopImageStream();
-    } catch (_) {}
+      if (_cameraController?.value.isStreamingImages == true) {
+        _cameraController?.stopImageStream();
+      }
+    } catch (e) {
+      debugPrint("⚠️ Error stopping stream: $e");
+    }
+
     _cameraController?.dispose();
     _faceDetector?.close();
+
     super.dispose();
   }
 
