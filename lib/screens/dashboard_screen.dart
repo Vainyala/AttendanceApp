@@ -228,20 +228,20 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     VerificationReason reason;
     bool allowFingerprint = false;
 
-    // FIXED: First check-in should NOT show fingerprint option
-    if (provider.employeeStatus == EmployeeStatus.notCheckedIn) {
-      // This should never happen now - we go directly to face verification
-      reason = VerificationReason.checkIn;
-      allowFingerprint = false;
+    // **UPDATED: Check if first check-in of the day**
+    if (provider.isFirstCheckInToday || provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+      // First check-in - go directly to face verification
+      _navigateToFaceVerification(VerificationReason.checkIn);
+      return; // Exit early, don't show choice screen
     } else if (provider.employeeStatus == EmployeeStatus.checkedIn) {
       reason = VerificationReason.goingOut;
-      allowFingerprint = true; // Allow fingerprint when going out
+      allowFingerprint = true; // Allow both options for going out
     } else if (provider.employeeStatus == EmployeeStatus.returned) {
       reason = VerificationReason.returning;
-      allowFingerprint = true; // Allow fingerprint when returning
+      allowFingerprint = true; // Allow both options when returning
     } else {
       reason = VerificationReason.checkOut;
-      allowFingerprint = false; // No fingerprint for final checkout
+      allowFingerprint = false; // Only face auth for final checkout
     }
 
     Navigator.push(
@@ -377,8 +377,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Future<void> _handleCheckIn() async {
     final provider = context.read<AppProvider>();
 
-    if (provider.pendingVerification) {
-      // FIXED: Direct to face verification for first check-in
+    // **UPDATED: Check if first check-in**
+    if (provider.isFirstCheckInToday || provider.pendingVerification) {
+      // Always go to face verification for first check-in
       _navigateToFaceVerification(VerificationReason.checkIn);
       return;
     }
@@ -387,10 +388,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     _showMessage(message);
 
     if (message.contains('successful')) {
-      _startCountdownTimer(); // Start timer on successful check-in
+      _startCountdownTimer();
     }
   }
-
   Future<void> _handleCheckOut() async {
     final provider = context.read<AppProvider>();
 
@@ -512,8 +512,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                _buildTopBar(),
-                _buildTrackingToggle(provider),
+                _buildTopBar(provider),
+               // _buildTrackingToggle(provider),
                 _buildProfileHeader(provider),
                 const SizedBox(height: 30),
                 _buildMainContent(provider),
@@ -524,82 +524,124 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
-
-  Widget _buildTopBar() {
+ 
+  Widget _buildTopBar(AppProvider provider) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
-            onPressed: () => showProfileMenu(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
-            onPressed: () => _showMessage('Notifications coming soon'),
-          ),
-        ],
-      ),
-    );
-  }
-  Widget _buildTrackingToggle(AppProvider provider) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Left: Menu icon
+          IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+            onPressed: () => showProfileMenu(context),
+          ),
+
+          // Center: Tracking toggle (Active/Inactive)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  provider.trackingEnabled ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Switch(
+                  value: provider.trackingEnabled,
+                  onChanged: (value) => provider.toggleTracking(value),
+                  activeColor: Colors.green,
+                  activeTrackColor: Colors.green.shade300,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
+            ),
+          ),
+
+          // Right: Sync + Notification icons
           Row(
             children: [
-              Icon(
-                provider.trackingEnabled ? Icons.location_on : Icons.location_off,
-                color: Colors.white,
-                size: 24,
+              IconButton(
+                icon: const Icon(Icons.sync, color: Colors.white, size: 26),
+                onPressed: () => _showMessage('Sync data with the database'),
               ),
-              SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tracking Mode',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    provider.trackingEnabled ? 'Active' : 'Inactive',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                onPressed: () => _showMessage('Notifications coming soon'),
               ),
             ],
           ),
-          Switch(
-            value: provider.trackingEnabled,
-            onChanged: (value) {
-              provider.toggleTracking(value);
-            },
-            activeColor: Colors.green,
-            activeTrackColor: Colors.green.shade300,
-          ),
         ],
       ),
     );
   }
+
+
+  // Widget _buildTrackingToggle(AppProvider provider) {
+  //   return Center( // centers the container on the screen
+  //     child: Container(
+  //       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+  //       decoration: BoxDecoration(
+  //         color: Colors.white.withOpacity(0.15),
+  //         borderRadius: BorderRadius.circular(15),
+  //         border: Border.all(
+  //           color: Colors.white.withOpacity(0.3),
+  //           width: 1,
+  //         ),
+  //       ),
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min, // makes container fit content
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Icon(
+  //             provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+  //             color: Colors.white,
+  //             size: 18, // smaller icon
+  //           ),
+  //           const SizedBox(width: 10),
+  //           Text(
+  //             provider.trackingEnabled ? 'Active' : 'Inactive',
+  //             style: TextStyle(
+  //               color: Colors.white.withOpacity(0.9),
+  //               fontSize: 14,
+  //               fontWeight: FontWeight.w500,
+  //             ),
+  //           ),
+  //           const SizedBox(width: 10),
+  //           Switch(
+  //             value: provider.trackingEnabled,
+  //             onChanged: (value) => provider.toggleTracking(value),
+  //             activeColor: Colors.green,
+  //             activeTrackColor: Colors.green.shade300,
+  //             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, // makes switch smaller
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildProfileHeader(AppProvider provider) {
     return ProfileHeader(
       name: provider.user?.name,

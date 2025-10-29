@@ -1,6 +1,8 @@
 import 'dart:async';
-
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 import 'package:flutter/material.dart';
+import '../database/db_helper.dart';
 import '../models/attendance_status.dart';
 import '../models/user_model.dart';
 import '../models/attendance_model.dart';
@@ -9,7 +11,6 @@ import '../services/geofencing_service.dart';
 import '../services/storage_service.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
-
 enum EmployeeStatus {
   notCheckedIn,
   checkedIn,
@@ -25,7 +26,6 @@ class AppProvider extends ChangeNotifier {
   List<AttendanceModel> _allAttendance = [];
   ProjectModel? _selectedProject;
   Timer? _checkoutTimer;
-  bool _checkoutNotificationShown = false;
   bool _isLocationEnabled = false;
   bool _isInGeofence = false;
   bool _canCheckIn = false;
@@ -46,10 +46,9 @@ class AppProvider extends ChangeNotifier {
   // Employee status tracking
   EmployeeStatus _employeeStatus = EmployeeStatus.notCheckedIn;
   bool _pendingVerification = false;
-  String? _currentNotificationPayload;
-  DateTime? _lastOutOfRangeTime;
   bool _wentOutDuringOfficeHours = false;
-
+  bool _isFirstCheckInToday = false;
+  bool get isFirstCheckInToday => _isFirstCheckInToday;
   // Getters
   UserModel? get user => _user;
   List<AttendanceModel> get todayAttendance => _todayAttendance;
@@ -71,7 +70,6 @@ class AppProvider extends ChangeNotifier {
   EmployeeStatus get employeeStatus => _employeeStatus;
   bool get pendingVerification => _pendingVerification;
   bool get showVerificationAlert => _pendingVerification;
-
   // FIXED: Check-in and Check-out time getters
   DateTime? get checkInTime {
     try {
@@ -167,7 +165,15 @@ class AppProvider extends ChangeNotifier {
             record.timestamp.day == today.day;
       }).toList();
 
-      // Update employee status based on today's attendance
+      // **NEW: Check if this is first check-in of the day**
+      // Check both attendance records AND SQLite employee_data
+      final dataExists = await DatabaseHelper.instance.checkEmployeeDataExistsToday(_user?.id ?? '');
+      _isFirstCheckInToday = _todayAttendance.isEmpty && !dataExists;
+
+      debugPrint('📋 Today attendance records: ${_todayAttendance.length}');
+      debugPrint('📊 Employee data exists in DB: $dataExists');
+      debugPrint('🎯 Is first check-in today: $_isFirstCheckInToday');
+
       _updateEmployeeStatus();
     } catch (e) {
       debugPrint('Error loading today attendance: $e');
@@ -362,7 +368,6 @@ class AppProvider extends ChangeNotifier {
 
     if (_employeeStatus == EmployeeStatus.notCheckedIn) {
       final payload = 'checkin_${DateTime.now().millisecondsSinceEpoch}';
-      _currentNotificationPayload = payload;
 
       await NotificationService.showGeofenceNotification(
         title: 'Welcome to $geofenceName',
@@ -455,7 +460,6 @@ class AppProvider extends ChangeNotifier {
 // Update _handleLeavingGeofence method
   Future<void> _handleLeavingGeofence() async {
     if (_employeeStatus == EmployeeStatus.checkedIn) {
-      _lastOutOfRangeTime = DateTime.now();
 
       if (_isOfficeHours()) {
         _wentOutDuringOfficeHours = true;
@@ -472,7 +476,6 @@ class AppProvider extends ChangeNotifier {
           payload: 'checkout_${DateTime.now().millisecondsSinceEpoch}',
         );
         _pendingVerification = true;
-        _checkoutNotificationShown = true;
         _startCheckoutTimer(); // Start 5-minute timer
       }
     }
@@ -522,11 +525,21 @@ class AppProvider extends ChangeNotifier {
       return 'Please enable location services';
     }
 
-    // FIXED: For first check-in, always require verification
-    if (_employeeStatus == EmployeeStatus.notCheckedIn && !verified) {
+    // **NEW: Check if this is first check-in of today**
+    final dataExists = await DatabaseHelper.instance.checkEmployeeDataExistsToday(_user?.id ?? '');
+    final isFirstCheckIn = _todayAttendance.isEmpty && !dataExists;
+
+    debugPrint('🔍 Check-in validation:');
+    debugPrint('   - Today attendance empty: ${_todayAttendance.isEmpty}');
+    debugPrint('   - Data exists in DB: $dataExists');
+    debugPrint('   - Is first check-in: $isFirstCheckIn');
+    debugPrint('   - Verified: $verified');
+
+    if (isFirstCheckIn && !verified) {
       _pendingVerification = true;
+      _isFirstCheckInToday = true;
       notifyListeners();
-      return 'Please complete face verification first';
+      return 'First check-in of the day - Please complete face verification';
     }
 
     if (!_canCheckIn) {
@@ -560,6 +573,36 @@ class AppProvider extends ChangeNotifier {
           );
 
           await StorageService.saveAttendanceRecord(attendance);
+
+          // **NEW: Store employee data in SQLite if first check-in**
+          if (isFirstCheckIn) {
+            String mappedProjects = '';
+            if (_user?.projects != null) {
+              mappedProjects = _user!.projects.map((p) => p.name).join(', ');
+            }
+
+            String workMode = _isInGeofence ? 'In Office' : 'WFH';
+
+            final employeeData = {
+              'emp_id': _user?.id ?? '',
+              'emp_name': _user?.name ?? '',
+              'emp_email': _user?.email ?? '',
+              'emp_role': _user?.role ?? '',
+              'project_id': _selectedProject?.id ?? '',
+              'project_name': _selectedProject?.name ?? '',
+              'mapped_projects': mappedProjects,
+              'latitude': position.latitude,
+              'longitude': position.longitude,
+              'address': geofence.name,
+              'work_mode': workMode,
+            };
+
+            await DatabaseHelper.instance.storeEmployeeData(employeeData);
+            debugPrint('🎉 First check-in - Employee data stored in SQLite');
+          } else {
+            debugPrint('✅ Subsequent check-in - Data already exists for today');
+          }
+
           await loadTodayAttendance();
           await loadWeeklyAttendance();
 
@@ -581,6 +624,7 @@ class AppProvider extends ChangeNotifier {
         return 'You are not within any geofence area';
       }
     } catch (e) {
+      debugPrint('❌ Check-in failed: $e');
       return 'Check-in failed: $e';
     } finally {
       _isCheckingIn = false;
