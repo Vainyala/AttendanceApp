@@ -1,6 +1,5 @@
-//splashscreen, login and forgot password screen provider is their into this file
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/storage_service.dart';
 import '../models/user_model.dart';
 
@@ -8,33 +7,48 @@ class SplashProvider with ChangeNotifier {
   bool _isLoading = true;
   bool _isLoggedIn = false;
   bool _isLoadingUser = false;
+  bool _isSendingReset = false;
+  bool isFirstLaunch = true;
+
+  UserModel? _user;
+
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
-  UserModel? _user;
-  bool _isSendingReset = false;
   bool get isSendingReset => _isSendingReset;
 
+  // In splash_provider.dart - Replace checkLoginStatus method
+
   Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // ✅ Check if email verification is completed
+    final emailVerified = prefs.getBool('emailVerified') ?? false;
+
+    // ✅ Check if logged in
+    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+    // ✅ First launch = email NOT verified yet
+    isFirstLaunch = !emailVerified;
+
     await Future.delayed(const Duration(seconds: 2));
-    final user = await StorageService.getUser();
-    _isLoggedIn = user != null;
     _isLoading = false;
     notifyListeners();
   }
+
+  // ✅ 2️⃣ Forgot password flow — sending reset link
   Future<String?> sendResetLink(String email) async {
     _isSendingReset = true;
     notifyListeners();
 
     try {
-      // Simulate API call / email sending
       await Future.delayed(const Duration(seconds: 2));
 
-      // Dummy check
+      // Basic email validation
       if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-        return 'Invalid email';
+        return 'Invalid email address';
       }
 
-      // Here, you can call actual backend to send reset email
+      // In a real app → call backend API to send reset email
       return null; // success
     } catch (e) {
       return 'Failed to send reset link: $e';
@@ -43,16 +57,15 @@ class SplashProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-// Handle Login
+
+  // ✅ 3️⃣ Login logic
   Future<String?> login(String countryCode, String phone, String password) async {
     _isLoadingUser = true;
     notifyListeners();
 
     try {
-      // 🧠 Simulate backend login check
-      await Future.delayed(const Duration(seconds: 2)); // simulate API delay
+      await Future.delayed(const Duration(seconds: 2)); // simulate API call
 
-      // Simple dummy login condition
       if (phone == "9999999999" && password == "123456") {
         // Dummy successful login
         _user = UserModel(
@@ -63,8 +76,12 @@ class SplashProvider with ChangeNotifier {
           projects: [],
         );
 
-        await StorageService.saveUser(_user!); // optional, if you want persistence
-        return null; // no error = success
+        await StorageService.saveUser(_user!);
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true); // ✅ mark logged in
+
+        return null; // success
       } else {
         return "Invalid phone or password";
       }
@@ -74,5 +91,13 @@ class SplashProvider with ChangeNotifier {
       _isLoadingUser = false;
       notifyListeners();
     }
+  }
+
+  // ✅ Optional: logout (you can call this from profile/settings)
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    _user = null;
+    notifyListeners();
   }
 }
