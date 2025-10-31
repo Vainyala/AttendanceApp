@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/splash_provider.dart';
+import 'email_verification_screen.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -21,11 +22,14 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => provider.isLoggedIn
+            builder: (context) => provider.isFirstLaunch
+                ? const EmailVerificationScreen() // 👈 go to email verification if first time
+                : provider.isLoggedIn
                 ? const DashboardScreen()
                 : const LoginScreen(),
           ),
         );
+
       }
     });
   }
