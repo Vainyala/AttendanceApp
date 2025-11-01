@@ -36,6 +36,7 @@ class ProjectDetailsScreen extends StatelessWidget {
         child: Column(
           children: [
             // Header with gradient
+            // Header with gradient
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(30),
@@ -45,6 +46,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                 ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -59,15 +61,27 @@ class ProjectDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 15),
+
+                  // ✅ Project ID first
+                  Text(
+                    'ID: ${project.id}',
+                    style: AppStyles.id,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // ✅ Project Name second
                   Text(
                     project.name,
                     style: AppStyles.name,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'ID: ${project.id}',
-                    style: AppStyles.id,
+
+                  // ✅ Assigned Date third
+                  _buildDetailRow(
+                    Icons.calendar_today,
+                    'Assigned Date',
+                    _formatDate(project.assignedDate),
                   ),
                 ],
               ),
@@ -81,7 +95,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                   _buildDetailCard(
                     'Project Information',
                     [
-                      _buildDetailRow(Icons.location_on, 'Site', project.site),
+                      _buildDetailRow(Icons.location_on, 'Project Site', project.site),
                       _buildDetailRow(Icons.access_time, 'Shift', project.shift),
                       _buildDetailRow(Icons.code, 'Tech Stack', project.techStack),
                     ],
@@ -91,24 +105,21 @@ class ProjectDetailsScreen extends StatelessWidget {
                     'Client Details',
                     [
                       _buildDetailRow(Icons.business, 'Client Name', project.clientName),
-                      _buildDetailRow(Icons.phone, 'Contact', project.clientContact),
+                      _buildDetailRow(Icons.phone, 'Client Contact', project.clientContact),
                     ],
                   ),
                   const SizedBox(height: 15),
                   _buildDetailCard(
                     'Management',
                     [
-                      _buildDetailRow(Icons.person, 'Manager', project.manager ?? 'N/A'),
-                      _buildDetailRow(
-                        Icons.calendar_today,
-                        'Assigned Date',
-                        _formatDate(project.assignedDate),
-                      ),
+                      _buildDetailRow(Icons.person, 'Manager Name', project.managerName ?? 'N/A'),
+                      _buildDetailRow(Icons.email, 'Manager Email ID', project.managerEmail ?? 'N/A'),
+                      _buildDetailRow(Icons.phone, 'Manager Contact', project.managerContact ?? 'N/A'),
                     ],
                   ),
                   const SizedBox(height: 15),
                   _buildDetailCard(
-                    'Description',
+                    'Project Summary',
                     [
                       Padding(
                         padding: const EdgeInsets.all(15),
@@ -120,22 +131,6 @@ class ProjectDetailsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(AppText.BackDash,
-                        style: AppStyles.heading,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

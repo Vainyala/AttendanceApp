@@ -38,7 +38,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
 
   bool _isProcessing = false;
   int _frameSkipCounter = 0;
-  static const int FRAME_SKIP = 2; // Back to 2 for better responsiveness
+  static const int FRAME_SKIP = 0; // Process every frame for faster detection
 
   XFile? _capturedImage;
   bool _isCapturingImage = false;
@@ -85,11 +85,11 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       _faceDetector = FaceDetector(
         options: FaceDetectorOptions(
           enableContours: false,
-          enableClassification: true, // CRITICAL for eye detection
-          enableLandmarks: false,     // Not needed for blinking
-          enableTracking: false,      // Not needed
-          minFaceSize: 0.15,         // Smaller for easier detection
-          performanceMode: FaceDetectorMode.accurate, // **CHANGED to accurate**
+          enableClassification: true, // Required for eye detection
+          enableLandmarks: false,
+          enableTracking: true,      // Enable tracking for better performance
+          minFaceSize: 0.1,          // Lower threshold for faster detection
+          performanceMode: FaceDetectorMode.fast, // FAST mode for speed
         ),
       );
       debugPrint("✅ Face detector initialized successfully");
@@ -118,7 +118,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     try {
       _cameraController = CameraController(
         widget.cameras[_currentCameraIndex],
-        ResolutionPreset.low, // Back to low for faster processing
+        ResolutionPreset.medium, // Medium for balance of speed and quality
         enableAudio: false,
         imageFormatGroup: Platform.isAndroid
             ? ImageFormatGroup.nv21
@@ -131,10 +131,10 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
         setState(() {
           _isCameraInitialized = true;
         });
-        debugPrint("✅ Camera initialized - Starting stream in 1 second...");
+        debugPrint("✅ Camera initialized - Starting stream immediately...");
 
-        // Delay stream start to ensure camera is fully ready
-        await Future.delayed(Duration(milliseconds: 1000));
+        // Start stream immediately
+        await Future.delayed(Duration(milliseconds: 300));
         if (mounted) {
           _startImageStream();
         }
@@ -163,6 +163,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
 
     try {
       _cameraController!.startImageStream((CameraImage image) {
+        // Process every frame for fastest detection
         _frameSkipCounter++;
         if (_frameSkipCounter < FRAME_SKIP) return;
         _frameSkipCounter = 0;
@@ -189,15 +190,10 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     try {
       final inputImage = _convertCameraImage(image);
       if (inputImage == null) {
-        debugPrint("❌ Failed to convert image");
         return;
       }
 
       final detectedFaces = await _faceDetector!.processImage(inputImage);
-
-      if (detectedFaces.isNotEmpty) {
-        debugPrint("✅ Detected ${detectedFaces.length} face(s)");
-      }
 
       if (mounted) {
         setState(() {
@@ -218,7 +214,6 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
           _faceFittedInFrame = false;
           _instructionText = "Position your face in the oval frame";
         });
-        debugPrint("⚠️ Face lost");
       }
       return;
     }
@@ -233,7 +228,6 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     }
 
     final faceRect = face.boundingBox;
-    debugPrint("📏 Face rect: ${faceRect.width.toInt()}x${faceRect.height.toInt()} at (${faceRect.left.toInt()}, ${faceRect.top.toInt()})");
 
     if (_isFaceInOvalFrame(faceRect)) {
       if (!_faceFittedInFrame) {
@@ -253,7 +247,6 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
           _faceFittedInFrame = false;
           _instructionText = "Move face back to oval";
         });
-        debugPrint("⚠️ Face moved out of frame");
       }
     }
   }
@@ -263,9 +256,8 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     final h = faceRect.height;
 
     // Very lenient - just check if face is reasonably sized
-    bool inFrame = w > 50 && h > 50; // Minimum size only
+    bool inFrame = w > 40 && h > 40; // Lower threshold for faster detection
 
-    debugPrint("📐 Face size check: ${w.toInt()}x${h.toInt()} -> ${inFrame ? 'IN' : 'OUT'}");
     return inFrame;
   }
 
@@ -274,13 +266,12 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     final rightProb = face.rightEyeOpenProbability;
 
     if (leftProb == null || rightProb == null) {
-      debugPrint("⚠️ Eye probabilities not available - check enableClassification!");
       return;
     }
 
-    // **FIXED: Better thresholds for reliable detection**
-    const double openThreshold = 0.4;   // Eyes are open
-    const double closedThreshold = 0.2; // Eyes are closed
+    // Optimized thresholds for faster detection
+    const double openThreshold = 0.5;   // Eyes clearly open
+    const double closedThreshold = 0.15; // Eyes clearly closed
 
     final leftOpen = leftProb > openThreshold;
     final rightOpen = rightProb > openThreshold;
@@ -290,25 +281,22 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     final eyesOpen = leftOpen && rightOpen;
     final eyesClosed = leftClosed && rightClosed;
 
-    debugPrint("👁️ L:${leftProb.toStringAsFixed(2)} R:${rightProb.toStringAsFixed(2)} | Open:$eyesOpen Closed:$eyesClosed");
-
-    // **FIXED: Proper state machine for blink detection**
+    // Fast state machine for blink detection
     if (eyesClosed && _previousEyesOpen) {
-      // Transition: Open → Closed (blink started)
+      // Blink started
       _closedFrameCount++;
       _openFrameCount = 0;
-      debugPrint("😑 Eyes closing... frame count: $_closedFrameCount");
 
     } else if (eyesOpen && !_previousEyesOpen) {
-      // Transition: Closed → Open (blink completed)
+      // Blink completed
 
-      // **FIXED: Only count as blink if eyes were closed for at least 2 frames**
-      if (_closedFrameCount >= 2) {
+      // Count as blink if eyes were closed for at least 1 frame (faster detection)
+      if (_closedFrameCount >= 1) {
         final now = DateTime.now();
 
-        // **FIXED: Prevent double counting - require 500ms gap**
+        // Require only 300ms gap for faster consecutive blinks
         if (_lastBlinkTime == null ||
-            now.difference(_lastBlinkTime!).inMilliseconds > 500) {
+            now.difference(_lastBlinkTime!).inMilliseconds > 300) {
 
           _lastBlinkTime = now;
 
@@ -324,10 +312,10 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
             }
           });
 
-          debugPrint("✅✅✅ BLINK #$_blinkCount DETECTED! ✅✅✅");
+          debugPrint("✅ BLINK #$_blinkCount DETECTED!");
 
           if (_blinkCount >= 3) {
-            debugPrint("🎉🎉🎉 All 3 blinks complete!");
+            debugPrint("🎉 All 3 blinks complete!");
             _completeVerification();
           }
         }
@@ -338,17 +326,14 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       _openFrameCount++;
 
     } else if (eyesOpen) {
-      // Eyes remain open
       _openFrameCount++;
       _closedFrameCount = 0;
 
     } else if (eyesClosed) {
-      // Eyes remain closed
       _closedFrameCount++;
       _openFrameCount = 0;
     }
 
-    // **FIXED: Update previous state**
     _previousEyesOpen = eyesOpen;
   }
 
@@ -359,7 +344,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     }
 
     try {
-      // **FIXED: Properly stop stream and wait**
+      // Stop stream for capture
       if (_isStreamActive) {
         debugPrint("📸 Stopping stream for capture...");
         try {
@@ -369,13 +354,12 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
           debugPrint("⚠️ Stream already stopped: $e");
         }
 
-        // Wait longer for stream to fully stop
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(Duration(milliseconds: 300));
       }
 
       debugPrint("📸 Capturing image...");
 
-      // **FIXED: Try-catch around actual capture**
+      // Capture with high quality
       final XFile image = await _cameraController!.takePicture();
 
       setState(() {
@@ -392,9 +376,8 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
         _isCapturingImage = false;
       });
 
-      // **FIXED: Restart stream if capture fails**
       if (!_isStreamActive && mounted) {
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(Duration(milliseconds: 300));
         _startImageStream();
       }
     }
@@ -408,15 +391,15 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     setState(() {
       _livenessVerified = true;
       _instructionText = "Verification Complete!";
-      _isCapturingImage = true; // Show loading indicator
+      _isCapturingImage = true;
     });
 
     _successController.forward();
 
-    // **FIXED: Capture image properly**
+    // Capture image
     await _captureImage();
 
-    // **FIXED: Upload image if captured successfully**
+    // Upload image if captured successfully
     if (_capturedImage != null) {
       debugPrint("✅ Starting upload...");
       try {
@@ -432,7 +415,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       debugPrint("❌ No image captured!");
     }
 
-    await Future.delayed(Duration(milliseconds: 800));
+    await Future.delayed(Duration(milliseconds: 500));
 
     if (mounted) {
       setState(() {
@@ -534,7 +517,6 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       if (Platform.isIOS) {
         rotation = InputImageRotation.rotation0deg;
       } else {
-        // Android rotation
         rotation = InputImageRotation.rotation90deg;
       }
 
@@ -570,7 +552,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
     _successController.dispose();
 
     _isStreamActive = false;
-    _livenessVerified = true; // Prevent any further processing
+    _livenessVerified = true;
 
     try {
       if (_cameraController?.value.isStreamingImages == true) {

@@ -14,33 +14,24 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  String _selectedCountryCode = '+91';
-
-  @override
-  void initState() {
-    super.initState();
-    // // Prefill test credentials for now
-    // _phoneController.text = '9999999999';
-    // _passwordController.text = '123456';
-  }
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final phone = _phoneController.text.trim();
+      final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      // ✅ Allow test login without AuthProvider check
-      if (phone == '9999999999' && password == '123456') {
+      // ✅ Test login
+      if (email == 'vainyala@nutantek.com' && password == '123456') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
@@ -48,13 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 🔐 Normal login flow for other users
+      // 🔐 Normal login flow
       final authProvider = context.read<AuthProvider>();
-      final error = await authProvider.login(
-        _selectedCountryCode,
-        phone,
-        password,
-      );
+      final error = await authProvider.loginWithEmail(email, password);
 
       if (mounted) {
         if (error == null) {
@@ -98,8 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF87CEEB), // Sky blue
-                  Color(0xFF5DADE2), // Lighter blue
+                  Color(0xFF87CEEB),
+                  Color(0xFF5DADE2),
                 ],
               ),
             ),
@@ -110,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Header illustration area
+                      // Header
                       Container(
                         height: 200,
                         width: double.infinity,
@@ -137,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Login Form Container
+                      // Form
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -156,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Phone Number Input
+                              // Email Input
                               Container(
                                 decoration: BoxDecoration(
                                   border: Border(
@@ -166,56 +153,30 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 16),
-                                      child: Text(
-                                        _selectedCountryCode,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+                                child: TextFormField(
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  enabled: !isLoading,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Enter Email ID',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16,
                                     ),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _phoneController,
-                                        keyboardType: TextInputType.number,
-                                        maxLength: 10,
-                                        enabled: !isLoading,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly,
-                                          LengthLimitingTextInputFormatter(10),
-                                        ],
-                                        decoration: const InputDecoration(
-                                          hintText: 'Enter phone number',
-                                          hintStyle: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 16,
-                                          ),
-                                          border: InputBorder.none,
-                                          contentPadding:
-                                          EdgeInsets.symmetric(vertical: 16),
-                                          counterText: '',
-                                        ),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your phone number';
-                                          }
-                                          if (value.length != 10) {
-                                            return 'Phone number must be exactly 10 digits';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                  ],
+                                    border: InputBorder.none,
+                                    contentPadding:
+                                    EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your email';
+                                    }
+                                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                        .hasMatch(value)) {
+                                      return 'Please enter a valid email';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                               const SizedBox(height: 30),
@@ -250,8 +211,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             : Icons.visibility,
                                         color: Colors.grey,
                                       ),
-                                      onPressed: () => setState(
-                                              () => _obscurePassword = !_obscurePassword),
+                                      onPressed: () => setState(() =>
+                                      _obscurePassword = !_obscurePassword),
                                     ),
                                   ),
                                   style: const TextStyle(
@@ -306,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 20),
 
-                              // Forgot Password Link
+                              // Forgot Password
                               Center(
                                 child: TextButton(
                                   onPressed: isLoading
@@ -315,8 +276,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>
-                                          const ForgotPasswordScreen()),
+                                        builder: (context) =>
+                                        const ForgotPasswordScreen(),
+                                      ),
                                     );
                                   },
                                   child: const Text(
@@ -340,7 +302,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Text(
                             "Designed and developed By",
-                            style: TextStyle(fontSize: 14, color: Colors.black54),
+                            style:
+                            TextStyle(fontSize: 14, color: Colors.black54),
                           ),
                           const SizedBox(height: 10),
                           Image.asset(

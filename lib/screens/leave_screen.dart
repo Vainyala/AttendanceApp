@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:AttendanceApp/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 // Providers
 import '../providers/leave_provider.dart';
@@ -34,13 +38,75 @@ class LeaveScreen extends StatefulWidget {
 }
 
 class _LeaveScreenState extends State<LeaveScreen> {
-  final GlobalKey _formSectionKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  // ==================== SHOW LEAVE FORM DIALOG ====================
+  void _showLeaveFormDialog(BuildContext context, {Map<String, dynamic>? leave}) {
+    final provider = Provider.of<LeaveProvider>(context, listen: false);
+
+    if (leave != null) {
+      provider.prefillFormForEdit(leave);
+    } else {
+      provider.resetForm();
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,  // Changed from isBarrierDismissible
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: AppStyles.radiusMedium,
+        ),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dialog Header
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      leave != null ? 'Edit Leave' : 'Apply For Leave',
+                      style: AppStyles.headingMedium.copyWith(color: AppColors.textLight),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        provider.resetForm();
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.close, color: AppColors.textLight),
+                    ),
+                  ],
+                ),
+              ),
+              // Dialog Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
+                  child: _buildLeaveForm(context, provider, leave),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ==================== DATE & TIME PICKERS ====================
@@ -94,92 +160,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
     }
   }
 
-  // ==================== DAY BY DAY LEAVE VIEW ====================
-  Widget _buildDayByDayLeaveView(
-      BuildContext context,
-      Map<String, dynamic> leave,
-      LeaveProvider provider,
-      ) {
-    final fromDate = leave['fromDate'] as DateTime;
-    final toDate = leave['toDate'] as DateTime;
-    final days = toDate.difference(fromDate).inDays + 1;
-    final daysList = List.generate(days, (index) => fromDate.add(Duration(days: index)));
-
-    return CustomCard(
-      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.marginLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(AppText.editleave, style: AppStyles.headingMedium),
-          const SizedBox(height: AppDimensions.marginLarge),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: daysList.length,
-            itemBuilder: (context, index) {
-              final date = daysList[index];
-              final isHalfDay = leave['halfDays']?[DateFormat('yyyy-MM-dd').format(date)] ?? false;
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: AppDimensions.marginMedium),
-                padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.borderLight),
-                  borderRadius: AppStyles.radiusMedium,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          DateFormat('dd MMM yyyy').format(date),
-                          style: AppStyles.labelSmall,
-                        ),
-                        if (isHalfDay)
-                          Text(
-                            AppText.halfday,
-                            style: AppStyles.caption.copyWith(
-                              color: AppColors.warning,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () => _showDayEditDialog(context, date, isHalfDay, leave, provider),
-                      child: const Text('Edit'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDayEditDialog(
-      BuildContext context,
-      DateTime date,
-      bool isHalfDay,
-      Map<String, dynamic> leave,
-      LeaveProvider provider,
-      ) {
-    showDialog(
-      context: context,
-      builder: (_) => DayLeaveEditor(
-        leaveDate: date,
-        isHalfDay: isHalfDay,
-        onSave: (editedDate, halfDay) {
-          provider.updateLeaveDay(leave['id'], editedDate, halfDay);
-        },
-      ),
-    );
-  }
-
   // ==================== PIE CHART ====================
   Widget _buildPieChart(BuildContext context) {
     final provider = Provider.of<LeaveProvider>(context);
@@ -228,6 +208,79 @@ class _LeaveScreenState extends State<LeaveScreen> {
         ),
       ),
     );
+  }
+
+  // ==================== DOWNLOAD LEAVE ====================
+
+  Future<void> _downloadLeave(BuildContext context, Map<String, dynamic> leave) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 16),
+              Text('Preparing download...'),
+            ],
+          ),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      final StringBuffer content = StringBuffer();
+      content.writeln('LEAVE APPLICATION');
+      content.writeln('=' * 40);
+      content.writeln();
+      content.writeln('Leave Type: ${leave['type']}');
+      content.writeln('Status: ${leave['status']}');
+      content.writeln();
+      content.writeln('From Date: ${DateFormat('dd MMM yyyy').format(leave['fromDate'])}');
+      content.writeln('To Date: ${DateFormat('dd MMM yyyy').format(leave['toDate'])}');
+      content.writeln('Duration: ${leave['days']} day${leave['days'] > 1 ? 's' : ''}');
+      content.writeln();
+      content.writeln('Reason:');
+      content.writeln(leave['reason']);
+      content.writeln();
+      content.writeln('Applied On: ${DateFormat('dd MMM yyyy').format(leave['appliedOn'])}');
+      content.writeln('=' * 40);
+
+      // Get temporary directory
+      final directory = await getTemporaryDirectory();
+      final fileName = 'leave_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.txt';
+      final file = File('${directory.path}/$fileName');
+
+      // Write content to file
+      await file.writeAsString(content.toString());
+
+      // Share/download the file
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Leave Application - ${leave['type']}',
+      );
+
+      if (context.mounted) {
+        LeaveUtils.showSuccessMessage(
+          context,
+          'Leave downloaded successfully!',
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error downloading leave: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   // ==================== FILTERS ====================
@@ -502,6 +555,18 @@ class _LeaveScreenState extends State<LeaveScreen> {
             ],
           ),
         ),
+        // Download Icon Button
+        IconButton(
+          onPressed: () => _downloadLeave(context, leave),
+          icon: Icon(
+            Icons.download_rounded,
+            color: AppColors.primaryBlue,
+            size: AppDimensions.iconMedium,
+          ),
+          tooltip: 'Download Leave',
+          padding: const EdgeInsets.all(AppDimensions.paddingSmall),
+          constraints: const BoxConstraints(),
+        ),
       ],
     );
   }
@@ -524,7 +589,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
           _buildActionButton('View', AppColors.primaryBlue, () => _showLeaveDetails(context, leave)),
         if (!canOnlyView) ...[
           if (canEdit)
-            _buildActionButton('Edit', AppColors.primaryBlue, () => _handleEditLeave(context, leave)),
+            _buildActionButton('Edit', AppColors.primaryBlue, () => _showLeaveFormDialog(context, leave: leave)),
           if (canCancel)
             _buildActionButton('Cancel', AppColors.error, () => _handleCancelLeave(context, leave)),
           if (!canCancel)
@@ -547,51 +612,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   // ==================== LEAVE ACTIONS ====================
-  void _handleEditLeave(BuildContext context, Map<String, dynamic> leave) {
-    final provider = Provider.of<LeaveProvider>(context, listen: false);
-    final isApproved = leave['status'] == 'Approved';
-    final originalDays = leave['days'];
-
-    provider.prefillFormForEdit(leave);
-
-    LeaveDialogs.showEditLeaveDialog(
-      context: context,
-      isApproved: isApproved,
-      originalDays: originalDays,
-      onConfirm: () {
-        final newDays = provider.toDate.difference(provider.fromDate).inDays + 1;
-
-        provider.updateLeave(
-          leave['id'],
-          fromDate: provider.fromDate,
-          toDate: provider.toDate,
-          reason: provider.notesController.text,
-        );
-
-        Navigator.pop(context);
-
-        Future.delayed(const Duration(milliseconds: 300), () {
-          LeaveUtils.scrollToWidget(_formSectionKey);
-          LeaveUtils.showInfoBanner(
-            context,
-            'Form updated! Continue editing above or submit when ready.',
-          );
-        });
-
-        LeaveUtils.showSuccessMessage(
-          context,
-          isApproved
-              ? 'Leave updated successfully. You decreased days from $originalDays to $newDays'
-              : 'Leave updated successfully',
-        );
-      },
-      onCancel: () {
-        provider.resetForm();
-        Navigator.pop(context);
-      },
-    );
-  }
-
   void _handleCancelLeave(BuildContext context, Map<String, dynamic> leave) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
     final isPartialCancel = provider.canCancelPartialLeave(leave);
@@ -624,75 +644,43 @@ class _LeaveScreenState extends State<LeaveScreen> {
     if (context.mounted) {
       LeaveUtils.showSuccessMessage(context, 'Leave application submitted successfully!');
       provider.resetForm();
+      Navigator.pop(context); // Close the dialog
     }
   }
 
   // ==================== LEAVE FORM ====================
-  Widget _buildLeaveForm(BuildContext context, LeaveProvider provider) {
+  Widget _buildLeaveForm(BuildContext context, LeaveProvider provider, Map<String, dynamic>? leave) {
     final formKey = GlobalKey<FormState>();
-    final isFormFilled = provider.isFormPrefilled();
 
-    return CustomFormCard(
-      formKey: _formSectionKey,
-      isHighlighted: isFormFilled,
-      child: Form(
-        key: formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isFormFilled)
-              const InfoBanner(
-                message: 'Editing mode: Continue editing or submit to update',
-                icon: Icons.info_outline,
-              ),
-            _buildFormHeader(),
-            const SizedBox(height: AppDimensions.paddingXLarge),
-            _buildDateTimeFields(context, provider),
-            const SizedBox(height: AppDimensions.marginMedium),
-            _buildHalfDayCheckboxes(provider),
-            const SizedBox(height: AppDimensions.paddingXLarge),
-            LeaveTypeDropdown(
-              selectedValue: provider.selectedLeaveType,
-              leaveTypes: provider.leaveTypes,
-              onChanged: (value) {
-                if (value != null) provider.setSelectedLeaveType(value);
-              },
-            ),
-            const SizedBox(height: AppDimensions.paddingXXLarge),
-            _buildJustificationField(provider),
-            const SizedBox(height: 30),
-            SubmitButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  _submitLeave(context);
-                }
-              },
-              isLoading: provider.isLoading,
-            ),
-          ],
-        ),
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDateTimeFields(context, provider),
+          const SizedBox(height: AppDimensions.marginMedium),
+          _buildHalfDayCheckboxes(provider),
+          const SizedBox(height: AppDimensions.paddingXLarge),
+          LeaveTypeDropdown(
+            selectedValue: provider.selectedLeaveType,
+            leaveTypes: provider.leaveTypes,
+            onChanged: (value) {
+              if (value != null) provider.setSelectedLeaveType(value);
+            },
+          ),
+          const SizedBox(height: AppDimensions.paddingXXLarge),
+          _buildJustificationField(provider),
+          const SizedBox(height: 30),
+          SubmitButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                _submitLeave(context);
+              }
+            },
+            isLoading: provider.isLoading,
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFormHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Apply/Edit For Leave', style: AppStyles.headingMedium),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.textPrimary,
-            borderRadius: AppStyles.radiusSmall,
-          ),
-          padding: const EdgeInsets.all(AppDimensions.paddingXSmall),
-          child: const Icon(
-            Icons.attachment,
-            color: AppColors.textLight,
-            size: AppDimensions.iconMedium,
-          ),
-        ),
-      ],
     );
   }
 
@@ -790,6 +778,42 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
+  // ==================== ADD LEAVE BUTTON ====================
+  Widget _buildAddLeaveButton(BuildContext context) {
+    return CustomCard(
+      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.marginLarge),
+      child: InkWell(
+        onTap: () => _showLeaveFormDialog(context),
+        borderRadius: AppStyles.radiusMedium,
+        child: Container(
+          padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.paddingSmall),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.add,
+                  color: AppColors.textLight,
+                  size: AppDimensions.iconMedium,
+                ),
+              ),
+              const SizedBox(width: AppDimensions.marginMedium),
+              Text(
+                'Add Leave',
+                style: AppStyles.headingMedium.copyWith(color: AppColors.primaryBlue),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ==================== BUILD METHOD ====================
   @override
   Widget build(BuildContext context) {
@@ -812,7 +836,8 @@ class _LeaveScreenState extends State<LeaveScreen> {
                           children: [
                             _buildLeaveFilters(context),
                             _buildPieChart(context),
-                            _buildLeaveForm(context, provider),
+                            const SizedBox(height: AppDimensions.marginLarge),
+                            _buildAddLeaveButton(context),
                             const SizedBox(height: AppDimensions.marginLarge),
                             _buildLeaveHistoryWithFilter(context),
                             const SizedBox(height: 100),

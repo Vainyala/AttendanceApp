@@ -548,7 +548,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
                           if (isEditable) ...[
                             // Regularize Time Selection
-                            Text('Regularize Check-out Time',
+                            Text('Shortfall Hours',
                                 style: AppStyles.heading),
                             const SizedBox(height: 12),
                             InkWell(

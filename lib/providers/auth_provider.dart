@@ -63,6 +63,11 @@ class AuthProvider with ChangeNotifier {
       return _errorMessage;
     }
   }
+// Login with email
+  Future<String?> loginWithEmail(String email, String password) async {
+    // reuse the same login logic, just pass empty countryCode
+    return login('', email, password);
+  }
 
   // Logout method
   Future<void> logout() async {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/db_helper.dart';
-import '../services/email_service.dart';
+import 'package:flutter/services.dart';
 import 'set_password_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -11,107 +10,335 @@ class OtpVerificationScreen extends StatefulWidget {
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final TextEditingController otpController = TextEditingController();
+class _OtpVerificationScreenState extends State<OtpVerificationScreen>
+    with SingleTickerProviderStateMixin {
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   bool _isVerifying = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+    _animationController.forward();
+
+    // Auto-focus first field
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) _focusNodes[0].requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
 
   Future<void> verifyOtp() async {
-    final otp = otpController.text.trim();
+    final otp = _controllers.map((c) => c.text).join();
 
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter 6-digit OTP")),
-      );
+      _showSnackBar("Please enter complete 6-digit OTP", isError: true);
       return;
     }
 
     setState(() => _isVerifying = true);
 
-    try {
-      // TODO: Replace with actual OTP verification
-      final isValid = await EmailService.verifyOTP(widget.email, otp);
+    // Simulate API call - Accept any 6-digit OTP
+    await Future.delayed(const Duration(seconds: 1));
 
-      if (isValid && mounted) {
-        // ✅ Fetch employee data after OTP verification
-        final empData = await EmailService.getEmployeeData(widget.email);
+    if (mounted) {
+      setState(() => _isVerifying = false);
 
-        if (empData != null) {
-          // ✅ Store employee data in SQLite
-          await DatabaseHelper.instance.storeEmployeeData(empData);
+      // Dummy employee data
+      final empData = {
+        'name': 'John Doe',
+        'email': widget.email,
+        'employee_id': 'EMP001',
+        'department': 'IT',
+      };
 
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SetPasswordScreen(
-                  email: widget.email,
-                  employeeData: empData,
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              SetPasswordScreen(email: widget.email, employeeData: empData),
+        ),
+      );
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            );
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Invalid OTP")),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Verification failed: ${e.toString()}")),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isVerifying = false);
-    }
+            ),
+          ],
+        ),
+        backgroundColor: isError
+            ? const Color(0xFFFF5252)
+            : const Color(0xFF4CAF50),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("OTP Verification")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Enter OTP sent to\n${widget.email}",
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, letterSpacing: 8),
-              decoration: const InputDecoration(
-                labelText: "OTP",
-                border: OutlineInputBorder(),
-              ),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black87,
+              size: 18,
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isVerifying ? null : verifyOtp,
-                child: _isVerifying
-                    ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                    : const Text("Verify"),
-              ),
-            ),
-          ],
+          ),
+          onPressed: () => Navigator.pop(context),
         ),
+      ),
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+
+                  // Icon with gradient background
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4A90E2), Color(0xFF2171C9)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF4A90E2).withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.verified_user_outlined,
+                      color: Colors.white,
+                      size: 50,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  const Text(
+                    "Verification Code",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Text(
+                    "We've sent a code to",
+                    style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.email,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF4A90E2),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+
+                  // OTP Input Fields
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) {
+                      return _buildOTPField(index);
+                    }),
+                  ),
+                  const SizedBox(height: 48),
+
+                  // Verify Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isVerifying ? null : verifyOtp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4A90E2),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                      ),
+                      child: _isVerifying
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Verify Code",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(Icons.check_circle_outline, size: 20),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Resend Code
+                  TextButton(
+                    onPressed: () {
+                      _showSnackBar("Verification code resent!");
+                    },
+                    child: const Text(
+                      "Didn't receive code? Resend",
+                      style: TextStyle(
+                        color: Color(0xFF4A90E2),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOTPField(int index) {
+    return Container(
+      width: 50,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _controllers[index].text.isEmpty
+              ? Colors.grey.shade300
+              : const Color(0xFF4A90E2),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: const InputDecoration(
+          counterText: "",
+          border: InputBorder.none,
+        ),
+        onChanged: (value) {
+          if (value.isNotEmpty && index < 5) {
+            _focusNodes[index + 1].requestFocus();
+          } else if (value.isEmpty && index > 0) {
+            _focusNodes[index - 1].requestFocus();
+          }
+
+          // Auto-verify when all fields are filled
+          if (index == 5 && value.isNotEmpty) {
+            final otp = _controllers.map((c) => c.text).join();
+            if (otp.length == 6) {
+              verifyOtp();
+            }
+          }
+
+          setState(() {});
+        },
       ),
     );
   }
