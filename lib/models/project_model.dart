@@ -5,7 +5,9 @@ class ProjectModel {
   final String shift;
   final String clientName;
   final String clientContact;
-  final String manager;
+  final String managerName;
+  final String managerEmail;
+  final String managerContact;
   final String description;
   final String techStack;
   final DateTime assignedDate;
@@ -17,7 +19,9 @@ class ProjectModel {
     required this.shift,
     required this.clientName,
     required this.clientContact,
-    required this.manager,
+    required this.managerName,
+    required this.managerEmail,
+    required this.managerContact,
     required this.description,
     required this.techStack,
     required this.assignedDate,
@@ -30,7 +34,9 @@ class ProjectModel {
     'shift': shift,
     'clientName': clientName,
     'clientContact': clientContact,
-    'manager': manager,
+    'managerName': managerName,
+    'managerEmail': managerEmail,
+    'managerContact': managerContact,
     'description': description,
     'techStack': techStack,
     'assignedDate': assignedDate.toIso8601String(),
@@ -43,7 +49,9 @@ class ProjectModel {
     shift: json['shift'] ?? '',
     clientName: json['clientName'] ?? '',
     clientContact: json['clientContact'] ?? '',
-    manager: json['manager'] ?? '',
+    managerName: json['managerName'] ?? '',
+    managerEmail: json['managerEmail'] ?? '',
+    managerContact: json['managerContact'] ?? '',
     description: json['description'] ?? '',
     techStack: json['techStack'] ?? '',
     assignedDate: DateTime.tryParse(json['assignedDate'] ?? '') ?? DateTime.now(),

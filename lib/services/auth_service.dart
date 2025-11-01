@@ -17,13 +17,13 @@ class AuthService {
   AuthService._init();
 
   // Login with JWT
-  Future<Map<String, dynamic>> login(String countryCode, String phone, String password) async {
+  Future<Map<String, dynamic>> login(String countryCode, String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'phone': '$countryCode$phone',
+          'email': '$countryCode$email',
           'password': password,
         }),
       );
