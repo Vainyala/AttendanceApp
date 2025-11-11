@@ -58,6 +58,30 @@ import 'geofence_model.dart';
     );
 
     String get date => "${timestamp.toLocal()}";
+    // Add inside AttendanceModel class
+
+    bool get isLate {
+      if (type == AttendanceType.enter || type == AttendanceType.checkIn) {
+        final hour = timestamp.hour;
+        final minute = timestamp.minute;
+        return hour > 9 || (hour == 9 && minute > 15); // Late if after 9:15 AM
+      }
+      return false;
+    }
+
+    bool get isHalfDay {
+      // Logic: if checkout before 2 PM or total hours < 4
+      return false; // Implement based on your rules
+    }
+
+    Duration? getDuration(AttendanceModel? checkout) {
+      if (checkout != null &&
+          (type == AttendanceType.enter || type == AttendanceType.checkIn) &&
+          (checkout.type == AttendanceType.exit || checkout.type == AttendanceType.checkOut)) {
+        return checkout.timestamp.difference(timestamp);
+      }
+      return null;
+    }
   }
 
   enum AttendanceType { checkIn, checkOut, enter, exit }

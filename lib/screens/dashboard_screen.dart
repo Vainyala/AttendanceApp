@@ -17,6 +17,7 @@ import '../widgets/date_time_utils.dart';
 import '../widgets/menu_drawer.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/attendance_graph.dart';
+import 'attendance_analytics_screen.dart';
 import 'attendance_history_screen.dart';
 import 'project_details_screen.dart';
 import 'auth_verification_screen.dart';
@@ -670,11 +671,36 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             const SizedBox(height: 30),
             _buildMappedProjects(provider),
             const SizedBox(height: 30),
+            _buildAnalyticsButton(),
+            const SizedBox(height: 20),
             _buildAttendanceGraphSection(provider),
             const SizedBox(height: 20),
             _buildStatsContainer(provider),
             const SizedBox(height: 100),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsButton() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AttendanceAnalyticsScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.analytics),
+        label: const Text('Attendance Analytics'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryBlue,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          minimumSize: const Size(double.infinity, 50),
         ),
       ),
     );
@@ -877,69 +903,100 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   }
 
   Widget _buildProjectsList(AppProvider provider) {
-    return SizedBox(
-      height: 140,
-      child: provider.isLoadingUser
-          ? const Center(child: CircularProgressIndicator())
-          : provider.user == null || provider.user!.projects.isEmpty
-          ? Center(
-        child: Text(
-            "No projects mapped",
-            style: AppStyles.text
-        ),
-      )
-          : ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: provider.user!.projects.length,
-        itemBuilder: (context, index) {
-          final project = provider.user!.projects[index];
-          return _buildProjectCard(provider, project);
-        },
-      ),
+    return provider.isLoadingUser
+        ? const Center(child: CircularProgressIndicator())
+        : provider.user == null || provider.user!.projects.isEmpty
+        ? Center(
+      child: Text("No projects mapped", style: AppStyles.text),
+    )
+        : ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: provider.user!.projects.length,
+      itemBuilder: (context, index) {
+        final project = provider.user!.projects[index];
+        return _buildProjectCard(provider, project);
+      },
     );
   }
 
   Widget _buildProjectCard(AppProvider provider, dynamic project) {
-    return GestureDetector(
-      onTap: () {
-        provider.setSelectedProject(project);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ProjectDetailsScreen()),
-        );
-      },
-      child: Container(
-        width: 280,
-        margin: const EdgeInsets.only(right: 15),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade400, Colors.blue.shade600],
+    return Card(
+      margin: const EdgeInsets.only(right: 15, bottom: 10),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            child: Icon(Icons.work, color: Colors.blue.shade700),
           ),
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+          title: Text(
+            project.name,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          subtitle: Row(
+            children: [
+              Icon(Icons.location_on, size: 14, color: Colors.grey),
+              SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  project.site,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
           children: [
-            Text(
-              project.name,
-              style: AppStyles.text1,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Divider(height: 1),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
+                  SizedBox(height: 8),
+                  _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
+                  SizedBox(height: 8),
+                  _buildProjectDetailRow(Icons.email, project.managerEmail),
+                  SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          provider.setSelectedProject(project);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ProjectDetailsScreen()),
+                          );
+                        },
+                        icon: Icon(Icons.info_outline, size: 16),
+                        label: Text('Details'),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          // Navigate to analytics for this project
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AttendanceAnalyticsScreen(
+                                preSelectedProjectId: project.id,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.analytics, size: 16),
+                        label: Text('Analytics'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            _buildProjectDetailRow(Icons.location_on, project.site),
-            const SizedBox(height: 5),
-            _buildProjectDetailRow(Icons.access_time, project.shift),
           ],
         ),
       ),
@@ -949,18 +1006,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Widget _buildProjectDetailRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white70, size: 16),
-        const SizedBox(width: 5),
+        Icon(icon, color: Colors.grey.shade600, size: 16),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: AppStyles.text,
-            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13,overflow: TextOverflow.ellipsis, color: Colors.grey.shade700),
           ),
         ),
       ],
     );
   }
+
 
   Widget _buildAttendanceGraphSection(AppProvider provider) {
     return Column(
