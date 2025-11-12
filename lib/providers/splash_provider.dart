@@ -73,6 +73,7 @@ class SplashProvider with ChangeNotifier {
           name: 'Samal Vainyala',
           email: 'samal@nutantek.com',
           role: 'Flutter Developer',
+          department: 'App Development dept.',
           projects: [],
         );
 

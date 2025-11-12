@@ -14,7 +14,7 @@ class AttendanceSummary {
   });
 }
 
-enum AnalyticsMode { daily, weekly, monthly }
+enum AnalyticsMode { daily, weekly, monthly, quarterly }
 
 class DateRange {
   final DateTime start;

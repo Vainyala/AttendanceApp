@@ -1,5 +1,6 @@
 import '../models/attendance_model.dart';
 import '../models/analytics_data.dart';
+import '../screens/attendance_analytics_screen.dart';
 import 'storage_service.dart';
 
 class AnalyticsService {

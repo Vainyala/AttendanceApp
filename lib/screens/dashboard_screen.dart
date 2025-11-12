@@ -1,6 +1,5 @@
 import 'dart:async';
-
-import 'package:AttendanceApp/models/attendance_model.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -15,7 +14,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custome_stat_row.dart';
 import '../widgets/date_time_utils.dart';
 import '../widgets/menu_drawer.dart';
-import '../widgets/profile_header.dart';
+import 'package:intl/intl.dart';
 import '../widgets/attendance_graph.dart';
 import 'attendance_analytics_screen.dart';
 import 'attendance_history_screen.dart';
@@ -507,15 +506,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         child: RefreshIndicator(
           onRefresh: () async {
             await provider.refreshAllData();
-            _startCountdownTimer(); // Restart timer after refresh
+            _startCountdownTimer();
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
                 _buildTopBar(provider),
-               // _buildTrackingToggle(provider),
-                _buildProfileHeader(provider),
+                const SizedBox(height: 20),
+                _buildCenterProfileSection(provider), // NEW: Centered profile
+                const SizedBox(height: 20),
+                _buildLocationToggle(provider), // NEW: Location toggle
                 const SizedBox(height: 30),
                 _buildMainContent(provider),
               ],
@@ -525,58 +526,58 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
- 
+
+  Widget _buildCenterProfileSection(AppProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10), // Added padding to move higher
+      child: Column(
+        children: [
+          // Profile Image
+          CircleAvatar(
+            radius: 50, // Increased size
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 47,
+              backgroundColor: Colors.grey.shade300,
+              child: Icon(Icons.person, size: 55, color: Colors.grey.shade600),
+            ),
+          ),
+          const SizedBox(height: 15),
+
+          // Employee Name
+          Text(
+            provider.user?.name ?? 'Loading...',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Role and Department (NOT company name)
+          Text(
+            '${provider.user?.role ?? ''} • ${provider.user?.department ?? 'Department'}',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTopBar(AppProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Left: Menu icon
           IconButton(
             icon: const Icon(Icons.menu, color: Colors.white, size: 26),
             onPressed: () => showProfileMenu(context),
-          ),
-
-          // Center: Tracking toggle (Active/Inactive)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  provider.trackingEnabled ? Icons.location_on : Icons.location_off,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  provider.trackingEnabled ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Switch(
-                  value: provider.trackingEnabled,
-                  onChanged: (value) => provider.toggleTracking(value),
-                  activeColor: Colors.green,
-                  activeTrackColor: Colors.green.shade300,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ],
-            ),
           ),
 
           // Right: Sync + Notification icons
@@ -597,60 +598,48 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-
-  // Widget _buildTrackingToggle(AppProvider provider) {
-  //   return Center( // centers the container on the screen
-  //     child: Container(
-  //       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white.withOpacity(0.15),
-  //         borderRadius: BorderRadius.circular(15),
-  //         border: Border.all(
-  //           color: Colors.white.withOpacity(0.3),
-  //           width: 1,
-  //         ),
-  //       ),
-  //       child: Row(
-  //         mainAxisSize: MainAxisSize.min, // makes container fit content
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           Icon(
-  //             provider.trackingEnabled ? Icons.location_on : Icons.location_off,
-  //             color: Colors.white,
-  //             size: 18, // smaller icon
-  //           ),
-  //           const SizedBox(width: 10),
-  //           Text(
-  //             provider.trackingEnabled ? 'Active' : 'Inactive',
-  //             style: TextStyle(
-  //               color: Colors.white.withOpacity(0.9),
-  //               fontSize: 14,
-  //               fontWeight: FontWeight.w500,
-  //             ),
-  //           ),
-  //           const SizedBox(width: 10),
-  //           Switch(
-  //             value: provider.trackingEnabled,
-  //             onChanged: (value) => provider.toggleTracking(value),
-  //             activeColor: Colors.green,
-  //             activeTrackColor: Colors.green.shade300,
-  //             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, // makes switch smaller
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  Widget _buildProfileHeader(AppProvider provider) {
-    return ProfileHeader(
-      name: provider.user?.name,
-      role: provider.user?.role,
-      company: 'Nutantek Solutions',
+  Widget _buildLocationToggle(AppProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Align to right
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min, // Compact size
+              children: [
+                Icon(
+                  provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+                  color: Colors.white,
+                  size: 16, // Smaller icon
+                ),
+                const SizedBox(width: 6),
+                Transform.scale(
+                  scale: 0.8, // Smaller switch
+                  child: Switch(
+                    value: provider.trackingEnabled,
+                    onChanged: (value) => provider.toggleTracking(value),
+                    activeColor: Colors.green,
+                    activeTrackColor: Colors.green.shade300,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
-
   Widget _buildMainContent(AppProvider provider) {
     return Container(
       decoration: const BoxDecoration(
@@ -669,13 +658,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             const SizedBox(height: 25),
             _buildCheckInOutButtons(provider),
             const SizedBox(height: 30),
-            _buildMappedProjects(provider),
+            _buildMyAttendanceSection(provider), // Monthly Summary + Pie Chart// Weekly Graph
             const SizedBox(height: 30),
-            _buildAnalyticsButton(),
+            _buildMappedProjects(provider), // Mapped Projects
             const SizedBox(height: 20),
-            _buildAttendanceGraphSection(provider),
-            const SizedBox(height: 20),
-            _buildStatsContainer(provider),
+            _buildStatsContainer(provider), // Daily Avg + Monthly Total (MOVED TO LAST)
             const SizedBox(height: 100),
           ],
         ),
@@ -683,28 +670,353 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-  Widget _buildAnalyticsButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AttendanceAnalyticsScreen(),
+  Widget _buildMyAttendanceSection(AppProvider provider) {
+    final now = DateTime.now();
+    final currentMonth = DateFormat('MMMM').format(now);
+
+    // Calculate monthly summary
+    int totalPresent = 9;
+    int totalLeave = 2;
+    int totalAbsent = 1;
+    int totalOnTime = 6;
+    int totalLate = 3;
+    int totalDays = now.day;
+
+    return Column(
+      children: [
+        // Header Row with Expand Icon
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'My Attendance - $currentMonth',
+              style: AppStyles.headingLarge,
             ),
-          );
-        },
-        icon: const Icon(Icons.analytics),
-        label: const Text('Attendance Analytics'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          minimumSize: const Size(double.infinity, 50),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AttendanceAnalyticsScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.open_in_full,
+                  color: AppColors.primaryBlue,
+                  size: 18,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
+        const SizedBox(height: 15),
+
+        // Monthly Summary Table
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Column(
+            children: [
+              // Header Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Days',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'P',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'L',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'A',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'OnTime',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Late',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+
+              Divider(height: 20, color: Colors.grey.shade400, thickness: 1.5),
+
+              // Data Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$totalDays',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$totalPresent',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$totalLeave',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$totalAbsent',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$totalOnTime',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$totalLate',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Pie Chart
+        Container(
+          height: 220,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Pie Chart
+              Expanded(
+                flex: 3,
+                child: PieChart(
+                  PieChartData(
+                    sectionsSpace: 2,
+                    centerSpaceRadius: 40,
+                    sections: [
+                      PieChartSectionData(
+                        value: totalPresent.toDouble(),
+                        title: '$totalPresent',
+                        color: Colors.green,
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      PieChartSectionData(
+                        value: totalLeave.toDouble(),
+                        title: '$totalLeave',
+                        color: Colors.orange,
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      PieChartSectionData(
+                        value: totalAbsent.toDouble(),
+                        title: '$totalAbsent',
+                        color: Colors.red,
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      PieChartSectionData(
+                        value: totalOnTime.toDouble(),
+                        title: '$totalOnTime',
+                        color: Colors.blue,
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      PieChartSectionData(
+                        value: totalLate.toDouble(),
+                        title: '$totalLate',
+                        color: Colors.purple,
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(width: 20),
+
+              // Legend
+              Expanded(
+                flex: 2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPieLegendItem('Present', Colors.green, totalPresent),
+                    SizedBox(height: 8),
+                    _buildPieLegendItem('Leave', Colors.orange, totalLeave),
+                    SizedBox(height: 8),
+                    _buildPieLegendItem('Absent', Colors.red, totalAbsent),
+                    SizedBox(height: 8),
+                    _buildPieLegendItem('OnTime', Colors.blue, totalOnTime),
+                    SizedBox(height: 8),
+                    _buildPieLegendItem('Late', Colors.purple, totalLate),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+
+// Helper method for pie chart legend
+  Widget _buildPieLegendItem(String label, Color color, int count) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        SizedBox(width: 6),
+        Text(
+          '$label: $count',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+      ],
+    );
+  }
+
 
   // FIXED: Date Time Status Widget with proper layout
   Widget _buildDateTimeStatus(AppProvider provider) {
@@ -898,6 +1210,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         ),
         const SizedBox(height: 15),
         _buildProjectsList(provider),
+
       ],
     );
   }
@@ -909,95 +1222,120 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         ? Center(
       child: Text("No projects mapped", style: AppStyles.text),
     )
-        : ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: provider.user!.projects.length,
-      itemBuilder: (context, index) {
-        final project = provider.user!.projects[index];
-        return _buildProjectCard(provider, project);
-      },
+        : SizedBox(
+      height: 260, // allow a bit more room
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: provider.user!.projects.length,
+        itemBuilder: (context, index) {
+          final project = provider.user!.projects[index];
+          return _buildProjectCard(provider, project);
+        },
+      ),
     );
   }
 
   Widget _buildProjectCard(AppProvider provider, dynamic project) {
-    return Card(
+    return Container(
+      width: 270,
       margin: const EdgeInsets.only(right: 15, bottom: 10),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: CircleAvatar(
-            backgroundColor: Colors.blue.shade100,
-            child: Icon(Icons.work, color: Colors.blue.shade700),
-          ),
-          title: Text(
-            project.name,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          subtitle: Row(
-            children: [
-              Icon(Icons.location_on, size: 14, color: Colors.grey),
-              SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  project.site,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  overflow: TextOverflow.ellipsis,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              dividerColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+            ),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              childrenPadding: EdgeInsets.zero, // Remove padding that causes overflow
+              leading: CircleAvatar(
+                backgroundColor: Colors.blue.shade100,
+                child: Icon(Icons.work, color: Colors.blue.shade700, size: 20),
+              ),
+              title: Text(
+                project.name,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        project.site,
+                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          children: [
-            Divider(height: 1),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
-                  SizedBox(height: 8),
-                  _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
-                  SizedBox(height: 8),
-                  _buildProjectDetailRow(Icons.email, project.managerEmail),
-                  SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          provider.setSelectedProject(project);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const ProjectDetailsScreen()),
-                          );
-                        },
-                        icon: Icon(Icons.info_outline, size: 16),
-                        label: Text('Details'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          // Navigate to analytics for this project
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AttendanceAnalyticsScreen(
-                                preSelectedProjectId: project.id,
+              children: [
+                SingleChildScrollView(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
+                        const SizedBox(height: 8),
+                        _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
+                        const SizedBox(height: 8),
+                        _buildProjectDetailRow(Icons.email, project.managerEmail),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  provider.setSelectedProject(project);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ProjectDetailsScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.info_outline, size: 14),
+                                label: const Text('Details', style: TextStyle(fontSize: 12)),
                               ),
                             ),
-                          );
-                        },
-                        icon: Icon(Icons.analytics, size: 16),
-                        label: Text('Analytics'),
-                      ),
-                    ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AttendanceAnalyticsScreen(
+                                        preSelectedProjectId: project.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.analytics, size: 14),
+                                label: const Text('Analytics', style: TextStyle(fontSize: 12)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
+
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1018,46 +1356,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-
-  Widget _buildAttendanceGraphSection(AppProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Attendance Graph',
-              style: AppStyles.headingLarge,
-            ),
-            TextButton.icon(
-              onPressed: () {
-                if (provider.user?.projects != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AttendanceHistoryScreen(
-                        projects: provider.user!.projects,
-                      ),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.history, size: 20),
-              label: const Text('View All'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primaryBlue,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 15),
-        AttendanceGraph(
-          data: AttendanceChartUtils.getChartData(provider.weeklyAttendance),
-        ),
-      ],
-    );
-  }
 
   Widget _buildStatsContainer(AppProvider provider) {
     return Container(
