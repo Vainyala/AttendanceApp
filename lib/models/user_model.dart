@@ -5,13 +5,17 @@ class UserModel {
   final String email;
   final String name;
   final String role;
+  final String department;
   final List<ProjectModel> projects;
+
+
 
   UserModel({
     required this.id,
     required this.email,
     required this.name,
     required this.role,
+    required this.department,
     required this.projects,
   });
 
@@ -20,6 +24,7 @@ class UserModel {
     'email': email,
     'name': name,
     'role': role,
+    'department' : department,
     'projects': projects.map((p) => p.toJson()).toList(),
   };
 
@@ -28,6 +33,7 @@ class UserModel {
     email: json['email'] ?? '',
     name: json['name'] ?? '',
     role: json['role'] ?? '',
+   department: json['department'] ?? '',
     projects: (json['projects'] as List<dynamic>? ?? [])
         .map((p) => ProjectModel.fromJson(p))
         .toList(),
