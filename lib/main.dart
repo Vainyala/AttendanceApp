@@ -1,3 +1,4 @@
+import 'package:AttendanceApp/providers/analytics_provider.dart';
 import 'package:AttendanceApp/providers/attendance_provider.dart';
 import 'package:AttendanceApp/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RegularisationProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
-
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
       ],
       child: MaterialApp(
         title: 'Attendance App',

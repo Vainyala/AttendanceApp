@@ -158,7 +158,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -169,7 +169,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   AppColors.error.shade100,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 15),
               Expanded(
                 child: _buildStatCard(
                   'Total Days',
@@ -180,7 +180,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -219,19 +219,19 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 28),
-          const SizedBox(height: 8),
+          Icon(icon, color: AppColors.primaryBlue, size: 24),
+          const SizedBox(height: 6),
           Text(
             value,
             style: AppStyles.headingLarge.copyWith(
-              fontSize: 24,
+              fontSize: 20,
               color: AppColors.primaryBlue,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: AppStyles.text.copyWith(fontSize: 12),
+            style: AppStyles.text.copyWith(fontSize: 8),
             textAlign: TextAlign.center,
           ),
         ],

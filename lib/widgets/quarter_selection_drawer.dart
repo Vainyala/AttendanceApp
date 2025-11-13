@@ -78,7 +78,7 @@ class QuarterSelectionDrawer extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 2.5,
+                childAspectRatio: 2.0,
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
