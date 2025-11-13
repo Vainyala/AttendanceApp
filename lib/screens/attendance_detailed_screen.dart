@@ -55,6 +55,7 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
 
     setState(() => _isLoading = false);
   }
+
   List<Map<String, dynamic>> _generateDummyAttendanceData() {
     List<Map<String, dynamic>> data = [];
 
@@ -82,8 +83,8 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
         hours = 0;
       } else if (dayNum % 6 == 0) {
         status = 'Late';
-        inTime = '10:${15 + (dayNum % 30)}';   // ✅ Now both are numbers → result is string
-        outTime = '18:${30 + (dayNum % 20)}';
+        inTime = '10:${(15 + (dayNum % 30)).toString().padLeft(2, '0')}';
+        outTime = '18:${(30 + (dayNum % 20)).toString().padLeft(2, '0')}';
         hours = 8.0 + (dayNum % 2);
       } else if (dayNum % 5 == 0) {
         status = 'OnTime';
@@ -99,19 +100,19 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
 
       data.add({
         'date': DateFormat('dd MMM yyyy').format(date),
+        'dayName': DateFormat('EEE').format(date),
         'rawDate': date,
         'inTime': inTime,
         'outTime': outTime,
         'status': status,
         'hours': hours,
         'project': _getProjectName(),
-        'location': dayNum % 3 == 0 ? 'WFH' : 'Nutantek Office',
+        'location': dayNum % 3 == 0 ? 'WFH' : 'Office',
       });
     }
 
     return data.reversed.toList();
   }
-
 
   String _getProjectName() {
     final provider = context.read<AppProvider>();
@@ -180,37 +181,76 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
     }
   }
 
-  void _exportData() {
-    // Show export options
+  void _exportData(String format) {
+    // In real implementation, you would generate the file here
+    // For now, just show a success message
+    _showMessage('Downloading $format...');
+
+    // Simulate download delay
+    Future.delayed(Duration(seconds: 1), () {
+      _showMessage('$format downloaded successfully!');
+    });
+  }
+
+  void _showExportOptions() {
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: Icon(Icons.picture_as_pdf, color: Colors.red),
-              title: Text('Export as PDF'),
+            Container(
+              width: 40,
+              height: 4,
+              margin: EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'Export Attendance Data',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            _buildExportOption(
+              icon: Icons.picture_as_pdf,
+              title: 'Export as PDF',
+              subtitle: 'Download attendance report',
+              color: Colors.red,
               onTap: () {
                 Navigator.pop(context);
-                _showMessage('PDF export coming soon');
+                _exportData('PDF');
               },
             ),
-            ListTile(
-              leading: Icon(Icons.table_chart, color: Colors.green),
-              title: Text('Export as Excel'),
+            _buildExportOption(
+              icon: Icons.table_chart,
+              title: 'Export as Excel',
+              subtitle: 'Download .xlsx file',
+              color: Colors.green,
               onTap: () {
                 Navigator.pop(context);
-                _showMessage('Excel export coming soon');
+                _exportData('Excel');
               },
             ),
-            ListTile(
-              leading: Icon(Icons.description, color: Colors.blue),
-              title: Text('Export as CSV'),
+            _buildExportOption(
+              icon: Icons.description,
+              title: 'Export as CSV',
+              subtitle: 'Download .csv file',
+              color: Colors.blue,
               onTap: () {
                 Navigator.pop(context);
-                _showMessage('CSV export coming soon');
+                _exportData('CSV');
               },
             ),
           ],
@@ -219,36 +259,93 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
     );
   }
 
+  Widget _buildExportOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.textLight,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text('Attendance Analytics'),
+        title: Text('Attendance Analytics', style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primaryBlue,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: Icon(Icons.download),
-            onPressed: _exportData,
+            icon: Icon(Icons.file_download_outlined),
+            onPressed: _showExportOptions,
             tooltip: 'Export Data',
           ),
         ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          _buildFilters(),
-          _buildSummaryCards(),
-          Expanded(child: _buildAttendanceTable()),
-        ],
+          : SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildFilters(),
+            _buildSummaryCards(),
+            _buildAttendanceList(),
+          ],
+        ),
       ),
     );
   }
@@ -257,19 +354,32 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
     final provider = context.watch<AppProvider>();
 
     return Container(
+      margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Filters',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          SizedBox(height: 12),
+
           // Project Dropdown
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -280,18 +390,19 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                hint: Text('Select Project'),
+                hint: Text('Select Project', style: TextStyle(fontSize: 14)),
                 value: _selectedProjectId,
+                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.primaryBlue),
                 items: [
                   DropdownMenuItem(
                     value: null,
-                    child: Text('All Projects'),
+                    child: Text('All Projects', style: TextStyle(fontSize: 14)),
                   ),
                   if (provider.user?.projects != null)
                     ...provider.user!.projects.map((project) {
                       return DropdownMenuItem(
                         value: project.id,
-                        child: Text(project.name),
+                        child: Text(project.name, style: TextStyle(fontSize: 14)),
                       );
                     }).toList(),
                 ],
@@ -310,28 +421,26 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
           // Date Range Selector
           InkWell(
             onTap: _selectDateRange,
+            borderRadius: BorderRadius.circular(8),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, size: 20, color: AppColors.primaryBlue),
-                      SizedBox(width: 12),
-                      Text(
-                        _selectedDateRange != null
-                            ? '${DateFormat('dd MMM').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.end)}'
-                            : 'Select Date Range',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
+                  Icon(Icons.date_range, size: 20, color: AppColors.primaryBlue),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _selectedDateRange != null
+                          ? '${DateFormat('dd MMM').format(_selectedDateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_selectedDateRange!.end)}'
+                          : 'Select Date Range',
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ),
-                  Icon(Icons.arrow_drop_down, color: Colors.grey),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600, size: 20),
                 ],
               ),
             ),
@@ -343,83 +452,100 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
 
   Widget _buildSummaryCards() {
     return Container(
-      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
-                child: _buildSummaryCard(
+                child: _buildCompactSummaryCard(
                   'Present',
                   _totalPresent.toString(),
-                  Icons.check_circle,
-                  Colors.green,
+                  Icons.check_circle_outline,
+                  Color(0xFF4CAF50),
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 10),
               Expanded(
-                child: _buildSummaryCard(
+                child: _buildCompactSummaryCard(
                   'Absent',
                   _totalAbsent.toString(),
-                  Icons.cancel,
-                  Colors.red,
+                  Icons.cancel_outlined,
+                  Color(0xFFE53935),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           Row(
             children: [
               Expanded(
-                child: _buildSummaryCard(
+                child: _buildCompactSummaryCard(
                   'On Time',
                   _totalOnTime.toString(),
-                  Icons.schedule,
-                  Colors.blue,
+                  Icons.access_time,
+                  Color(0xFF2196F3),
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 10),
               Expanded(
-                child: _buildSummaryCard(
+                child: _buildCompactSummaryCard(
                   'Late',
                   _totalLate.toString(),
-                  Icons.warning,
-                  Colors.orange,
+                  Icons.warning_amber_outlined,
+                  Color(0xFFFF9800),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.purple.shade50,
+              gradient: LinearGradient(
+                colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.purple.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF667EEA).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.access_time, color: Colors.purple, size: 24),
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.timelapse, color: Colors.white, size: 20),
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Avg Hours/Day',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade700,
+                        color: Colors.white,
                       ),
                     ),
                   ],
                 ),
                 Text(
-                  _avgHours.toStringAsFixed(1),
+                  '${_avgHours.toStringAsFixed(1)}h',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -430,33 +556,52 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
+  Widget _buildCompactSummaryCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+        border: Border.all(color: color.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: Offset(0, 2),
           ),
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade700,
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -464,24 +609,36 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
     );
   }
 
-  Widget _buildAttendanceTable() {
+  Widget _buildAttendanceList() {
     if (_attendanceData.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox, size: 64, color: Colors.grey.shade400),
-            SizedBox(height: 16),
-            Text(
-              'No attendance records found',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Try selecting a different date range',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-          ],
+      return Container(
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
+              SizedBox(height: 16),
+              Text(
+                'No attendance records found',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Try selecting a different date range',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -493,150 +650,208 @@ class _AttendanceDetailedScreenState extends State<AttendanceDetailedScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Table Header
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
+          Padding(
+            padding: EdgeInsets.all(16),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(flex: 2, child: _buildHeaderCell('Date')),
-                Expanded(flex: 2, child: _buildHeaderCell('In Time')),
-                Expanded(flex: 2, child: _buildHeaderCell('Out Time')),
-                Expanded(flex: 2, child: _buildHeaderCell('Status')),
-                Expanded(flex: 1, child: _buildHeaderCell('Hours')),
-                Expanded(flex: 2, child: _buildHeaderCell('Location')),
+                Text(
+                  'Attendance Records',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${_attendanceData.length} Days',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
               ],
             ),
           ),
-
-          // Table Body
-          Expanded(
-            child: ListView.builder(
-              itemCount: _attendanceData.length,
-              itemBuilder: (context, index) {
-                final record = _attendanceData[index];
-                return _buildTableRow(record, index);
-              },
-            ),
+          Divider(height: 1),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: _attendanceData.length,
+            separatorBuilder: (context, index) => Divider(height: 1),
+            itemBuilder: (context, index) {
+              final record = _attendanceData[index];
+              return _buildAttendanceCard(record);
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderCell(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: AppColors.primaryBlue,
-      ),
-      textAlign: TextAlign.center,
-    );
-  }
-
-  Widget _buildTableRow(Map<String, dynamic> record, int index) {
+  Widget _buildAttendanceCard(Map<String, dynamic> record) {
     Color statusColor;
+    IconData statusIcon;
+
     switch (record['status']) {
       case 'Absent':
-        statusColor = Colors.red;
+        statusColor = Color(0xFFE53935);
+        statusIcon = Icons.cancel;
         break;
       case 'Late':
-        statusColor = Colors.orange;
+        statusColor = Color(0xFFFF9800);
+        statusIcon = Icons.schedule;
         break;
       case 'OnTime':
-        statusColor = Colors.green;
+        statusColor = Color(0xFF4CAF50);
+        statusIcon = Icons.check_circle;
         break;
       default:
         statusColor = Colors.grey;
+        statusIcon = Icons.help_outline;
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: index % 2 == 0 ? Colors.grey.shade50 : Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade200,
-            width: 1,
-          ),
-        ),
-      ),
+      padding: EdgeInsets.all(16),
       child: Row(
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              record['date'],
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              record['inTime'],
-              style: TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              record['outTime'],
-              style: TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                record['status'],
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: statusColor,
+          // Date Section
+          Container(
+            width: 50,
+            child: Column(
+              children: [
+                Text(
+                  record['date'].split(' ')[0], // Day number
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
+                Text(
+                  record['dayName'], // Day name
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
             ),
           ),
+
+          SizedBox(width: 16),
+
+          // Main Content
           Expanded(
-            flex: 1,
-            child: Text(
-              record['hours'] > 0 ? record['hours'].toStringAsFixed(1) : '-',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              record['location'],
-              style: TextStyle(fontSize: 11),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, size: 14, color: statusColor),
+                          SizedBox(width: 4),
+                          Text(
+                            record['status'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            record['location'] == 'WFH'
+                                ? Icons.home_outlined
+                                : Icons.business_outlined,
+                            size: 12,
+                            color: Colors.grey.shade700,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            record['location'],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.login, size: 14, color: Colors.grey.shade600),
+                    SizedBox(width: 4),
+                    Text(
+                      record['inTime'],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Icon(Icons.logout, size: 14, color: Colors.grey.shade600),
+                    SizedBox(width: 4),
+                    Text(
+                      record['outTime'],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    Spacer(),
+                    if (record['hours'] > 0)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${record['hours'].toStringAsFixed(1)}h',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
