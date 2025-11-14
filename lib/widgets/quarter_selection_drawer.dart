@@ -1,9 +1,6 @@
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 
-class QuarterSelectionDrawer extends StatelessWidget {
+class QuarterSelectionDrawer extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onQuarterSelected;
 
@@ -13,131 +10,294 @@ class QuarterSelectionDrawer extends StatelessWidget {
     required this.onQuarterSelected,
   });
 
-  String _getQuarterLabel(int index) {
-    final now = DateTime.now();
-    final currentQuarter = ((now.month - 1) ~/ 3) + 1;
-    final targetQuarter = currentQuarter - index;
-    final year = targetQuarter > 0 ? now.year : now.year - 1;
-    final quarter = targetQuarter > 0 ? targetQuarter : 4 + targetQuarter;
+  @override
+  State<QuarterSelectionDrawer> createState() => _QuarterSelectionDrawerState();
+}
 
-    return 'Q$quarter $year';
+class _QuarterSelectionDrawerState extends State<QuarterSelectionDrawer> {
+  late int _selectedQuarterIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedQuarterIndex = widget.selectedIndex;
   }
 
-  String _getQuarterMonths(int index) {
-    final now = DateTime.now();
-    final currentQuarter = ((now.month - 1) ~/ 3) + 1;
-    final targetQuarter = currentQuarter - index;
-    final quarter = targetQuarter > 0 ? targetQuarter : 4 + targetQuarter;
+  String _getQuarterLabel(int quarterNum) {
+    return 'Q$quarterNum';
+  }
+  String _getQuarterButtonLabel(int index) {
+    if (index == 0) return 'THIS Quarter';
+    return '${index}Q AGO';
+  }
 
+  String _getQuarterMonths(int quarterNum) {
     const quarterMonths = {
-      1: 'Jan-Mar',
-      2: 'Apr-Jun',
-      3: 'Jul-Sep',
-      4: 'Oct-Dec',
+      1: 'JAN - MAR',
+      2: 'APR - JUN',
+      3: 'JUL - SEP',
+      4: 'OCT - DEC',
     };
-
-    return quarterMonths[quarter] ?? '';
+    return quarterMonths[quarterNum] ?? '';
   }
 
-  String _getQuarterSubLabel(int index) {
-    if (index == 0) return 'Current Quarter';
-    return '$index quarter${index > 1 ? 's' : ''} ago';
+  int _getCurrentQuarter() {
+    final now = DateTime.now();
+    return ((now.month - 1) ~/ 3) + 1;
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentQuarter = _getCurrentQuarter();
+
     return Container(
-      padding: EdgeInsets.all(20),
-      height: 320,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xff2193e4),
+            Color(0xff0976d1),
+            Color(0xff024680),
+          ],
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Select Quarter',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 2.0,
-              ),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                final isSelected = selectedIndex == index;
-                return GestureDetector(
-                  onTap: () => onQuarterSelected(index),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),  // Reduced from 12
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryBlue : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primaryBlue : Colors.grey.shade300,
-                        width: 2,
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daily',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _getQuarterLabel(index),
-                          style: TextStyle(
-                            fontSize: 13,  // Reduced from 14
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : Colors.grey.shade800,
-                          ),
+                    SizedBox(height: 4),
+                    Text(
+                      'SELECT QUARTER',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'LAST 2 QUARTER',
+              style: TextStyle(
+                color: Colors.white60,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+
+          SizedBox(height: 12),
+
+          // Month buttons in row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: List.generate(2, (index) {
+                final isSelected = _selectedQuarterIndex == index;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedQuarterIndex = index);
+                      widget.onQuarterSelected(index);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.white.withOpacity(0.2)
+                            : Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.white.withOpacity(0.4)
+                              : Colors.transparent,
+                          width: 1,
                         ),
-                        SizedBox(height: 1),  // Reduced from 2
-                        Text(
-                          _getQuarterMonths(index),
-                          style: TextStyle(
-                            fontSize: 10,  // Reduced from 11
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.primaryBlue,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            _getQuarterButtonLabel(index),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 1),  // Reduced from 2
-                        Text(
-                          _getQuarterSubLabel(index),
-                          style: TextStyle(
-                            fontSize: 8,  // Reduced from 9
-                            fontWeight: FontWeight.w500,
-                            color: isSelected ? Colors.white.withOpacity(0.8) : Colors.grey.shade600,
+                          SizedBox(height: 2),
+                          Text(
+                            _getQuarterLabel(index),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
-              },
+              }),
             ),
           ),
+
+          SizedBox(height: 5),
+
+          // Quarter list - Only 2 quarters
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                children: List.generate(2, (index) {
+                  final quarterNum = index + 1;
+                  final isCurrentQuarter = quarterNum == currentQuarter;
+                  final isSelected = _selectedQuarterIndex == index;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedQuarterIndex = index);
+                      widget.onQuarterSelected(index);
+                    },
+                    child: Container(
+                      height: 90, // Smaller height
+                      margin: EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(0xFF2196f3).withOpacity(0.6),
+                            Color(0xFF03a9f4).withOpacity(0.4),
+                          ],
+                        )
+                            : null,
+                        color: isSelected ? null : Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? Color(0xFF2196f3).withOpacity(0.8)
+                              : Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Quarter badge
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.white.withOpacity(0.25)
+                                  : Colors.white.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getQuarterLabel(quarterNum),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(width: 20),
+
+                          // Quarter info
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'QUARTER ${quarterNum}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  _getQuarterMonths(quarterNum),
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Selected indicator
+                          if (isSelected)
+                            Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF00e5ff),
+                              size: 24,
+                            )
+                          else
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white30,
+                              size: 16,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+
         ],
       ),
     );

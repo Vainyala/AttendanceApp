@@ -516,8 +516,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 const SizedBox(width: 5),
                 _buildCenterProfileSection(provider), // NEW: Centered profile
                 const SizedBox(height: 15),
-                _buildLocationToggle(provider), // NEW: Location toggle
-                const SizedBox(height: 15),
                 _buildMainContent(provider),
               ],
             ),
@@ -603,7 +601,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     return Padding(
       padding: const EdgeInsets.only(right: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end, // Align to right
+        mainAxisAlignment: MainAxisAlignment.center, // Align to right
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -620,12 +618,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               children: [
                 Icon(
                   provider.trackingEnabled ? Icons.location_on : Icons.location_off,
-                  color: Colors.white,
-                  size: 16, // Smaller icon
+                  color: Colors.black,
+                  size: 25, // Smaller icon
                 ),
-                const SizedBox(width: 6),
                 Transform.scale(
-                  scale: 0.8, // Smaller switch
+                  scale: 0.5, // Smaller switch
                   child: Switch(
                     value: provider.trackingEnabled,
                     onChanged: (value) => provider.toggleTracking(value),
@@ -641,6 +638,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
+
   Widget _buildMainContent(AppProvider provider) {
     return Container(
       decoration: const BoxDecoration(
@@ -656,15 +654,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDateTimeStatus(provider),
-            const SizedBox(height: 15),
+            const SizedBox(height: 3),
+            _buildLocationToggle(provider),
+            const SizedBox(height: 5),
             _buildCheckInOutButtons(provider),
             const SizedBox(height: 20),
             _buildMyAttendanceSection(provider), // Monthly Summary + Pie Chart// Weekly Graph
-            const SizedBox(height: 30),
-            _buildMappedProjects(provider), // Mapped Projects
             const SizedBox(height: 20),
             _buildStatsContainer(provider), // Daily Avg + Monthly Total (MOVED TO LAST)
-            const SizedBox(height: 100),
+            const SizedBox(height: 20),
+            _buildMappedProjects(provider), // Mapped Projects
+            const SizedBox(height: 50),
           ],
         ),
       ),
@@ -674,6 +674,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Widget _buildMyAttendanceSection(AppProvider provider) {
     final now = DateTime.now();
     final currentMonth = DateFormat('MMMM').format(now);
+    final currentYear = DateFormat('yyyy').format(now);
 
     // Calculate monthly summary
     int totalPresent = 9;
@@ -690,7 +691,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'My Attendance - $currentMonth',
+              'My Attendance - $currentMonth  $currentYear',
               style: AppStyles.headingMedium,
             ),
             GestureDetector(
