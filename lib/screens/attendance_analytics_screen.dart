@@ -11,7 +11,7 @@ import '../widgets/month_selection_drawer.dart';
 import '../widgets/quarter_selection_drawer.dart';
 import '../widgets/week_selection_drawer.dart';
 import 'attendance_detailed_screen.dart';
-import 'attendance_detailed_screen.dart'; // Your existing detailed screen
+
 class AttendanceAnalyticsScreen extends StatefulWidget {
   final String? preSelectedProjectId;
 
@@ -27,19 +27,22 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
   String? _selectedProjectId;
   bool _loading = false;
   bool _isExpanded = false;
+  int _selectedIconIndex = 0; // default first icon selected
 
   // For weekly mode
-  int _selectedWeekIndex = 0; // 0 = current week, 1-3 = previous weeks
+  int _selectedWeekIndex = 0;
 
   // For monthly mode
-  int _selectedMonthIndex = 0; // 0 = current month, 1-2 = previous months
+  int _selectedMonthIndex = 0;
 
   // For quarterly mode
-  int _selectedQuarterIndex = 0; // 0 = current quarter, 1-2 = previous quarters
+  int _selectedQuarterIndex = 0;
 
   // Dummy data
   Map<String, dynamic> _dummyDailyData = {};
-
+  Map<String, dynamic> _dummyWeeklyData = {};
+  Map<String, dynamic> _dummyMonthlyData = {};
+  Map<String, dynamic> _dummyQuarterlyData = {};
 
   @override
   void initState() {
@@ -54,7 +57,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
   }
 
   void _generateDummyData() {
-    // Daily dummy data
     _dummyDailyData = {
       'date': _selectedDate,
       'checkIn': '09:15 AM',
@@ -64,15 +66,40 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
       'shortfall': 0.75,
       'hasShortfall': true,
     };
+    _dummyWeeklyData = {
+      'totalDays': 7,
+      'present': 5,
+      'leave': 1,
+      'absent': 1,
+      'onTime': 4,
+      'late': 2,
+    };
+
+    _dummyMonthlyData = {
+      'totalDays': 30,
+      'present': 22,
+      'leave': 3,
+      'absent': 5,
+      'onTime': 18,
+      'late': 7,
+    };
+
+    _dummyQuarterlyData = {
+      'totalDays': 90,
+      'present': 70,
+      'leave': 10,
+      'absent': 10,
+      'onTime': 60,
+      'late': 20,
+    };
   }
 
-  // UPDATE: _selectDate to disable future dates
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(), // Only allow until today
+      lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -113,7 +140,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
       case AnalyticsMode.quarterly:
         return _getQuarterLabel(_selectedQuarterIndex);
       default:
-        return ''; // ✅ fallback to avoid null return
+        return '';
     }
   }
 
@@ -139,11 +166,12 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     if (safeMonth < 0) safeMonth += 12;
 
     if (index == 0) {
-      return 'Current Month\n(${months[safeMonth]} ${targetMonth.year})';  // Changed /n to \n
+      return 'Current Month\n(${months[safeMonth]} ${targetMonth.year})';
     } else {
       return '${months[safeMonth]} ${targetMonth.year}';
     }
   }
+
   String _getQuarterLabel(int index) {
     final now = DateTime.now();
     final currentQuarter = ((now.month - 1) ~/ 3) + 1;
@@ -152,11 +180,12 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     final quarter = targetQuarter > 0 ? targetQuarter : 4 + targetQuarter;
 
     if (index == 0) {
-      return 'Current Quarter\n(Q$quarter $year)';  // Removed extra space before (
+      return 'Current Quarter\n(Q$quarter $year)';
     } else {
       return 'Q$quarter $year';
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final analyticsProvider = context.watch<AnalyticsProvider>();
@@ -165,14 +194,20 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlue,
       appBar: AppBar(
-        title: Text('Attendance Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Attendance Analytics',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
+          // Mode Selector (Daily/Weekly/Monthly/Quarterly)
           _buildModeSelector(),
+
+          // Main Content
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -186,11 +221,12 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     _buildDateSelector(),
+                    SizedBox(height: 10),
+                    _buildTopSummaryBar(), // Top Summary Bar (Team stats + icons)
                     SizedBox(height: 20),
 
-                    // Show week/month/quarter selector
                     if (_mode == AnalyticsMode.weekly) _buildWeekSelector(),
                     if (_mode == AnalyticsMode.monthly) _buildMonthSelector(),
                     if (_mode == AnalyticsMode.quarterly) _buildQuarterSelector(),
@@ -199,7 +235,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                     _buildProjectSelector(dashboardProvider),
                     SizedBox(height: 20),
 
-                    // Different views for different modes
                     if (_mode == AnalyticsMode.daily)
                       _buildDailyView()
                     else
@@ -217,70 +252,198 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
 
   Widget _buildModeSelector() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue,
+      ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(child: _buildModeButton('Daily', AnalyticsMode.daily)),
-          SizedBox(width: 8),
-          Expanded(child: _buildModeButton('Weekly', AnalyticsMode.weekly)),
-          SizedBox(width: 8),
-          Expanded(child: _buildModeButton('Monthly', AnalyticsMode.monthly)),
-          SizedBox(width: 8),
-          Expanded(child: _buildModeButton('Quarterly', AnalyticsMode.quarterly)),
+          _buildTopTab("Daily", AnalyticsMode.daily),
+          _buildTopTab("Weekly", AnalyticsMode.weekly),
+          _buildTopTab("Monthly", AnalyticsMode.monthly),
+          _buildTopTab("Quarterly", AnalyticsMode.quarterly),
         ],
       ),
     );
   }
 
-  Widget _buildModeButton(String label, AnalyticsMode mode) {
-    final isSelected = _mode == mode;
+  Widget _buildTopTab(String label, AnalyticsMode mode) {
+    final selected = _mode == mode;
+
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _mode = mode;
-          _isExpanded = false;
-        });
+        setState(() => _mode = mode);
 
-        // Open date picker only for daily mode
-        if (mode == AnalyticsMode.daily) {
-          _selectDate();
-        }else  if (mode == AnalyticsMode.weekly) {
-          _showWeekDrawer();
-        } else if (mode == AnalyticsMode.monthly) {
-          _showMonthDrawer();
-        } else if (mode == AnalyticsMode.quarterly) {
-          _showQuarterDrawer();
-        }
+        if (mode == AnalyticsMode.daily) _selectDate();
+        if (mode == AnalyticsMode.weekly) _showWeekDrawer();
+        if (mode == AnalyticsMode.monthly) _showMonthDrawer();
+        if (mode == AnalyticsMode.quarterly) _showQuarterDrawer();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),  // Reduced padding
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.3),
+          color: selected ? Colors.white : Colors.white.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
-            width: 2,
+            color: Colors.white.withOpacity(0.3),
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ] : [],
         ),
         child: Text(
           label,
-          textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? AppColors.primaryBlue : Colors.white,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 12,  // Reduced from 13
+            color: selected ? AppColors.primaryBlue : Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
           ),
         ),
       ),
     );
   }
+
+  Widget _buildTopSummaryBar() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          /// 🔵 TOP mini boxes row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildTopMiniBox("Team", "50", Colors.blue, "100%"),
+              _buildTopMiniBox("Present", "35", Colors.green, "70%"),
+              _buildTopMiniBox("Leave", "5", Colors.orange, "10%"),
+              _buildTopMiniBox("Absent", "10", Colors.red, "20%"),
+              _buildTopMiniBox("OnTime", "30", Colors.teal, "60%"),
+              _buildTopMiniBox("Late", "5", Colors.purple, "10%"),
+            ],
+          ),
+
+          SizedBox(height: 12),
+
+          /// 🔵 ICON group (exact same as screenshot)
+      Align(
+        alignment: Alignment.center,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildIconButton(
+                Icons.person,
+                _selectedIconIndex == 0,
+                    () {
+                  setState(() => _selectedIconIndex = 0);
+                },
+              ),
+              SizedBox(width: 10),
+
+              _buildIconButton(
+                Icons.group,
+                _selectedIconIndex == 1,
+                    () {
+                  setState(() => _selectedIconIndex = 1);
+                },
+              ),
+              SizedBox(width: 10),
+
+              _buildIconButton(
+                Icons.add_circle_outline,
+                _selectedIconIndex == 2,
+                    () {
+                  setState(() => _selectedIconIndex = 2);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      ],
+      ),
+    );
+  }
+
+  Widget _buildTopMiniBox(
+      String label,
+      String value,
+      Color color,
+      String percent,
+      ) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 2),
+        Text(
+          percent,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildIconButton(IconData icon, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected
+              ? Colors.blue       // selected (blue)
+              : Colors.black.withOpacity(0.25),  // unselected (dark grey)
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
 
   void _showWeekDrawer() {
     showModalBottomSheet(
@@ -386,11 +549,11 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                   children: [
                     Icon(Icons.calendar_today, color: AppColors.primaryBlue, size: 20),
                     SizedBox(width: 12),
-                    Flexible(  // Added Flexible
+                    Flexible(
                       child: Text(
                         _getDateLabel(),
                         style: TextStyle(
-                          fontSize: 14,  // Reduced from 16
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey.shade800,
                         ),
@@ -601,16 +764,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     );
   }
 
-  Widget _buildDailySummarySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDailyView(), // shows the daily cards (check-in, checkout, etc.)
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
   Widget _buildProjectSelector(AppProvider provider) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -692,7 +845,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Summary Table
           Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -718,8 +870,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                   ),
                 ),
                 const SizedBox(height: 15),
-
-                // Table UI
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -729,7 +879,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                   ),
                   child: Column(
                     children: [
-                      // Header Row
                       Row(
                         children: [
                           _buildHeaderText('Check In', Colors.green),
@@ -739,8 +888,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                         ],
                       ),
                       Divider(height: 20, color: Colors.grey.shade400, thickness: 1.5),
-
-                      // Data Row
                       Row(
                         children: [
                           _buildDataText(data['checkIn'], Colors.green),
@@ -758,10 +905,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Pie Chart for Daily
           _buildDailyPieChart(data),
         ],
       ),
@@ -769,7 +913,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
   }
 
   Widget _buildExpandableView() {
-    // Only for weekly, monthly, quarterly
     if (_mode == AnalyticsMode.daily) {
       return _buildDailyView();
     }
@@ -786,40 +929,11 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
   }
 
   Widget _buildSummaryCardsWithIcon() {
-
-    final Map<String, dynamic> _dummyWeeklyData = {
-      'totalDays': 7,
-      'present': 5,
-      'leave': 1,
-      'absent': 1,
-      'onTime': 4,
-      'late': 2,
-    };
-
-    final Map<String, dynamic> _dummyMonthlyData = {
-      'totalDays': 30,
-      'present': 22,
-      'leave': 3,
-      'absent': 5,
-      'onTime': 18,
-      'late': 7,
-    };
-
-    final Map<String, dynamic> _dummyQuarterlyData = {
-      'totalDays': 90,
-      'present': 70,
-      'leave': 10,
-      'absent': 10,
-      'onTime': 60,
-      'late': 20,
-    };
-
     Map<String, dynamic> data;
 
     switch (_mode) {
       case AnalyticsMode.daily:
-        return _buildDailySummarySection();
-
+        return _buildDailyView();
       case AnalyticsMode.weekly:
         data = _dummyWeeklyData;
         break;
@@ -840,7 +954,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     final totalOnTime = data['onTime'];
     final totalLate = data['late'];
 
-
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -857,7 +970,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row with title + icon
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -882,10 +994,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 15),
-
-          // Summary Table
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -895,7 +1004,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
             ),
             child: Column(
               children: [
-                // Header Row
                 Row(
                   children: [
                     _buildHeaderText('Days', Colors.grey.shade700),
@@ -907,8 +1015,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                   ],
                 ),
                 Divider(height: 20, color: Colors.grey.shade400, thickness: 1.5),
-
-                // Data Row
                 Row(
                   children: [
                     _buildDataText('$totalDays', Colors.grey.shade800),
@@ -922,10 +1028,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Pie Chart UI
           Container(
             height: 220,
             padding: EdgeInsets.all(16),
@@ -942,7 +1045,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
             ),
             child: Row(
               children: [
-                // Pie Chart
                 Expanded(
                   flex: 3,
                   child: PieChart(
@@ -1009,10 +1111,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                     ),
                   ),
                 ),
-
                 SizedBox(width: 20),
-
-                // Legend
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -1039,7 +1138,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
     );
   }
 
-// Helper Text Builders
   Widget _buildHeaderText(String text, Color color) => Expanded(
     child: Text(
       text,
@@ -1085,131 +1183,130 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
       ),
     ],
   );
-  }
-Widget _buildDailyPieChart(Map<String, dynamic> data) {
-  final totalHours = data['totalHours'];
-  final requiredHours = data['requiredHours'];
-  final worked = totalHours.toDouble();
-  final remaining = (requiredHours - totalHours).toDouble();
 
-  return Container(
-    padding: EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 10,
-          offset: Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Hours Distribution',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
+  Widget _buildDailyPieChart(Map<String, dynamic> data) {
+    final totalHours = data['totalHours'];
+    final requiredHours = data['requiredHours'];
+    final worked = totalHours.toDouble();
+    final remaining = (requiredHours - totalHours).toDouble();
+
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 3),
           ),
-        ),
-        SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 180,
-                child: PieChart(
-                  PieChartData(
-                    sections: [
-                      PieChartSectionData(
-                        value: worked,
-                        title: '${worked.toStringAsFixed(1)}h',
-                        color: Colors.green,
-                        radius: 50,
-                        titleStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hours Distribution',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 180,
+                  child: PieChart(
+                    PieChartData(
+                      sections: [
+                        PieChartSectionData(
+                          value: worked,
+                          title: '${worked.toStringAsFixed(1)}h',
+                          color: Colors.green,
+                          radius: 50,
+                          titleStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      PieChartSectionData(
-                        value: remaining > 0 ? remaining : 0,
-                        title: remaining > 0 ? '${remaining.toStringAsFixed(1)}h' : '',
-                        color: Colors.red,
-                        radius: 50,
-                        titleStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        PieChartSectionData(
+                          value: remaining > 0 ? remaining : 0,
+                          title: remaining > 0 ? '${remaining.toStringAsFixed(1)}h' : '',
+                          color: Colors.red,
+                          radius: 50,
+                          titleStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 40,
+                      ],
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 40,
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPieChartLegend('Worked', Colors.green, worked.toInt()),
-                  SizedBox(height: 12),
-                  if (remaining > 0)
-                    _buildPieChartLegend('Shortfall', Colors.red, remaining.toInt()),
-                ],
+              SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPieChartLegend('Worked', Colors.green, worked.toInt()),
+                    SizedBox(height: 12),
+                    if (remaining > 0)
+                      _buildPieChartLegend('Shortfall', Colors.red, remaining.toInt()),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPieChartLegend(String label, Color color, int value) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              Text(
+                '$value hrs',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
-    ),
-  );
+    );
+  }
 }
-
-// Add this helper
-Widget _buildPieChartLegend(String label, Color color, int value) {
-  return Row(
-    children: [
-      Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ),
-      SizedBox(width: 8),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
-            ),
-            Text(
-              '$value hrs',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
