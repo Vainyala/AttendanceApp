@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/analytics_data.dart';
 import '../models/attendance_model.dart';
 import '../providers/analytics_provider.dart' hide AnalyticsMode;
+import '../providers/attendance_details_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../services/analytics_service.dart';
 import '../utils/app_colors.dart';
@@ -987,7 +988,10 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AttendanceDetailedScreen(),
+                      builder: (_) => AttendanceDetailsScreen(
+                        employeeId: 'EMP001', // Use actual employee ID
+                        periodType: 'daily', // Optional, defaults to 'quarterly'
+                      ),
                     ),
                   );
                 },
