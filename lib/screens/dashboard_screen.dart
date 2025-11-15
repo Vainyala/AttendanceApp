@@ -1194,25 +1194,27 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   }
 
   Widget _buildMappedProjects(AppProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Mapped Projects',
-              style: AppStyles.headingLarge,
-            ),
-            Text(
-              '${provider.user?.projects.length ?? 0} Projects',
-              style: AppStyles.text,
-            ),
-          ],
-        ),
-        const SizedBox(height: 15),
-        _buildProjectsList(provider),
-      ],
+    return SingleChildScrollView(
+     child: Column(
+       crossAxisAlignment: CrossAxisAlignment.start,
+       children: [
+         Row(
+           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+           children: [
+             const Text(
+               'Mapped Projects',
+               style: AppStyles.headingLarge,
+             ),
+             Text(
+               '${provider.user?.projects.length ?? 0} Projects',
+               style: AppStyles.text,
+             ),
+           ],
+         ),
+         const SizedBox(height: 15),
+         _buildProjectsList(provider),
+       ],
+     ),
     );
   }
 
@@ -1237,104 +1239,106 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   }
 
   Widget _buildProjectCard(AppProvider provider, dynamic project) {
-    return Container(
-      width: 270,
-      margin: const EdgeInsets.only(right: 15, bottom: 10),
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Row with Icon + Project Name
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: Icon(Icons.work, color: Colors.blue.shade700, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      project.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+    return SingleChildScrollView(
+      child: Container(
+        width: 270,
+        margin: const EdgeInsets.only(right: 15, bottom: 10),
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Row with Icon + Project Name
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue.shade100,
+                      child: Icon(Icons.work, color: Colors.blue.shade700, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        project.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                  ],
+                ),
+                const SizedBox(height: 8),
 
-              // Location
-              Row(
-                children: [
-                  const Icon(Icons.location_on, size: 12, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      project.site,
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                      overflow: TextOverflow.ellipsis,
+                // Location
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        project.site,
+                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const Divider(height: 20, thickness: 1),
+                  ],
+                ),
+                const Divider(height: 20, thickness: 1),
 
-              // Details (Shift, Manager, Email)
-              _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
-              const SizedBox(height: 8),
-              _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
-              const SizedBox(height: 8),
-              _buildProjectDetailRow(Icons.email, project.managerEmail),
+                // Details (Shift, Manager, Email)
+                _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
+                const SizedBox(height: 8),
+                _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
+                const SizedBox(height: 8),
+                _buildProjectDetailRow(Icons.email, project.managerEmail),
 
-              const SizedBox(height: 5),
+                const SizedBox(height: 5),
 
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        provider.setSelectedProject(project);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ProjectDetailsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.info_outline, size: 14),
-                      label: const Text('Details', style: TextStyle(fontSize: 12)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AttendanceAnalyticsScreen(
-                              preSelectedProjectId: project.id,
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          provider.setSelectedProject(project);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ProjectDetailsScreen(),
                             ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.analytics, size: 14),
-                      label: const Text('Analytics', style: TextStyle(fontSize: 12)),
+                          );
+                        },
+                        icon: const Icon(Icons.info_outline, size: 14),
+                        label: const Text('Details', style: TextStyle(fontSize: 12)),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AttendanceAnalyticsScreen(
+                                preSelectedProjectId: project.id,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.analytics, size: 14),
+                        label: const Text('Analytics', style: TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

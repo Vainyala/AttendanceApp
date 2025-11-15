@@ -1,4 +1,4 @@
-// attendance_details_screen.dart
+// screens/attendance_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/attendance_details_provider.dart';
@@ -14,11 +14,15 @@ import '../widgets/period_info_widget.dart';
 class AttendanceDetailsScreen extends StatefulWidget {
   final String employeeId;
   final String periodType; // 'daily', 'weekly', 'monthly', 'quarterly'
+  final String? projectId; // Optional project filter
+  final String? projectName; // Optional project name for display
 
   const AttendanceDetailsScreen({
     super.key,
     required this.employeeId,
     this.periodType = 'quarterly',
+    this.projectId,
+    this.projectName,
   });
 
   @override
@@ -33,6 +37,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
       context.read<AttendanceDetailsProvider>().loadEmployeeDetails(
         widget.employeeId,
         widget.periodType,
+        projectId: widget.projectId,
       );
     });
   }
@@ -56,10 +61,22 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                     PeriodTabsWidget(
                       selectedPeriod: provider.selectedPeriod,
                       onPeriodChanged: (period) {
-                        provider.changePeriod(period, widget.employeeId);
+                        provider.changePeriod(
+                          period,
+                          widget.employeeId,
+                          projectId: widget.projectId,
+                        );
                       },
                     ),
                     SizedBox(height: 16),
+
+                    // Show project filter if provided
+                    if (widget.projectId != null && widget.projectName != null)
+                      _buildProjectFilterBanner(),
+
+                    if (widget.projectId != null && widget.projectName != null)
+                      SizedBox(height: 16),
+
                     PeriodInfoWidget(
                       periodType: provider.selectedPeriod,
                       dateRange: provider.dateRange,
@@ -86,6 +103,85 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildProjectFilterBanner() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.work_outline,
+              color: Colors.blue.shade700,
+              size: 20,
+            ),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filtered by Project',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  widget.projectName ?? '',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.blue.shade900,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              // Clear filter and reload
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AttendanceDetailsScreen(
+                    employeeId: widget.employeeId,
+                    periodType: widget.periodType,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.blue.shade700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -119,7 +215,9 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Employee Details',
+                    widget.projectId != null
+                        ? 'Project Attendance'
+                        : 'Employee Details',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,

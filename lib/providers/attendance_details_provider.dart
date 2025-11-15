@@ -35,7 +35,12 @@ class AttendanceDetailsProvider extends ChangeNotifier {
         .toList();
   }
 
-  Future<void> loadEmployeeDetails(String employeeId, String periodType) async {
+  Future<void> loadEmployeeDetails(
+      String employeeId,
+      String periodType, {
+        String? projectId,
+      }) async {
+
     _isLoading = true;
     _selectedPeriod = periodType;
     notifyListeners();
@@ -52,11 +57,16 @@ class AttendanceDetailsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changePeriod(String period, String employeeId) {
+  void changePeriod(String period, String employeeId, {String? projectId}) {
     _selectedPeriod = period;
     _selectedFilter = 'all';
-    loadEmployeeDetails(employeeId, period);
+    loadEmployeeDetails(
+      employeeId,
+      period,
+      projectId: projectId,
+    );
   }
+
 
   void setFilter(String filter) {
     _selectedFilter = filter;
