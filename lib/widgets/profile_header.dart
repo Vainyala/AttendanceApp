@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../screens/profile_screen.dart';
 
 class ProfileHeader extends StatelessWidget {
@@ -27,7 +28,7 @@ class ProfileHeader extends StatelessWidget {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              border: Border.all(color: AppColors.textLight, width: 3),
               image: const DecorationImage(
                 image: AssetImage('assets/images/profile.png'),
                 fit: BoxFit.cover,
@@ -39,7 +40,7 @@ class ProfileHeader extends StatelessWidget {
         Text(
           name ?? 'Loading...',
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textLight,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -47,12 +48,12 @@ class ProfileHeader extends StatelessWidget {
         const SizedBox(height: 5),
         Text(
           role ?? 'Developer',
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          style: const TextStyle(color: AppColors.cardBackground, fontSize: 16),
         ),
         const SizedBox(height: 3),
         Text(
           company,
-          style: const TextStyle(color: Colors.white60, fontSize: 14),
+          style: const TextStyle(color: AppColors.cardBackground, fontSize: 14),
         ),
       ],
     );

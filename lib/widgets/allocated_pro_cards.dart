@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'dart:ui';
 import '../models/projects_model.dart';
 import '../utils/app_colors.dart';
@@ -15,7 +16,7 @@ class AllocatedProjectsCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -36,7 +37,7 @@ class AllocatedProjectsCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: AppColors.textHint.shade800,
                 ),
               ),
               Container(
@@ -68,7 +69,7 @@ class AllocatedProjectsCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 8),
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.textHint.shade50,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -81,7 +82,7 @@ class AllocatedProjectsCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey.shade800,
+                color: AppColors.textHint.shade800,
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/splash_provider.dart';
 
@@ -73,22 +74,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.lock_reset, size: 80, color: Colors.white),
+                        const Icon(Icons.lock_reset, size: 80, color: AppColors.textLight),
                         const SizedBox(height: 20),
                         const Text(
                           'Reset Password',
-                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textLight),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Enter your email to receive reset link',
-                          style: TextStyle(fontSize: 16, color: Colors.white70),
+                          style: TextStyle(fontSize: 16, color: AppColors.cardBackground),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 50),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.textLight,
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, 5))],
                           ),
@@ -103,7 +104,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   prefixIcon: const Icon(Icons.email_outlined),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                   filled: true,
-                                  fillColor: Colors.grey[50],
+                                  fillColor: AppColors.textHint[50],
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) return 'Please enter your email';
@@ -119,11 +120,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   onPressed: isLoading ? null : _resetPassword,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF4A5AE8),
-                                    foregroundColor: Colors.white,
+                                    foregroundColor: AppColors.textLight,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
                                   child: isLoading
-                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      ? const CircularProgressIndicator(color: AppColors.textLight)
                                       : const Text('Send Reset Link', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                 ),
                               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../utils/app_colors.dart';
 
@@ -41,7 +42,7 @@ class AttendanceGraph extends StatelessWidget {
             horizontalInterval: 2,
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.textLight.withOpacity(0.2),
                 strokeWidth: 1,
               );
             },
@@ -52,14 +53,14 @@ class AttendanceGraph extends StatelessWidget {
             LineChartBarData(
               spots: data,
               isCurved: true,
-              color: Colors.white,
+              color: AppColors.textLight,
               barWidth: 3,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 5,
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     strokeWidth: 2,
                     strokeColor: Colors.orange.shade700,
                   );
@@ -67,7 +68,7 @@ class AttendanceGraph extends StatelessWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.textLight.withOpacity(0.2),
               ),
             ),
           ],
@@ -95,7 +96,7 @@ class AttendanceGraph extends StatelessWidget {
               child: Text(
                 '${value.toInt()}h',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -114,7 +115,7 @@ class AttendanceGraph extends StatelessWidget {
                 child: Text(
                   days[value.toInt()],
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),

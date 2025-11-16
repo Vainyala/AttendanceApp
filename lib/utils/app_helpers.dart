@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:intl/intl.dart';
 
 /// Helper functions used across the app
@@ -27,12 +28,12 @@ class AppHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle, color: AppColors.textLight),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -48,12 +49,12 @@ class AppHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error, color: Colors.white),
+            const Icon(Icons.error, color: AppColors.textLight),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -69,7 +70,7 @@ class AppHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.info, color: Colors.white),
+            const Icon(Icons.info, color: AppColors.textLight),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
@@ -90,7 +91,7 @@ class AppHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.warning, color: Colors.white),
+            const Icon(Icons.warning, color: AppColors.textLight),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:intl/intl.dart';
 
 class DateTimeUtils {
@@ -70,12 +71,12 @@ class CustomDateField extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+              bottom: BorderSide(color: AppColors.textHint.shade300, width: 1),
             ),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.red, size: 18),
+              Icon(icon, color: AppColors.error, size: 18),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -83,7 +84,7 @@ class CustomDateField extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      style: const TextStyle(fontSize: 14, color: AppColors.textHint),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -98,7 +99,7 @@ class CustomDateField extends StatelessWidget {
               ),
               Text(
                 '–',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+                style: TextStyle(fontSize: 18, color: AppColors.textHint),
               ),
             ],
           ),
@@ -129,12 +130,12 @@ class CustomTimeField extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+              bottom: BorderSide(color: AppColors.textHint.shade300, width: 1),
             ),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.red, size: 18),
+              Icon(icon, color: AppColors.error, size: 18),
               const SizedBox(width: 12),
               Text(
                 value,
@@ -146,7 +147,7 @@ class CustomTimeField extends StatelessWidget {
               const Spacer(),
               const Text(
                 '–',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+                style: TextStyle(fontSize: 18, color: AppColors.textHint),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 import '../models/emp_model.dart';
 import '../utils/app_colors.dart';
@@ -17,7 +18,7 @@ class EmployeeInfoCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -51,7 +52,7 @@ class EmployeeInfoCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: AppColors.textHint.shade800,
                   ),
                 ),
                 SizedBox(height: 4),
@@ -66,14 +67,14 @@ class EmployeeInfoCard extends StatelessWidget {
                 SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.email, size: 14, color: Colors.grey.shade600),
+                    Icon(Icons.email, size: 14, color: AppColors.textHint.shade600),
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         employee!.email,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade700,
+                          color: AppColors.textHint.shade700,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -83,13 +84,13 @@ class EmployeeInfoCard extends StatelessWidget {
                 SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
+                    Icon(Icons.phone, size: 14, color: AppColors.textHint.shade600),
                     SizedBox(width: 6),
                     Text(
                       employee!.phone,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade700,
+                        color: AppColors.textHint.shade700,
                       ),
                     ),
                   ],
@@ -101,7 +102,7 @@ class EmployeeInfoCard extends StatelessWidget {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: AppColors.success,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -110,7 +111,7 @@ class EmployeeInfoCard extends StatelessWidget {
                       'Status: ${employee!.status}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.green,
+                        color: AppColors.success,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

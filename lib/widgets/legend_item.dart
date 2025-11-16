@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class LegendItem extends StatelessWidget {
   final Color color;
@@ -30,7 +31,7 @@ class LegendItem extends StatelessWidget {
             '$count $label',
             style: const TextStyle(
               fontSize: 13,
-              color: Colors.grey,
+              color: AppColors.textHint,
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../screens/attendance_history_screen.dart';
 import '../screens/geofence_setup_screen.dart';
 import '../screens/login_screen.dart';
@@ -14,7 +15,7 @@ void showProfileMenu(BuildContext context) {
       maxChildSize: 0.95,
       builder: (context, scrollController) => Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: AppColors.textHint.shade50,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -28,7 +29,7 @@ void showProfileMenu(BuildContext context) {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.textHint.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -58,9 +59,9 @@ void showProfileMenu(BuildContext context) {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
+                      border: Border.all(color: AppColors.textLight, width: 3),
                     ),
                     child: const Icon(
                       Icons.person,
@@ -76,7 +77,7 @@ void showProfileMenu(BuildContext context) {
                         const Text(
                           'John Doe',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textLight,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -85,7 +86,7 @@ void showProfileMenu(BuildContext context) {
                         Text(
                           'john.doe@company.com',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: AppColors.textLight.withOpacity(0.9),
                             fontSize: 13,
                           ),
                         ),
@@ -96,13 +97,13 @@ void showProfileMenu(BuildContext context) {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.textLight.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
                             'Employee ID: EMP001',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textLight,
                               fontSize: 11,
                             ),
                           ),
@@ -173,7 +174,7 @@ void showProfileMenu(BuildContext context) {
                     icon: Icons.report_problem_outlined,
                     title: 'Submit Grievance',
                     subtitle: 'Report issues or concerns',
-                    color: Colors.red,
+                    color: AppColors.error,
                     onTap: () {
                       Navigator.pop(context);
                       _showGrievanceDialog(context);
@@ -201,7 +202,7 @@ void showProfileMenu(BuildContext context) {
                     icon: Icons.settings_outlined,
                     title: 'Settings',
                     subtitle: 'App preferences',
-                    color: Colors.grey,
+                    color: AppColors.textHint,
                     onTap: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -233,12 +234,12 @@ void showProfileMenu(BuildContext context) {
                         _showLogoutConfirmation(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade50,
-                        foregroundColor: Colors.red,
+                        backgroundColor: AppColors.error.shade50,
+                        foregroundColor: AppColors.error,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.red.shade200),
+                          side: BorderSide(color: AppColors.error.shade200),
                         ),
                         elevation: 0,
                       ),
@@ -278,7 +279,7 @@ Widget _sectionHeader(String title) {
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade600,
+        color: AppColors.textHint.shade600,
         letterSpacing: 1.2,
       ),
     ),
@@ -299,9 +300,9 @@ Widget _modernMenuCard(
     child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.textHint.shade200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -339,7 +340,7 @@ Widget _modernMenuCard(
                   subtitle,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textHint.shade600,
                   ),
                 ),
               ],
@@ -348,7 +349,7 @@ Widget _modernMenuCard(
           Icon(
             Icons.arrow_forward_ios,
             size: 16,
-            color: Colors.grey.shade400,
+            color: AppColors.textHint.shade400,
           ),
         ],
       ),
@@ -390,7 +391,7 @@ void _showNoticesScreen(BuildContext context) {
                     const SizedBox(height: 4),
                     Text(
                       'Posted: ${DateTime.now().subtract(Duration(days: index)).day}/${DateTime.now().month}/2025',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 11, color: AppColors.textHint.shade600),
                     ),
                   ],
                 ),
@@ -450,10 +451,10 @@ void _showGrievanceDialog(BuildContext context) {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: AppColors.error.shade50,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.report_problem, color: Colors.red.shade700),
+            child: Icon(Icons.report_problem, color: AppColors.error.shade700),
           ),
           const SizedBox(width: 12),
           const Text('Submit Grievance'),
@@ -470,7 +471,7 @@ void _showGrievanceDialog(BuildContext context) {
                 'Your grievance will be handled confidentially',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -491,7 +492,7 @@ void _showGrievanceDialog(BuildContext context) {
                     vertical: 12,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: AppColors.textHint.shade50,
                 ),
                 items: categories.map((cat) {
                   return DropdownMenuItem(
@@ -511,13 +512,13 @@ void _showGrievanceDialog(BuildContext context) {
                 controller: subjectController,
                 decoration: InputDecoration(
                   hintText: 'Brief summary of your concern',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                  hintStyle: TextStyle(fontSize: 13, color: AppColors.textHint.shade400),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: AppColors.textHint.shade50,
                 ),
                 validator: (v) => v?.isEmpty ?? true ? 'Subject is required' : null,
               ),
@@ -532,13 +533,13 @@ void _showGrievanceDialog(BuildContext context) {
                 maxLines: 5,
                 decoration: InputDecoration(
                   hintText: 'Describe your concern in detail...',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                  hintStyle: TextStyle(fontSize: 13, color: AppColors.textHint.shade400),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   contentPadding: const EdgeInsets.all(16),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: AppColors.textHint.shade50,
                 ),
                 validator: (v) => v?.isEmpty ?? true ? 'Description is required' : null,
               ),
@@ -558,7 +559,7 @@ void _showGrievanceDialog(BuildContext context) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Grievance submitted. HR will contact you within 24 hours.'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                   duration: Duration(seconds: 3),
                 ),
               );
@@ -637,7 +638,7 @@ Widget _faqItem(String question, String answer) {
       children: [
         Text('Q: $question', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         const SizedBox(height: 4),
-        Text('A: $answer', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+        Text('A: $answer', style: TextStyle(fontSize: 13, color: AppColors.textHint.shade700)),
       ],
     ),
   );
@@ -675,7 +676,7 @@ void _showAboutDialog(BuildContext context) {
           Center(
             child: Text(
               'Version 1.0.0 (Build 1)',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              style: TextStyle(color: AppColors.textHint.shade600, fontSize: 13),
             ),
           ),
           const Divider(height: 32),
@@ -685,7 +686,7 @@ void _showAboutDialog(BuildContext context) {
           const SizedBox(height: 16),
           Text(
             '© 2025 Company. All rights reserved.',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 11, color: AppColors.textHint.shade600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -745,12 +746,12 @@ void _showLogoutConfirmation(BuildContext context) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Logged out successfully'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
           },
 
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
           child: const Text('Logout'),
         ),
       ],

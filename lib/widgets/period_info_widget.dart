@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 class PeriodInfoWidget extends StatelessWidget {
   final String periodType;
   final String dateRange;
@@ -31,7 +32,7 @@ class PeriodInfoWidget extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -49,7 +50,7 @@ class PeriodInfoWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppColors.textHint.shade800,
             ),
           ),
           SizedBox(height: 4),
@@ -57,7 +58,7 @@ class PeriodInfoWidget extends StatelessWidget {
             dateRange,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade600,
+              color: AppColors.textHint.shade600,
             ),
           ),
         ],

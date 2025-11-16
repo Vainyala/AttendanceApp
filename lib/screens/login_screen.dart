@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -116,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               return const Icon(
                                 Icons.account_circle,
                                 size: 100,
-                                color: Colors.white,
+                                color: AppColors.textLight,
                               );
                             },
                           ),
@@ -127,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Form
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.textLight,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -160,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: const InputDecoration(
                                     hintText: 'Enter Email ID',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey,
+                                      color: AppColors.textHint,
                                       fontSize: 16,
                                     ),
                                     border: InputBorder.none,
@@ -186,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                      color: Colors.grey.shade300,
+                                      color: AppColors.textHint.shade300,
                                       width: 1,
                                     ),
                                   ),
@@ -198,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     hintText: 'Password',
                                     hintStyle: const TextStyle(
-                                      color: Colors.grey,
+                                      color: AppColors.textHint,
                                       fontSize: 16,
                                     ),
                                     border: InputBorder.none,
@@ -209,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _obscurePassword
                                             ? Icons.visibility_off
                                             : Icons.visibility,
-                                        color: Colors.grey,
+                                        color: AppColors.textHint,
                                       ),
                                       onPressed: () => setState(() =>
                                       _obscurePassword = !_obscurePassword),
@@ -239,8 +240,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onPressed: isLoading ? null : _login,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF4A90E2),
-                                    foregroundColor: Colors.white,
-                                    disabledBackgroundColor: Colors.grey.shade400,
+                                    foregroundColor: AppColors.textLight,
+                                    disabledBackgroundColor: AppColors.textHint.shade400,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -251,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: AppColors.textLight,
                                       strokeWidth: 2,
                                     ),
                                   )

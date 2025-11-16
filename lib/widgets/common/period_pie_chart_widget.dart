@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class PeriodPieChartWidget extends StatelessWidget {
@@ -22,7 +23,7 @@ class PeriodPieChartWidget extends StatelessWidget {
       height: 220,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -44,12 +45,12 @@ class PeriodPieChartWidget extends StatelessWidget {
                   PieChartSectionData(
                     value: totalPresent.toDouble(),
                     title: '$totalPresent',
-                    color: Colors.green,
+                    color: AppColors.success,
                     radius: 50,
                     titleStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                   PieChartSectionData(
@@ -60,18 +61,18 @@ class PeriodPieChartWidget extends StatelessWidget {
                     titleStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                   PieChartSectionData(
                     value: totalAbsent.toDouble(),
                     title: '$totalAbsent',
-                    color: Colors.red,
+                    color: AppColors.error,
                     radius: 50,
                     titleStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                   PieChartSectionData(
@@ -82,7 +83,7 @@ class PeriodPieChartWidget extends StatelessWidget {
                     titleStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                   PieChartSectionData(
@@ -93,7 +94,7 @@ class PeriodPieChartWidget extends StatelessWidget {
                     titleStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                 ],
@@ -107,11 +108,11 @@ class PeriodPieChartWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLegendItem('Present', Colors.green, totalPresent),
+                _buildLegendItem('Present', AppColors.success, totalPresent),
                 SizedBox(height: 8),
                 _buildLegendItem('Leave', Colors.orange, totalLeave),
                 SizedBox(height: 8),
-                _buildLegendItem('Absent', Colors.red, totalAbsent),
+                _buildLegendItem('Absent', AppColors.error, totalAbsent),
                 SizedBox(height: 8),
                 _buildLegendItem('OnTime', Colors.blue, totalOnTime),
                 SizedBox(height: 8),
@@ -140,7 +141,7 @@ class PeriodPieChartWidget extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.grey.shade700,
+          color: AppColors.textHint.shade700,
         ),
       ),
     ],

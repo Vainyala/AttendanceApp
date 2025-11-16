@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class AppColors {
   // Primary Colors
@@ -9,8 +10,8 @@ class AppColors {
   static const primaryLight = Color(0xFF6BA4EC);
   static const primaryDark = Color(0xFF2171C9);
   // Background Colors
-  static const white = Colors.white;
-  static const cardBackground = Colors.white;
+  static const white = Colors.white54;
+  static const cardBackground = Colors.white70;
 
   // Text Colors
   static const textPrimary = Colors.black87;
@@ -24,17 +25,17 @@ class AppColors {
   static const info = Colors.blue;
 
   // Border Colors
-  static Color borderLight = Colors.grey.shade300;
-  static Color borderMedium = Colors.grey.shade400;
+  static Color borderLight = AppColors.textHint.shade300;
+  static Color borderMedium = AppColors.textHint.shade400;
 
   // Shadow Colors
   static Color shadowColor = Colors.black.withOpacity(0.05);
   static Color shadowColorDark = Colors.black.withOpacity(0.1);
 
   // Other Colors
-  static Color greyLight = Colors.grey.shade50;
-  static Color greyMedium = Colors.grey.shade100;
-  static Color greyDark = Colors.grey.shade600;
+  static Color greyLight = AppColors.textHint.shade50;
+  static Color greyMedium = AppColors.textHint.shade100;
+  static Color greyDark = AppColors.textHint.shade600;
 
   // Leave Type Colors (for pie chart)
   static const sickLeave = Color(0xFFE57373);

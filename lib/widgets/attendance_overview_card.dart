@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'dart:ui';
 
 import '../models/attendance_stats.dart';
@@ -36,7 +37,7 @@ class AttendanceOverviewCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -57,7 +58,7 @@ class AttendanceOverviewCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: AppColors.textHint.shade800,
                 ),
               ),
               Container(
@@ -113,14 +114,14 @@ class AttendanceOverviewCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                Icon(Icons.calendar_today, color: AppColors.textLight, size: 20),
                 SizedBox(width: 8),
                 Text(
                   'Total Days: ${attendanceStats!.totalDays}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.textLight,
                   ),
                 ),
               ],
@@ -157,7 +158,7 @@ class AttendanceOverviewCard extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade700,
+            color: AppColors.textHint.shade700,
           ),
         ),
       ],

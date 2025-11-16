@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class MonthSelectionDrawer extends StatefulWidget {
   final int selectedIndex;
@@ -79,7 +80,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                 Text(
                   'SELECT MONTH',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
@@ -90,12 +91,12 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                   child: Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: AppColors.textLight.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.close,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       size: 18,
                     ),
                   ),
@@ -110,7 +111,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
             child: Text(
               'LAST 3 MONTHS',
               style: TextStyle(
-                color: Colors.white60,
+                color: AppColors.cardBackground,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -137,12 +138,12 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.white.withOpacity(0.2)
-                            : Colors.white.withOpacity(0.08),
+                            ? AppColors.textLight.withOpacity(0.2)
+                            : AppColors.textLight.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
-                              ? Colors.white.withOpacity(0.4)
+                              ? AppColors.textLight.withOpacity(0.4)
                               : Colors.transparent,
                           width: 1,
                         ),
@@ -152,7 +153,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                           Text(
                             _getMonthButtonLabel(index),
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textLight,
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
                             ),
@@ -161,7 +162,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                           Text(
                             _getMonthLabel(index),
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: AppColors.cardBackground,
                               fontSize: 10,
                             ),
                           ),
@@ -205,12 +206,12 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                         ],
                       )
                           : null,
-                      color: isSelected ? null : Colors.white.withOpacity(0.08),
+                      color: isSelected ? null : AppColors.textLight.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected
                             ? Color(0xFF2196f3).withOpacity(0.8)
-                            : Colors.white.withOpacity(0.1),
+                            : AppColors.textLight.withOpacity(0.1),
                         width: 1,
                       ),
                     ),
@@ -222,15 +223,15 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                           height: 40,
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.white.withOpacity(0.25)
-                                : Colors.white.withOpacity(0.1),
+                                ? AppColors.textLight.withOpacity(0.25)
+                                : AppColors.textLight.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Text(
                               '${index + 1}',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textLight,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -248,7 +249,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                               Text(
                                 monthName,
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textLight,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 0.5,
@@ -258,7 +259,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                               Text(
                                 '$monthDays days',
                                 style: TextStyle(
-                                  color: Colors.white70,
+                                  color: AppColors.cardBackground,
                                   fontSize: 11,
                                 ),
                               ),
@@ -276,7 +277,7 @@ class _MonthSelectionDrawerState extends State<MonthSelectionDrawer> {
                         else
                           Icon(
                             Icons.arrow_forward_ios,
-                            color: Colors.white30,
+                            color: AppColors.white,
                             size: 16,
                           ),
                       ],

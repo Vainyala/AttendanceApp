@@ -1,5 +1,6 @@
 // screens/project_detail_screen.dart
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
@@ -13,18 +14,18 @@ class ProjectDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: AppColors.textHint.shade900,
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: AppColors.textHint.shade900,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: AppColors.textLight),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           project['name'] ?? 'Project Details',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textLight,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -53,7 +54,7 @@ class ProjectDetailScreen extends StatelessWidget {
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: AppColors.textHint.shade800,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -62,7 +63,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             _getProjectDescription(project['name']),
             style: TextStyle(
-              color: Colors.grey.shade300,
+              color: AppColors.textHint.shade300,
               fontSize: 14,
               height: 1.5,
             ),
@@ -77,7 +78,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     Text(
                       'Status',
                       style: TextStyle(
-                        color: Colors.grey.shade500,
+                        color: AppColors.textHint.shade500,
                         fontSize: 12,
                       ),
                     ),
@@ -85,7 +86,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     Text(
                       project['status'] ?? 'ACTIVE',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: AppColors.success,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -100,7 +101,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     Text(
                       'Priority',
                       style: TextStyle(
-                        color: Colors.grey.shade500,
+                        color: AppColors.textHint.shade500,
                         fontSize: 12,
                       ),
                     ),
@@ -108,7 +109,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     Text(
                       'HIGH',
                       style: TextStyle(
-                        color: Colors.red,
+                        color: AppColors.error,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -137,7 +138,7 @@ class ProjectDetailScreen extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: AppColors.textHint.shade800,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -146,7 +147,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             'Team Workload Distribution',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textLight,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -155,7 +156,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             'Task allocation across team members',
             style: TextStyle(
-              color: Colors.grey.shade400,
+              color: AppColors.textHint.shade400,
               fontSize: 12,
             ),
           ),
@@ -179,7 +180,7 @@ class ProjectDetailScreen extends StatelessWidget {
             horizontalInterval: 2,
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: Colors.grey.shade700,
+                color: AppColors.textHint.shade700,
                 strokeWidth: 1,
               );
             },
@@ -197,7 +198,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     return Text(
                       titles[value.toInt()],
                       style: TextStyle(
-                        color: Colors.grey.shade400,
+                        color: AppColors.textHint.shade400,
                         fontSize: 12,
                       ),
                     );
@@ -214,7 +215,7 @@ class ProjectDetailScreen extends StatelessWidget {
                   return Text(
                     value.toInt().toString(),
                     style: TextStyle(
-                      color: Colors.grey.shade400,
+                      color: AppColors.textHint.shade400,
                       fontSize: 12,
                     ),
                   );
@@ -260,7 +261,7 @@ class ProjectDetailScreen extends StatelessWidget {
     final taskData = [
       {'name': teamMembers.isNotEmpty ? teamMembers[0].split(' ')[0] : 'Raj', 'tasks': 10, 'color': Colors.cyan},
       {'name': teamMembers.length > 1 ? teamMembers[1].split(' ')[0] : 'Priya', 'tasks': 9, 'color': Colors.blue},
-      {'name': teamMembers.length > 2 ? teamMembers[2].split(' ')[0] : 'Amit', 'tasks': 9, 'color': Colors.green},
+      {'name': teamMembers.length > 2 ? teamMembers[2].split(' ')[0] : 'Amit', 'tasks': 9, 'color': AppColors.success},
     ];
 
     return Wrap(
@@ -270,7 +271,7 @@ class ProjectDetailScreen extends StatelessWidget {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey.shade700,
+            color: AppColors.textHint.shade700,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: member['color'] as Color),
           ),
@@ -289,7 +290,7 @@ class ProjectDetailScreen extends StatelessWidget {
               Text(
                 '${member['name']}: ${member['tasks']} tasks',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -311,7 +312,7 @@ class ProjectDetailScreen extends StatelessWidget {
               'Progress',
               '${project['progress'] ?? 0}%',
               Icons.trending_up,
-              Colors.green,
+              AppColors.success,
             ),
           ),
           SizedBox(width: 12),
@@ -341,7 +342,7 @@ class ProjectDetailScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: AppColors.textHint.shade800,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -351,7 +352,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textLight,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -360,7 +361,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey.shade400,
+              color: AppColors.textHint.shade400,
               fontSize: 12,
             ),
           ),
@@ -376,7 +377,7 @@ class ProjectDetailScreen extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: AppColors.textHint.shade800,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -385,7 +386,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Text(
             'Team Members',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textLight,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -402,7 +403,7 @@ class ProjectDetailScreen extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade700,
+        color: AppColors.textHint.shade700,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -412,7 +413,7 @@ class ProjectDetailScreen extends StatelessWidget {
             child: Text(
               name[0].toUpperCase(),
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textLight,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -422,13 +423,13 @@ class ProjectDetailScreen extends StatelessWidget {
             child: Text(
               name,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textLight,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          Icon(Icons.chevron_right, color: AppColors.textHint.shade400),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 // widgets/attendance_views/project_view_widget.dart
 import 'package:AttendanceApp/widgets/attendance_views/project_detail_screen.dart';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/analytics_provider.dart';
 
@@ -25,14 +26,14 @@ class ProjectViewWidget extends StatelessWidget {
                   Icon(
                     Icons.work_outline,
                     size: 64,
-                    color: Colors.grey.shade400,
+                    color: AppColors.textHint.shade400,
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No projects available',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textHint.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -55,20 +56,20 @@ class ProjectViewWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                      color: AppColors.textHint.shade800,
                     ),
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade800,
+                      color: AppColors.textHint.shade800,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '(${projects.length})',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white,
+                        color: AppColors.textLight,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -108,7 +109,7 @@ class ActiveProjectCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: AppColors.textHint.shade800,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -130,14 +131,14 @@ class ActiveProjectCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade700,
+                    color: AppColors.success.shade700,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -145,7 +146,7 @@ class ActiveProjectCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                   ),
                 ),
@@ -156,7 +157,7 @@ class ActiveProjectCard extends StatelessWidget {
               _getProjectDescription(project['name']),
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade400,
+                color: AppColors.textHint.shade400,
                 height: 1.4,
               ),
             ),
@@ -165,7 +166,7 @@ class ActiveProjectCard extends StatelessWidget {
               'Progress',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade400,
+                color: AppColors.textHint.shade400,
               ),
             ),
             SizedBox(height: 8),
@@ -174,7 +175,7 @@ class ActiveProjectCard extends StatelessWidget {
                 Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade700,
+                    color: AppColors.textHint.shade700,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -183,7 +184,7 @@ class ActiveProjectCard extends StatelessWidget {
                   child: Container(
                     height: 8,
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: AppColors.success,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -196,7 +197,7 @@ class ActiveProjectCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade400,
+                color: AppColors.textHint.shade400,
               ),
             ),
             SizedBox(height: 16),
@@ -244,7 +245,7 @@ class ActiveProjectCard extends StatelessWidget {
           text,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey.shade300,
+            color: AppColors.textHint.shade300,
           ),
         ),
       ],

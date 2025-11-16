@@ -3,6 +3,7 @@ import 'package:AttendanceApp/providers/attendance_details_provider.dart';
 import 'package:AttendanceApp/providers/attendance_provider.dart';
 import 'package:AttendanceApp/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import 'providers/dashboard_provider.dart';

@@ -1,4 +1,5 @@
 // import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 // import 'package:intl/intl.dart';
 // import '../models/attendance_model.dart';
 // import '../models/geofence_model.dart';
@@ -42,7 +43,7 @@
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(
 //             content: Text('Error loading attendance history: $e'),
-//             backgroundColor: Colors.red,
+//             backgroundColor: AppColors.error,
 //           ),
 //         );
 //       }
@@ -162,7 +163,7 @@
 //             const Text(
 //               'Attendance Summary',
 //               style: TextStyle(
-//                 color: Colors.white,
+//                 color: AppColors.textLight,
 //                 fontSize: 18,
 //                 fontWeight: FontWeight.bold,
 //               ),
@@ -181,13 +182,13 @@
 //               Container(
 //                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
 //                 decoration: BoxDecoration(
-//                   color: Colors.white.withOpacity(0.2),
+//                   color: AppColors.textLight.withOpacity(0.2),
 //                   borderRadius: BorderRadius.circular(20),
 //                 ),
 //                 child: Text(
 //                   'Total Time: ${_formatDuration(totalTime)}',
 //                   style: const TextStyle(
-//                     color: Colors.white,
+//                     color: AppColors.textLight,
 //                     fontWeight: FontWeight.w600,
 //                   ),
 //                 ),
@@ -202,12 +203,12 @@
 //   Widget _buildStatItem(String label, String value, IconData icon) {
 //     return Column(
 //       children: [
-//         Icon(icon, color: Colors.white, size: 28),
+//         Icon(icon, color: AppColors.textLight, size: 28),
 //         const SizedBox(height: 4),
 //         Text(
 //           value,
 //           style: const TextStyle(
-//             color: Colors.white,
+//             color: AppColors.textLight,
 //             fontSize: 20,
 //             fontWeight: FontWeight.bold,
 //           ),
@@ -215,7 +216,7 @@
 //         Text(
 //           label,
 //           style: const TextStyle(
-//             color: Colors.white70,
+//             color: AppColors.textLight70,
 //             fontSize: 12,
 //           ),
 //         ),
@@ -234,7 +235,7 @@
 //         decoration: BoxDecoration(
 //           borderRadius: BorderRadius.circular(12),
 //           border: Border.all(
-//             color: isEnter ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
+//             color: isEnter ? AppColors.success.withOpacity(0.3) : AppColors.error.withOpacity(0.3),
 //             width: 1,
 //           ),
 //         ),
@@ -244,12 +245,12 @@
 //             width: 50,
 //             height: 50,
 //             decoration: BoxDecoration(
-//               color: isEnter ? Colors.green : Colors.red,
+//               color: isEnter ? AppColors.success : AppColors.error,
 //               borderRadius: BorderRadius.circular(25),
 //             ),
 //             child: Icon(
 //               isEnter ? Icons.login : Icons.logout,
-//               color: Colors.white,
+//               color: AppColors.textLight,
 //               size: 28,
 //             ),
 //           ),
@@ -266,12 +267,12 @@
 //               const SizedBox(height: 4),
 //               Row(
 //                 children: [
-//                   const Icon(Icons.access_time, size: 16, color: Colors.grey),
+//                   const Icon(Icons.access_time, size: 16, color: AppColors.textHint),
 //                   const SizedBox(width: 4),
 //                   Text(
 //                     DateFormat('MMM dd, yyyy - hh:mm a').format(record.timestamp),
 //                     style: TextStyle(
-//                       color: Colors.grey[600],
+//                       color: AppColors.textHint[600],
 //                       fontSize: 14,
 //                     ),
 //                   ),
@@ -281,12 +282,12 @@
 //               if (record.geofence != null) ...[
 //                 Row(
 //                   children: [
-//                     const Icon(Icons.location_on, size: 16, color: Colors.grey),
+//                     const Icon(Icons.location_on, size: 16, color: AppColors.textHint),
 //                     const SizedBox(width: 4),
 //                     Text(
 //                       'Type: ${record.geofence!.type.toString().split('.').last.toUpperCase()}',
 //                       style: TextStyle(
-//                         color: Colors.grey[600],
+//                         color: AppColors.textHint[600],
 //                         fontSize: 12,
 //                       ),
 //                     ),
@@ -298,13 +299,13 @@
 //           trailing: Container(
 //             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
 //             decoration: BoxDecoration(
-//               color: isEnter ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+//               color: isEnter ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
 //               borderRadius: BorderRadius.circular(12),
 //             ),
 //             child: Text(
 //               DateFormat('HH:mm').format(record.timestamp),
 //               style: TextStyle(
-//                 color: isEnter ? Colors.green[700] : Colors.red[700],
+//                 color: isEnter ? AppColors.success[700] : AppColors.error[700],
 //                 fontWeight: FontWeight.bold,
 //                 fontSize: 12,
 //               ),
@@ -321,7 +322,7 @@
 //       appBar: AppBar(
 //         title: const Text('Attendance History'),
 //         backgroundColor: const Color(0xFF4A5AE8),
-//         foregroundColor: Colors.white,
+//         foregroundColor: AppColors.textLight,
 //         elevation: 0,
 //         actions: [
 //           IconButton(
@@ -340,7 +341,7 @@
 //                     Icon(
 //                       _selectedFilter == filter ? Icons.check_circle : Icons.circle_outlined,
 //                       size: 18,
-//                       color: _selectedFilter == filter ? const Color(0xFF4A5AE8) : Colors.grey,
+//                       color: _selectedFilter == filter ? const Color(0xFF4A5AE8) : AppColors.textHint,
 //                     ),
 //                     const SizedBox(width: 8),
 //                     Text(filter),
@@ -431,7 +432,7 @@
 //                     Icon(
 //                       Icons.history,
 //                       size: 80,
-//                       color: Colors.grey[400],
+//                       color: AppColors.textHint[400],
 //                     ),
 //                     const SizedBox(height: 20),
 //                     Text(
@@ -441,7 +442,7 @@
 //                       style: TextStyle(
 //                         fontSize: 18,
 //                         fontWeight: FontWeight.bold,
-//                         color: Colors.grey[600],
+//                         color: AppColors.textHint[600],
 //                       ),
 //                     ),
 //                     const SizedBox(height: 10),
@@ -451,7 +452,7 @@
 //                           : 'Try changing the filter or date',
 //                       style: TextStyle(
 //                         fontSize: 14,
-//                         color: Colors.grey[500],
+//                         color: AppColors.textHint[500],
 //                       ),
 //                     ),
 //                   ],
@@ -474,6 +475,7 @@
 
 
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/project_model.dart';
 import '../models/attendance_model.dart';
@@ -607,9 +609,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendance History", style: TextStyle(color: Colors.white)),
+        title: const Text("Attendance History", style: TextStyle(color: AppColors.textLight)),
         backgroundColor: const Color(0xFF4A90E2),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textLight),
         elevation: 0,
       ),
       body: widget.projects.isEmpty
@@ -617,11 +619,11 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open, size: 80, color: Colors.grey.shade400),
+            Icon(Icons.folder_open, size: 80, color: AppColors.textHint.shade400),
             const SizedBox(height: 20),
             Text(
               'No Projects Mapped',
-              style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 18, color: AppColors.textHint.shade600),
             ),
           ],
         ),
@@ -665,7 +667,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textLight,
                             ),
                           ),
                           const SizedBox(height: 5),
@@ -673,13 +675,13 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                             '${project.site} • ${project.shift}',
                             style: const TextStyle(
                               fontSize: 14,
-                              color: Colors.white70,
+                              color: AppColors.cardBackground,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.bar_chart, color: Colors.white, size: 30),
+                    const Icon(Icons.bar_chart, color: AppColors.textLight, size: 30),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -687,7 +689,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   height: 220,
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.textLight.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: LineChart(
@@ -698,7 +700,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         horizontalInterval: 2,
                         getDrawingHorizontalLine: (value) {
                           return FlLine(
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.textLight.withOpacity(0.2),
                             strokeWidth: 1,
                           );
                         },
@@ -715,8 +717,8 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                 child: Text(
                                   '${value.toInt()}h',
                                   style: const TextStyle(
-                                    color: Colors.white,
                                     fontSize: 12,
+                                    color: AppColors.textLight,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -735,7 +737,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                   child: Text(
                                     days[value.toInt()],
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.textLight,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -758,14 +760,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         LineChartBarData(
                           spots: _getProjectAttendanceData(project.id),
                           isCurved: true,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                           barWidth: 3,
                           dotData: FlDotData(
                             show: true,
                             getDotPainter: (spot, percent, barData, index) {
                               return FlDotCirclePainter(
                                 radius: 5,
-                                color: Colors.white,
+                                color: AppColors.textLight,
                                 strokeWidth: 2,
                                 strokeColor: Colors.blue.shade600,
                               );
@@ -773,7 +775,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                           ),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.textLight.withOpacity(0.2),
                           ),
                         ),
                       ],
@@ -804,7 +806,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: AppColors.textLight.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -813,7 +815,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           Text(
             label,
             style: const TextStyle(
-              color: Colors.white70,
+              color: AppColors.cardBackground,
               fontSize: 12,
             ),
           ),
@@ -821,7 +823,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           Text(
             value,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textLight,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),

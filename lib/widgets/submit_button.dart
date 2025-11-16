@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class SubmitButton extends StatelessWidget {
   final String label;
@@ -13,7 +14,7 @@ class SubmitButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.color = const Color(0xFF4A90E2),
-    this.textColor = Colors.white,
+    this.textColor = AppColors.textLight,
   });
 
   @override
@@ -36,7 +37,7 @@ class SubmitButton extends StatelessWidget {
           width: 24,
           height: 24,
           child: CircularProgressIndicator(
-            color: Colors.white,
+            color: AppColors.textLight,
             strokeWidth: 2.5,
           ),
         )

@@ -1,5 +1,6 @@
 // screens/attendance_details_screen.dart
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/attendance_details_provider.dart';
 import '../utils/app_colors.dart';
@@ -45,7 +46,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.textHint.shade50,
       body: Consumer<AttendanceDetailsProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
@@ -139,7 +140,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                   'Filtered by Project',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textHint.shade600,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -192,7 +193,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
       pinned: true,
       backgroundColor: AppColors.primaryBlue,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.white),
+        icon: Icon(Icons.arrow_back, color: AppColors.textLight),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -219,7 +220,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                         ? 'Project Attendance'
                         : 'Employee Details',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -238,8 +239,8 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
             icon: Icon(Icons.file_download, size: 18),
             label: Text("", style: TextStyle(fontSize: 11)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.2),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.textLight.withOpacity(0.2),
+              foregroundColor: AppColors.textLight,
               elevation: 0,
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(

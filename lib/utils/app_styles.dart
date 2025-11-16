@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'app_colors.dart';
 
 /// Centralized text style definitions for the entire app
@@ -14,7 +15,7 @@ class AppStyles {
   );
 static const id = TextStyle(
   fontSize: 14,
-  color: Colors.white70,
+  color: AppColors.cardBackground,
 );
   static const headingLarge1 = TextStyle(
     fontSize: 20,
@@ -68,7 +69,7 @@ static const id = TextStyle(
   // Caption
   static const captions = TextStyle(
     fontSize: 12,
-    color: AppColors.grey600,
+    color:AppColors.grey600,
     fontWeight: FontWeight.w500
   );
 
@@ -212,7 +213,7 @@ static const id = TextStyle(
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.greyLight,
+      fillColor: AppColors.textLight,
       border: OutlineInputBorder(
         borderRadius: radiusMedium,
         borderSide: BorderSide.none,

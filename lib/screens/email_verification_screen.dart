@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'otp_verification_screen.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
@@ -71,7 +72,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
           children: [
             Icon(
               isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -127,12 +128,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.textLight.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.email_outlined,
-                            color: Colors.white,
+                            color: AppColors.textLight,
                             size: 32,
                           ),
                         ),
@@ -144,7 +145,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                               Text(
                                 "Email Verification",
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textLight,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -153,7 +154,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                               Text(
                                 "Verify your identity",
                                 style: TextStyle(
-                                  color: Colors.white70,
+                                  color: AppColors.cardBackground,
                                   fontSize: 14,
                                 ),
                               ),
@@ -169,7 +170,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -195,7 +196,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                           "We'll send a verification code to your company-registered email address",
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textHint.shade600,
                             height: 1.5,
                           ),
                         ),
@@ -207,7 +208,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                             color: const Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.grey.shade200,
+                              color: AppColors.textHint.shade200,
                               width: 1,
                             ),
                           ),
@@ -221,7 +222,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                             decoration: InputDecoration(
                               labelText: "Email Address",
                               labelStyle: TextStyle(
-                                color: Colors.grey.shade600,
+                                color: AppColors.textHint.shade600,
                                 fontSize: 14,
                               ),
                               prefixIcon: Container(
@@ -255,12 +256,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                             onPressed: _isSending ? null : sendOtp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF4A90E2),
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.textLight,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              disabledBackgroundColor: Colors.grey.shade300,
+                              disabledBackgroundColor: AppColors.textHint.shade300,
                             ),
                             child: _isSending
                                 ? const SizedBox(
@@ -268,7 +269,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                               width: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
                               ),
                             )
                                 : const Row(
@@ -316,7 +317,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> with 
                             "Make sure to use your company-registered email address",
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade700,
+                              color: AppColors.textHint.shade700,
                               height: 1.4,
                             ),
                           ),

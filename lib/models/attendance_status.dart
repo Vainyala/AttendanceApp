@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 enum AttendanceStatus {
   present,      // P
   absent,       // A
@@ -47,9 +48,9 @@ extension AttendanceStatusExtension on AttendanceStatus {
   Color get color {
     switch (this) {
       case AttendanceStatus.present:
-        return Colors.green;
+        return AppColors.success;
       case AttendanceStatus.absent:
-        return Colors.red;
+        return AppColors.error;
       case AttendanceStatus.partialLeave:
         return Colors.orange;
       case AttendanceStatus.leave:

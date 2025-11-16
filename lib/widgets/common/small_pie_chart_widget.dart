@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class SmallPieChartWidget extends StatelessWidget {
@@ -28,15 +29,15 @@ class SmallPieChartWidget extends StatelessWidget {
         height: height ?? 180,
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: AppColors.textHint.shade50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.textHint.shade300),
         ),
         child: Center(
           child: Text(
             'No attendance data available',
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: AppColors.textHint.shade600,
               fontSize: 12,
             ),
           ),
@@ -48,9 +49,9 @@ class SmallPieChartWidget extends StatelessWidget {
       height: height ?? 180,
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.textHint.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.textHint.shade300),
       ),
       child: Row(
         children: [
@@ -71,11 +72,11 @@ class SmallPieChartWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSmallLegendItem('Present', Colors.green, present),
+                _buildSmallLegendItem('Present', AppColors.success, present),
                 SizedBox(height: height != null ? 8 : 6),
                 _buildSmallLegendItem('Leave', Colors.orange, leave),
                 SizedBox(height: height != null ? 8 : 6),
-                _buildSmallLegendItem('Absent', Colors.red, absent),
+                _buildSmallLegendItem('Absent', AppColors.error, absent),
                 SizedBox(height: height != null ? 8 : 6),
                 _buildSmallLegendItem('OnTime', Colors.blue, onTime),
                 SizedBox(height: height != null ? 8 : 6),
@@ -104,12 +105,12 @@ class SmallPieChartWidget extends StatelessWidget {
         PieChartSectionData(
           value: present.toDouble(),
           title: '$present',
-          color: Colors.green,
+          color: AppColors.success,
           radius: radius,
           titleStyle: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textLight,
           ),
         ),
       );
@@ -125,7 +126,7 @@ class SmallPieChartWidget extends StatelessWidget {
           titleStyle: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textLight,
           ),
         ),
       );
@@ -136,12 +137,12 @@ class SmallPieChartWidget extends StatelessWidget {
         PieChartSectionData(
           value: absent.toDouble(),
           title: '$absent',
-          color: Colors.red,
+          color: AppColors.error,
           radius: radius,
           titleStyle: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textLight,
           ),
         ),
       );
@@ -157,7 +158,7 @@ class SmallPieChartWidget extends StatelessWidget {
           titleStyle: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textLight,
           ),
         ),
       );
@@ -173,7 +174,7 @@ class SmallPieChartWidget extends StatelessWidget {
           titleStyle: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textLight,
           ),
         ),
       );
@@ -199,7 +200,7 @@ class SmallPieChartWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
+            color: AppColors.textHint.shade700,
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 // widgets/common/pie_chart_widget.dart
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class DailyPieChartWidget extends StatelessWidget {
@@ -23,7 +24,7 @@ class DailyPieChartWidget extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -41,7 +42,7 @@ class DailyPieChartWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppColors.textHint.shade800,
             ),
           ),
           SizedBox(height: 16),
@@ -57,23 +58,23 @@ class DailyPieChartWidget extends StatelessWidget {
                         PieChartSectionData(
                           value: worked,
                           title: '${worked.toStringAsFixed(1)}h',
-                          color: Colors.green,
+                          color: AppColors.success,
                           radius: 45,
                           titleStyle: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textLight,
                           ),
                         ),
                         PieChartSectionData(
                           value: remaining > 0 ? remaining : 0.1,
                           title: remaining > 0 ? '${remaining.toStringAsFixed(1)}h' : '',
-                          color: Colors.red,
+                          color: AppColors.error,
                           radius: 45,
                           titleStyle: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textLight,
                           ),
                         ),
                       ],
@@ -88,10 +89,10 @@ class DailyPieChartWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLegend('Worked', Colors.green, worked.toInt()),
+                    _buildLegend('Worked', AppColors.success, worked.toInt()),
                     SizedBox(height: 10),
                     if (remaining > 0)
-                      _buildLegend('Shortfall', Colors.red, remaining.toInt()),
+                      _buildLegend('Shortfall', AppColors.error, remaining.toInt()),
                   ],
                 ),
               ),
@@ -123,14 +124,14 @@ class DailyPieChartWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                  color: AppColors.textHint.shade700,
                 ),
               ),
               Text(
                 '$value hrs',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                 ),
               ),
             ],

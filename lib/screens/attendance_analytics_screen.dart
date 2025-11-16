@@ -1,5 +1,6 @@
 // screens/attendance_analytics_screen.dart
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../models/analytics_data.dart';
 import '../providers/analytics_provider.dart';
@@ -51,11 +52,11 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
             appBar: AppBar(
               title: Text(
                 'Attendance Analytics',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold),
               ),
               backgroundColor: Colors.transparent,
               elevation: 0,
-              iconTheme: IconThemeData(color: Colors.white),
+              iconTheme: IconThemeData(color: AppColors.textLight),
             ),
             body: Column(
               children: [
@@ -63,7 +64,7 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: AppColors.textHint.shade50,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(30),
                         topRight: Radius.circular(30),
@@ -132,16 +133,16 @@ class _ModeSelector extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.white.withOpacity(0.15),
+          color: selected ? AppColors.textLight : AppColors.textLight.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.3),
+            color: AppColors.textLight.withOpacity(0.3),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? AppColors.primaryBlue : Colors.white,
+            color: selected ? AppColors.primaryBlue : AppColors.textLight,
             fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
@@ -161,7 +162,7 @@ class _ModeSelector extends StatelessWidget {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: AppColors.primaryBlue,
-              onPrimary: Colors.white,
+              onPrimary: AppColors.textLight,
               onSurface: Colors.black,
             ),
           ),
@@ -233,7 +234,7 @@ class _TopSummaryBar extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -249,9 +250,9 @@ class _TopSummaryBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildTopMiniBox("Team", "${summary['team']}", Colors.blue, "100%"),
-              _buildTopMiniBox("Present", "${summary['present']}", Colors.green, "70%"),
+              _buildTopMiniBox("Present", "${summary['present']}", AppColors.success, "70%"),
               _buildTopMiniBox("Leave", "${summary['leave']}", Colors.orange, "10%"),
-              _buildTopMiniBox("Absent", "${summary['absent']}", Colors.red, "20%"),
+              _buildTopMiniBox("Absent", "${summary['absent']}", AppColors.error, "20%"),
               _buildTopMiniBox("OnTime", "${summary['onTime']}", Colors.teal, "60%"),
               _buildTopMiniBox("Late", "${summary['late']}", Colors.purple, "10%"),
             ],
@@ -262,7 +263,7 @@ class _TopSummaryBar extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppColors.textLight.withOpacity(0.15),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -318,11 +319,11 @@ class _TopSummaryBar extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.grey.shade200,
+            color: AppColors.textHint.shade200,
             borderRadius: BorderRadius.circular(6),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade400,
+                color: AppColors.textHint.shade400,
                 blurRadius: 3,
                 offset: Offset(0, 1),
               ),
@@ -366,7 +367,7 @@ class _TopSummaryBar extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: Colors.white,
+          color: AppColors.textLight,
         ),
       ),
     );
@@ -398,7 +399,7 @@ class _DateSelector extends StatelessWidget {
             },
             color: AppColors.primaryBlue,
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.textLight,
               shape: CircleBorder(),
             ),
           ),
@@ -418,7 +419,7 @@ class _DateSelector extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
@@ -439,7 +440,7 @@ class _DateSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
+                          color: AppColors.textHint.shade800,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 2,
@@ -466,7 +467,7 @@ class _DateSelector extends StatelessWidget {
             },
             color: AppColors.primaryBlue,
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.textLight,
               shape: CircleBorder(),
             ),
           ),
@@ -486,7 +487,7 @@ class _DateSelector extends StatelessWidget {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: AppColors.primaryBlue,
-              onPrimary: Colors.white,
+              onPrimary: AppColors.textLight,
               onSurface: Colors.black,
             ),
           ),

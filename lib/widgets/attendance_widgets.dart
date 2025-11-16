@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../providers/attendance_details_provider.dart';
 import '../utils/app_colors.dart';
 
@@ -19,7 +20,7 @@ class PeriodTabsWidget extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -55,7 +56,7 @@ class PeriodTabsWidget extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey.shade600,
+              color: isSelected ? AppColors.textLight : AppColors.textHint.shade600,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               fontSize: 13,
             ),
