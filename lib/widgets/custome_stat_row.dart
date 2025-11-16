@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class CustomStatRow extends StatelessWidget {
   final String label;
@@ -27,7 +28,7 @@ class CustomStatRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: isGood ? Colors.green.shade100 : Colors.orange.shade100,
+            color: isGood ? AppColors.success.shade100 : Colors.orange.shade100,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -35,14 +36,14 @@ class CustomStatRow extends StatelessWidget {
             children: [
               Icon(
                 isGood ? Icons.thumb_up : Icons.warning,
-                color: isGood ? Colors.green.shade700 : Colors.orange.shade700,
+                color: isGood ? AppColors.success.shade700 : Colors.orange.shade700,
                 size: 16,
               ),
               const SizedBox(width: 5),
               Text(
                 isGood ? 'GOOD' : 'IMPROVE',
                 style: TextStyle(
-                  color: isGood ? Colors.green.shade700 : Colors.orange.shade700,
+                  color: isGood ? AppColors.success.shade700 : Colors.orange.shade700,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),

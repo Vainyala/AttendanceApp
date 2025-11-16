@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'dart:ui';
 import '../models/attendance_record.dart';
 import '../utils/app_colors.dart';
@@ -39,7 +40,7 @@ class AttendanceHistorySection extends StatelessWidget {
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -57,7 +58,7 @@ class AttendanceHistorySection extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppColors.textHint.shade800,
             ),
           ),
           SizedBox(height: 4),
@@ -66,7 +67,7 @@ class AttendanceHistorySection extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade900,
+              color: AppColors.textHint.shade900,
             ),
           ),
           SizedBox(height: 16),
@@ -104,7 +105,7 @@ class AttendanceHistorySection extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryBlue : Colors.grey.shade200,
+          color: isSelected ? AppColors.primaryBlue : AppColors.textHint.shade200,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -112,14 +113,14 @@ class AttendanceHistorySection extends StatelessWidget {
             if (isSelected)
               Padding(
                 padding: EdgeInsets.only(right: 6),
-                child: Icon(Icons.check, size: 16, color: Colors.white),
+                child: Icon(Icons.check, size: 16, color: AppColors.textLight),
               ),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey.shade700,
+                color: isSelected ? AppColors.textLight : AppColors.textHint.shade700,
               ),
             ),
           ],
@@ -132,7 +133,7 @@ class AttendanceHistorySection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.textHint.shade100,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -153,7 +154,7 @@ class AttendanceHistorySection extends StatelessWidget {
       style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade700,
+        color: AppColors.textHint.shade700,
       ),
       textAlign: TextAlign.center,
     );
@@ -164,7 +165,7 @@ class AttendanceHistorySection extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+          bottom: BorderSide(color: AppColors.textHint.shade200, width: 1),
         ),
       ),
       child: Row(
@@ -179,14 +180,14 @@ class AttendanceHistorySection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: AppColors.textHint.shade800,
                   ),
                 ),
                 Text(
                   record.dayName,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textHint.shade600,
                   ),
                 ),
               ],
@@ -200,7 +201,7 @@ class AttendanceHistorySection extends StatelessWidget {
             flex: 2,
             child: Text(
               record.checkIn,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              style: TextStyle(fontSize: 12, color: AppColors.textHint.shade700),
               textAlign: TextAlign.center,
             ),
           ),
@@ -208,7 +209,7 @@ class AttendanceHistorySection extends StatelessWidget {
             flex: 2,
             child: Text(
               record.checkOut,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              style: TextStyle(fontSize: 12, color: AppColors.textHint.shade700),
               textAlign: TextAlign.center,
             ),
           ),
@@ -247,7 +248,7 @@ class AttendanceHistorySection extends StatelessWidget {
         label = 'Late';
         break;
       default:
-        color = Colors.grey;
+        color = AppColors.textHint;
         label = status;
     }
 

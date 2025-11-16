@@ -1,6 +1,7 @@
 import 'package:AttendanceApp/utils/app_styles.dart';
 import 'package:AttendanceApp/utils/app_text.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
 import '../utils/app_colors.dart';
@@ -11,7 +12,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.textHint.shade50,
       appBar: AppBar(
         title: const Text(AppText.profile,
           style: TextStyle(fontWeight: FontWeight.w600),
@@ -48,7 +49,7 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
+                          border: Border.all(color: AppColors.textLight, width: 4),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.2),
@@ -249,7 +250,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: AppColors.grey600.withOpacity(0.1),
+            color: AppColors.textHint.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -337,7 +338,7 @@ class ProfileScreen extends StatelessWidget {
           color: AppColors.textLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDestructive ? Colors.red.shade200 : Colors.grey.shade200,
+            color: isDestructive ? AppColors.error.shade200 : AppColors.textHint.shade200,
           ),
         ),
         child: Row(
@@ -360,7 +361,7 @@ class ProfileScreen extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: isDestructive ? AppColors.errorRed : AppColors.grey400,
+              color: isDestructive ? AppColors.errorRed : AppColors.textHint,
             ),
           ],
         ),

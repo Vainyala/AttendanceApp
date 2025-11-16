@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:AttendanceApp/utils/app_text.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -223,7 +224,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
                 ),
               ),
               SizedBox(width: 16),
@@ -327,7 +328,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
               label: Text(status),
               selected: isSelected,
               onSelected: (_) => provider.setFilterStatus(status),
-              backgroundColor: AppColors.greyMedium,
+              backgroundColor: AppColors.textHint,
               selectedColor: AppColors.primaryBlue,
               labelStyle: AppStyles.labelSmall.copyWith(
                 color: isSelected ? AppColors.textLight : AppColors.textPrimary,
@@ -382,12 +383,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
           Icon(
             Icons.inbox_outlined,
             size: AppDimensions.iconXLarge,
-            color: AppColors.greyLight,
+            color: AppColors.textLight,
           ),
           const SizedBox(height: AppDimensions.marginLarge),
           Text(
             'No leaves found',
-            style: AppStyles.headingSmall.copyWith(color: AppColors.greyDark),
+            style: AppStyles.headingSmall.copyWith(color: AppColors.textDark),
           ),
         ],
       ),
@@ -503,7 +504,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
           const SizedBox(height: AppDimensions.marginSmall),
           Text(
             leave['reason'],
-            style: AppStyles.bodyMedium.copyWith(color: AppColors.greyDark),
+            style: AppStyles.bodyMedium.copyWith(color: AppColors.textHint),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -753,7 +754,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
             hintText: 'Enter reason for leave...',
             hintStyle: AppStyles.hintText,
             filled: true,
-            fillColor: AppColors.greyLight,
+            fillColor: AppColors.textHint,
             border: OutlineInputBorder(
               borderRadius: AppStyles.radiusMedium,
               borderSide: BorderSide(color: AppColors.borderLight),
@@ -861,7 +862,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
         horizontal: AppDimensions.paddingXLarge,
         vertical: AppDimensions.marginLarge,
       ),
-      color: AppColors.white,
+      color: AppColors.textLight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

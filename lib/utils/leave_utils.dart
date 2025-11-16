@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class LeaveUtils {
   // Show Success Message
@@ -6,7 +7,7 @@ class LeaveUtils {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.success,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -17,7 +18,7 @@ class LeaveUtils {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -29,12 +30,12 @@ class LeaveUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(icon ?? Icons.check_circle, color: Colors.white),
+            Icon(icon ?? Icons.check_circle, color: AppColors.textLight),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textLight),
               ),
             ),
           ],
@@ -50,9 +51,9 @@ class LeaveUtils {
   static Color getStatusColor(String status) {
     switch (status) {
       case 'Approved':
-        return Colors.green;
+        return AppColors.success;
       case 'Rejected':
-        return Colors.red;
+        return AppColors.error;
       case 'Pending':
       default:
         return Colors.orange;

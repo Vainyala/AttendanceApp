@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:local_auth/local_auth.dart';
 
 enum VerificationType {
@@ -87,12 +88,12 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: AppColors.error.shade50,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.access_time_filled,
-                  color: Colors.red.shade600,
+                  color: AppColors.error.shade600,
                   size: 48,
                 ),
               ),
@@ -102,7 +103,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade900,
+                  color: AppColors.textHint.shade900,
                 ),
               ),
               SizedBox(height: 16),
@@ -111,7 +112,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                   height: 1.5,
                 ),
               ),
@@ -124,8 +125,8 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade600,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.error.shade600,
+                    foregroundColor: AppColors.textLight,
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -193,7 +194,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
   Color _getHeaderColor() {
     switch (widget.reason) {
       case VerificationReason.checkIn:
-        return Colors.green;
+        return AppColors.success;
       case VerificationReason.goingOut:
       case VerificationReason.goingOutReturning:
         return Colors.orange;
@@ -243,12 +244,12 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
+                Icon(Icons.check_circle, color: AppColors.textLight),
                 SizedBox(width: 12),
                 Text('Verified successfully!'),
               ],
             ),
-            backgroundColor: Colors.green.shade600,
+            backgroundColor: AppColors.success.shade600,
             duration: Duration(milliseconds: 1500),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -274,12 +275,12 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.white),
+            Icon(Icons.error_outline, color: AppColors.textLight),
             SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red.shade600,
+        backgroundColor: AppColors.error.shade600,
         duration: Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -323,12 +324,12 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                       icon: Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.textLight.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                           size: 20,
                         ),
                       ),
@@ -352,17 +353,17 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                           Container(
                             padding: EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: AppColors.textLight.withOpacity(0.15),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
+                                color: AppColors.textLight.withOpacity(0.3),
                                 width: 2,
                               ),
                             ),
                             child: Icon(
                               _getHeaderIcon(),
                               size: 54,
-                              color: Colors.white,
+                              color: AppColors.textLight,
                             ),
                           ),
 
@@ -374,7 +375,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textLight,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -387,7 +388,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 17,
-                              color: Colors.white.withOpacity(0.85),
+                              color: AppColors.textLight.withOpacity(0.85),
                               height: 1.4,
                             ),
                           ),
@@ -416,7 +417,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: AppColors.textLight.withOpacity(0.3),
                                     thickness: 1,
                                   ),
                                 ),
@@ -425,7 +426,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                                   child: Text(
                                     'OR',
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.6),
+                                      color: AppColors.textLight.withOpacity(0.6),
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -433,7 +434,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: AppColors.textLight.withOpacity(0.3),
                                     thickness: 1,
                                   ),
                                 ),
@@ -448,7 +449,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
                               title: 'Fingerprint',
                               subtitle: 'Will return later today',
                               gradient: LinearGradient(
-                                colors: [Colors.green.shade400, Colors.green.shade600],
+                                colors: [AppColors.success.shade400, AppColors.success.shade600],
                               ),
                               onTap: _isAuthenticating ? null : _handleFingerprintVerification,
                               loading: _isAuthenticating,
@@ -485,7 +486,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: onTap == null && !loading ? null : gradient,
-          color: onTap == null && !loading ? Colors.grey.shade700 : null,
+          color: onTap == null && !loading ? AppColors.textHint.shade700 : null,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -503,7 +504,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
             width: 32,
             height: 32,
             child: CircularProgressIndicator(
-              color: Colors.white,
+              color: AppColors.textLight,
               strokeWidth: 3,
             ),
           ),
@@ -514,7 +515,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
             Icon(
               icon,
               size: 56,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
 
             SizedBox(height: 16),
@@ -525,7 +526,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textLight,
               ),
             ),
 
@@ -537,7 +538,7 @@ class _AuthVerificationScreenState extends State<AuthVerificationScreen>
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white.withOpacity(0.9),
+                color: AppColors.textLight.withOpacity(0.9),
                 height: 1.3,
               ),
             ),

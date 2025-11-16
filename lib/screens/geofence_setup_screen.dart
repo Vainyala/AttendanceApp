@@ -1,6 +1,7 @@
 
 // Complete geofence_setup_screen.dart
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../models/geofence_model.dart';
 import '../services/storage_service.dart';
 import '../services/location_service.dart';
@@ -57,7 +58,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -71,7 +72,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Geofence "${geofence.name}" deleted'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -84,12 +85,12 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
       appBar: AppBar(
         title: const Text('Geofence Setup'),
         backgroundColor: const Color(0xFF4A5AE8),
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.textLight,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddGeofenceDialog,
         backgroundColor: const Color(0xFF4A5AE8),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: AppColors.textLight),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -101,7 +102,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
             Icon(
               Icons.location_off,
               size: 80,
-              color: Colors.grey,
+              color: AppColors.textHint,
             ),
             SizedBox(height: 20),
             Text(
@@ -109,7 +110,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.textHint,
               ),
             ),
             SizedBox(height: 10),
@@ -117,7 +118,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
               'Tap the + button to add your first geofence',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: AppColors.textHint,
               ),
             ),
           ],
@@ -140,12 +141,12 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: geofence.isActive ? Colors.green : Colors.grey,
+                  color: geofence.isActive ? AppColors.success : AppColors.textHint,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Icon(
                   _getGeofenceIcon(geofence.type),
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   size: 25,
                 ),
               ),
@@ -171,7 +172,7 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
                     'Status: ${geofence.isActive ? "Active" : "Inactive"}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: geofence.isActive ? Colors.green : Colors.red,
+                      color: geofence.isActive ? AppColors.success : AppColors.error,
                     ),
                   ),
                 ],
@@ -209,9 +210,9 @@ class _GeofenceSetupScreenState extends State<GeofenceSetupScreen> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, color: Colors.red),
+                        Icon(Icons.delete, color: AppColors.error),
                         SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
+                        Text('Delete', style: TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -293,14 +294,14 @@ class _AddGeofenceDialogState extends State<AddGeofenceDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Geofence "${geofence.name}" added successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error adding geofence: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       } finally {
@@ -390,7 +391,7 @@ class _AddGeofenceDialogState extends State<AddGeofenceDialog> {
           onPressed: _isLoading ? null : _addGeofence,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF4A5AE8),
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.textLight,
           ),
           child: _isLoading
               ? const SizedBox(
@@ -398,7 +399,7 @@ class _AddGeofenceDialogState extends State<AddGeofenceDialog> {
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
           )
               : const Text('Add'),

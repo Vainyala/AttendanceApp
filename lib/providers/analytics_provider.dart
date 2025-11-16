@@ -1,5 +1,6 @@
 // providers/attendance_analytics_provider.dart
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 import '../models/analytics_data.dart';
 
@@ -52,7 +53,7 @@ class AnalyticsProvider with ChangeNotifier {
 
   // Team Summary Data
   Map<String, dynamic> _teamSummary = {
-    'team': 50,
+    'Days': 50,
     'present': 35,
     'leave': 5,
     'absent': 10,

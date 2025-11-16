@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -27,20 +28,20 @@ class CustomButton extends StatelessWidget {
         height: 20,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
         ),
       )
-          : Icon(icon, color: Colors.white),
+          : Icon(icon, color: AppColors.textLight),
       label: Text(
         loading ? '$text...' : text,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.textLight,
           fontWeight: FontWeight.bold,
         ),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        disabledBackgroundColor: Colors.grey.shade400,
+        disabledBackgroundColor: AppColors.textHint.shade400,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

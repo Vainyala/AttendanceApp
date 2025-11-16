@@ -1,5 +1,6 @@
 // widgets/attendance_views/person_view_widget.dart
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/analytics_provider.dart';
 import '../../screens/attendance_detailed_screen.dart';
@@ -165,7 +166,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.textHint.shade100,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -195,7 +196,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: AppColors.textHint.shade800,
                   ),
                 ),
                 SizedBox(height: 4),
@@ -203,7 +204,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                   'Date: ${provider.getFormattedDateInfo()}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textHint.shade600,
                   ),
                 ),
               ],
@@ -234,9 +235,9 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.textHint.shade100,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.textHint.shade300),
       ),
       child: TextField(
         onChanged: (value) {
@@ -246,8 +247,8 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
         },
         decoration: InputDecoration(
           hintText: 'Search employees by name, role, or ...',
-          hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-          prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+          hintStyle: TextStyle(color: AppColors.textHint.shade500, fontSize: 14),
+          prefixIcon: Icon(Icons.search, color: AppColors.textHint.shade500),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 16),
         ),
@@ -266,7 +267,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                 'Sort by Name',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -274,15 +275,15 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.textHint.shade100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.textHint.shade300),
                 ),
                 child: DropdownButton<String>(
                   value: _sortByName,
                   isExpanded: true,
                   underline: SizedBox(),
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade700),
+                  icon: Icon(Icons.arrow_drop_down, color: AppColors.textHint.shade700),
                   items: ['A-Z', 'Z-A'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
@@ -308,7 +309,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                 'Sort by Project',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -316,15 +317,15 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.textHint.shade100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.textHint.shade300),
                 ),
                 child: DropdownButton<String>(
                   value: _sortByProject,
                   isExpanded: true,
                   underline: SizedBox(),
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade700),
+                  icon: Icon(Icons.arrow_drop_down, color: AppColors.textHint.shade700),
                   items: ['A-Z', 'Z-A'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
@@ -367,7 +368,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: AppColors.textHint.shade100,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -406,7 +407,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade800,
+                                color: AppColors.textHint.shade800,
                               ),
                             ),
                           ),
@@ -414,7 +415,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade100,
+                              color: AppColors.success.shade100,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -424,7 +425,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                                   width: 6,
                                   height: 6,
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: AppColors.success,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -434,7 +435,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade700,
+                                    color: AppColors.success.shade700,
                                   ),
                                 ),
                               ],
@@ -446,7 +447,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                         employee['role'],
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textHint.shade600,
                         ),
                       ),
                     ],
@@ -459,7 +460,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                       'Projects:',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textHint.shade600,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -489,39 +490,39 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
             SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
+                Icon(Icons.access_time, size: 14, color: AppColors.textHint.shade600),
                 SizedBox(width: 4),
                 Text(
                   '${employee['checkIn']} - ${employee['checkOut']}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textHint.shade700,
                   ),
                 ),
                 SizedBox(width: 16),
-                Icon(Icons.work_outline, size: 14, color: Colors.grey.shade600),
+                Icon(Icons.work_outline, size: 14, color: AppColors.textHint.shade600),
                 SizedBox(width: 4),
                 Text(
                   '${employee['projectCount']} Projects',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textHint.shade700,
                   ),
                 ),
                 SizedBox(width: 16),
-                Icon(Icons.calendar_today, size: 14, color: Colors.grey.shade600),
+                Icon(Icons.calendar_today, size: 14, color: AppColors.textHint.shade600),
                 SizedBox(width: 4),
                 Text(
                   employee['periodType'],
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textHint.shade700,
                   ),
                 ),
               ],
             ),
             SizedBox(height: 12),
-            Divider(height: 1, color: Colors.grey.shade300),
+            Divider(height: 1, color: AppColors.textHint.shade300),
             SizedBox(height: 8),
             GestureDetector(
               onTap: () {
@@ -576,9 +577,9 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.textLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.textHint.shade300),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,16 +589,16 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: AppColors.textHint.shade700,
               ),
             ),
             SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatColumn('Present', attendance['present'], Colors.green),
+                _buildStatColumn('Present', attendance['present'], AppColors.success),
                 _buildStatColumn('Leave', attendance['leave'], Colors.orange),
-                _buildStatColumn('Absent', attendance['absent'], Colors.red),
+                _buildStatColumn('Absent', attendance['absent'], AppColors.error),
                 _buildStatColumn('OnTime', attendance['onTime'], Colors.blue),
                 _buildStatColumn('Late', attendance['late'], Colors.purple),
               ],
@@ -617,7 +618,7 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
           label,
           style: TextStyle(
             fontSize: 10,
-            color: Colors.grey.shade600,
+            color: AppColors.textHint.shade600,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -658,8 +659,8 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
               child: CircularProgressIndicator(
                 value: presentPercent / 100,
                 strokeWidth: 30,
-                backgroundColor: Colors.grey.shade300,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                backgroundColor: AppColors.textHint.shade300,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
               ),
             ),
             Column(
@@ -670,14 +671,14 @@ class _PersonViewWidgetState extends State<PersonViewWidget> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: AppColors.success,
                   ),
                 ),
                 Text(
                   'Present',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textHint.shade600,
                   ),
                 ),
               ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class LeaveTypeDropdown extends StatelessWidget {
   final String selectedValue;
@@ -27,7 +28,7 @@ class LeaveTypeDropdown extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.grey.shade300,
+                  color: AppColors.textHint.shade300,
                   width: 1,
                 ),
               ),

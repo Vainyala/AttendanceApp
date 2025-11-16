@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../utils/status_utils.dart';
 
 class StatusBadge extends StatelessWidget {

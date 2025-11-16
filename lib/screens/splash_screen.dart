@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/splash_provider.dart';
+import '../utils/app_colors.dart';
 import 'email_verification_screen.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
@@ -52,14 +54,14 @@ class _SplashScreenState extends State<SplashScreen> {
               ? const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.location_on, size: 100, color: Colors.white),
+              Icon(Icons.location_on, size: 100, color: AppColors.textLight),
               SizedBox(height: 20),
               Text(
                 'Geofence Attendance',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textLight,
                 ),
               ),
               SizedBox(height: 10),
@@ -67,12 +69,12 @@ class _SplashScreenState extends State<SplashScreen> {
                 'Smart Location-Based Attendance',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white70,
+                  color: AppColors.textLight,
                 ),
               ),
               SizedBox(height: 50),
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
               ),
             ],
           )

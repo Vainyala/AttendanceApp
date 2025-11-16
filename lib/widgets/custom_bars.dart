@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/regularisation_screen.dart';
 import '../screens/leave_screen.dart';
@@ -50,10 +51,10 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: AppColors.textHint.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -62,11 +63,11 @@ class CustomBottomNavBar extends StatelessWidget {
       child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF4A90E2),
-        unselectedItemColor: Colors.grey.shade600,
+        unselectedItemColor: AppColors.textHint.shade600,
         currentIndex: currentIndex,
         onTap: _onItemTapped,
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.textLight,
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: [

@@ -1,5 +1,6 @@
 // widgets/attendance_views/group_view_widget.dart
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../models/analytics_data.dart';
@@ -60,7 +61,7 @@ class _DailyGroupView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -84,7 +85,7 @@ class _DailyGroupView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                      color: AppColors.textHint.shade800,
                     ),
                   ),
                   SizedBox(height: 4),
@@ -92,7 +93,7 @@ class _DailyGroupView extends StatelessWidget {
                     dateInfo,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textHint.shade600,
                     ),
                   ),
                 ],
@@ -135,7 +136,7 @@ class _PeriodGroupView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -156,7 +157,7 @@ class _PeriodGroupView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: AppColors.textHint.shade800,
                 ),
               ),
               SizedBox(height: 4),
@@ -164,7 +165,7 @@ class _PeriodGroupView extends StatelessWidget {
                 dateInfo,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textHint.shade600,
                 ),
               ),
             ],

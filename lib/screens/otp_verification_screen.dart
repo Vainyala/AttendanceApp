@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:flutter/services.dart';
+import '../utils/app_styles.dart';
 import 'set_password_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -93,16 +95,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
           children: [
             Icon(
               isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppStyles.text
               ),
             ),
           ],
@@ -128,7 +127,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.textLight,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -177,7 +176,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                     ),
                     child: const Icon(
                       Icons.verified_user_outlined,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       size: 50,
                     ),
                   ),
@@ -195,7 +194,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
 
                   Text(
                     "We've sent a code to",
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 15, color: AppColors.textHint.shade600),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -225,12 +224,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                       onPressed: _isVerifying ? null : verifyOtp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4A90E2),
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.textLight,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledBackgroundColor: AppColors.textHint.shade300,
                       ),
                       child: _isVerifying
                           ? const SizedBox(
@@ -239,7 +238,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  AppColors.textLight,
                                 ),
                               ),
                             )
@@ -290,11 +289,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
       width: 50,
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _controllers[index].text.isEmpty
-              ? Colors.grey.shade300
+              ? AppColors.textHint.shade300
               : const Color(0xFF4A90E2),
           width: 2,
         ),

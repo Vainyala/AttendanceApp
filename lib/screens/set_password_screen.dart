@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/app_styles.dart';
 import 'set_mpin_screen.dart';
 
 class SetPasswordScreen extends StatefulWidget {
@@ -144,16 +146,13 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
           children: [
             Icon(
               isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppStyles.text
               ),
             ),
           ],
@@ -179,18 +178,18 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.textLight,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppColors.textDark.withOpacity(0.05),
                   blurRadius: 10,
                 ),
               ],
             ),
             child: const Icon(
               Icons.arrow_back_ios_new,
-              color: Colors.black87,
+              color: AppColors.textDark,
               size: 18,
             ),
           ),
@@ -229,7 +228,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                     ),
                     child: const Icon(
                       Icons.lock_outline,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       size: 40,
                     ),
                   ),
@@ -248,7 +247,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                     "Set a strong password to secure your account",
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textHint.shade600,
                       height: 1.5,
                     ),
                   ),
@@ -257,9 +256,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                   // Password Field
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: AppColors.textHint.shade200),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
@@ -277,7 +276,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                       ),
                       decoration: InputDecoration(
                         labelText: "New Password",
-                        labelStyle: TextStyle(color: Colors.grey.shade600),
+                        labelStyle: TextStyle(color: AppColors.textHint.shade600),
                         prefixIcon: Container(
                           margin: const EdgeInsets.all(12),
                           padding: const EdgeInsets.all(8),
@@ -296,7 +295,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textHint.shade600,
                           ),
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -315,9 +314,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                   // Confirm Password Field
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textLight,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: AppColors.textHint.shade200),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
@@ -335,7 +334,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                       ),
                       decoration: InputDecoration(
                         labelText: "Confirm Password",
-                        labelStyle: TextStyle(color: Colors.grey.shade600),
+                        labelStyle: TextStyle(color: AppColors.textHint.shade600),
                         prefixIcon: Container(
                           margin: const EdgeInsets.all(12),
                           padding: const EdgeInsets.all(8),
@@ -354,7 +353,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                             _obscureConfirm
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textHint.shade600,
                           ),
                           onPressed: () => setState(
                             () => _obscureConfirm = !_obscureConfirm,
@@ -376,9 +375,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.textLight,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: AppColors.textHint.shade200),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,7 +408,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                             borderRadius: BorderRadius.circular(10),
                             child: LinearProgressIndicator(
                               value: passwordStrength,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: AppColors.textHint.shade200,
                               color: strengthColor,
                               minHeight: 6,
                             ),
@@ -446,12 +445,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                       onPressed: _isSaving ? null : savePassword,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4A90E2),
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.textLight,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledBackgroundColor: AppColors.textHint.shade300,
                       ),
                       child: _isSaving
                           ? const SizedBox(
@@ -460,7 +459,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  AppColors.textLight,
                                 ),
                               ),
                             )
@@ -498,12 +497,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: isMet ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+            color: isMet ? const Color(0xFF4CAF50) : AppColors.textHint.shade300,
             shape: BoxShape.circle,
           ),
           child: Icon(
             isMet ? Icons.check : Icons.close,
-            color: Colors.white,
+            color: AppColors.textLight,
             size: 14,
           ),
         ),
@@ -512,7 +511,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen>
           text,
           style: TextStyle(
             fontSize: 13,
-            color: isMet ? Colors.black87 : Colors.grey.shade600,
+            color: isMet ? Colors.black87 : AppColors.textHint.shade600,
             fontWeight: isMet ? FontWeight.w500 : FontWeight.normal,
           ),
         ),

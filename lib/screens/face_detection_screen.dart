@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
@@ -435,7 +436,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
           padding: EdgeInsets.all(30),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.green.shade400, Colors.green.shade600],
+              colors: [AppColors.success.shade400, AppColors.success.shade600],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -449,13 +450,13 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                 child: Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.check,
                     size: 60,
-                    color: Colors.green.shade600,
+                    color: AppColors.success.shade600,
                   ),
                 ),
               ),
@@ -465,7 +466,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textLight,
                 ),
               ),
               SizedBox(height: 12),
@@ -474,7 +475,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.9),
+                  color: AppColors.textLight.withOpacity(0.9),
                 ),
               ),
               SizedBox(height: 24),
@@ -485,8 +486,8 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                   widget.onVerificationComplete?.call();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.green.shade600,
+                  backgroundColor: AppColors.textLight,
+                  foregroundColor: AppColors.success.shade600,
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -583,7 +584,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
               color: Colors.black.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            child: Icon(Icons.arrow_back, color: AppColors.textLight, size: 20),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -612,16 +613,16 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                       borderRadius: BorderRadius.circular(180),
                       border: Border.all(
                         color: _livenessVerified
-                            ? Colors.green
+                            ? AppColors.success
                             : _faceFittedInFrame
-                            ? Colors.green
-                            : Colors.white.withOpacity(0.6),
+                            ? AppColors.success
+                            : AppColors.textLight.withOpacity(0.6),
                         width: _faceFittedInFrame ? 4 : 3,
                       ),
                       boxShadow: _faceFittedInFrame
                           ? [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.5),
+                          color: AppColors.success.withOpacity(0.5),
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
@@ -640,7 +641,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                 height: 360,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(180),
-                  color: Colors.green.withOpacity(0.2),
+                  color: AppColors.success.withOpacity(0.2),
                 ),
               ),
             ),
@@ -667,7 +668,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                       width: 60,
                       height: 60,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.textLight,
                         strokeWidth: 4,
                       ),
                     ),
@@ -675,7 +676,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                     Text(
                       'Capturing Photo...',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textLight,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -702,7 +703,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
                 width: 60,
                 height: 60,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   strokeWidth: 4,
                 ),
               ),
@@ -710,7 +711,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
               Text(
                 'Initializing Camera...',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textLight,
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
@@ -729,14 +730,14 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: _livenessVerified
-              ? [Colors.green.shade600, Colors.green.shade700]
+              ? [AppColors.success.shade600, AppColors.success.shade700]
               : [Colors.black.withOpacity(0.8), Colors.black.withOpacity(0.9)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: _livenessVerified
-                ? Colors.green.withOpacity(0.5)
+                ? AppColors.success.withOpacity(0.5)
                 : Colors.black.withOpacity(0.3),
             blurRadius: 15,
             spreadRadius: 2,
@@ -747,14 +748,14 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> with TickerPr
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (_livenessVerified)
-            Icon(Icons.check_circle, color: Colors.white, size: 24),
+            Icon(Icons.check_circle, color: AppColors.textLight, size: 24),
           if (_livenessVerified) SizedBox(width: 12),
           Flexible(
             child: Text(
               _instructionText,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textLight,
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
@@ -811,19 +812,19 @@ class _StatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: isActive
             ? LinearGradient(
-          colors: [Colors.green.shade400, Colors.green.shade600],
+          colors: [AppColors.success.shade400, AppColors.success.shade600],
         )
             : null,
-        color: isActive ? null : Colors.white.withOpacity(0.2),
+        color: isActive ? null : AppColors.textLight.withOpacity(0.2),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: isActive ? Colors.green.shade300 : Colors.white.withOpacity(0.3),
+          color: isActive ? AppColors.success.shade300 : AppColors.textLight.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: isActive
             ? [
           BoxShadow(
-            color: Colors.green.withOpacity(0.4),
+            color: AppColors.success.withOpacity(0.4),
             blurRadius: 10,
             spreadRadius: 2,
           ),
@@ -835,14 +836,14 @@ class _StatusPill extends StatelessWidget {
         children: [
           Icon(
             isActive ? Icons.check_circle : icon,
-            color: Colors.white,
+            color: AppColors.textLight,
             size: 18,
           ),
           SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textLight,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),

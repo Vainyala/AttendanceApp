@@ -1,4 +1,5 @@
 // import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 // import 'package:provider/provider.dart';
 // import '../providers/analytics_provider.dart';
 // import '../utils/app_colors.dart';
@@ -33,7 +34,7 @@
 //             },
 //             color: AppColors.primaryBlue,
 //             style: IconButton.styleFrom(
-//               backgroundColor: Colors.white,
+//               backgroundColor: AppColors.textLight,
 //               shape: CircleBorder(),
 //             ),
 //           ),
@@ -53,7 +54,7 @@
 //               child: Container(
 //                 padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
 //                 decoration: BoxDecoration(
-//                   color: Colors.white,
+//                   color: AppColors.textLight,
 //                   borderRadius: BorderRadius.circular(25),
 //                   boxShadow: [
 //                     BoxShadow(
@@ -74,7 +75,7 @@
 //                         style: TextStyle(
 //                           fontSize: 14,
 //                           fontWeight: FontWeight.w600,
-//                           color: Colors.grey.shade800,
+//                           color: AppColors.textHint.shade800,
 //                         ),
 //                         textAlign: TextAlign.center,
 //                         maxLines: 2,
@@ -101,7 +102,7 @@
 //             },
 //             color: AppColors.primaryBlue,
 //             style: IconButton.styleFrom(
-//               backgroundColor: Colors.white,
+//               backgroundColor: AppColors.textLight,
 //               shape: CircleBorder(),
 //             ),
 //           ),

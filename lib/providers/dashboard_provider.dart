@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import '../database/db_helper.dart';
 import '../models/attendance_status.dart';
 import '../models/user_model.dart';

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../services/location_service.dart';
@@ -137,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 30),
+            Icon(Icons.error_outline, color: AppColors.error, size: 30),
             SizedBox(width: 10),
             Text('Notification Expired'),
           ],
@@ -461,20 +462,20 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           ),
           child: Row(
             children: [
-              Icon(Icons.warning, color: Colors.white, size: 24),
+              Icon(Icons.warning, color: AppColors.textLight, size: 24),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Verification Required - Tap to verify',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.arrow_forward, color: Colors.white),
+                icon: Icon(Icons.arrow_forward, color: AppColors.textLight),
                 onPressed: () {
                   final provider = context.read<AppProvider>();
 
@@ -533,11 +534,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           // Profile Image
           CircleAvatar(
             radius: 50, // Increased size
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.textLight,
             child: CircleAvatar(
               radius: 47,
-              backgroundColor: Colors.grey.shade300,
-              child: Icon(Icons.person, size: 55, color: Colors.grey.shade600),
+              backgroundColor: AppColors.textHint.shade300,
+              child: Icon(Icons.person, size: 55, color: AppColors.textHint.shade600),
             ),
           ),
           const SizedBox(height: 15),
@@ -548,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textLight,
             ),
           ),
           const SizedBox(height: 5),
@@ -559,7 +560,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             textAlign: TextAlign.center, // 👈 centers text lines
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.9),
+              color: AppColors.textLight.withOpacity(0.9),
             ),
           ),
         ],
@@ -575,7 +576,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         children: [
           // Left: Menu icon
           IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+            icon: const Icon(Icons.menu, color: AppColors.textLight, size: 26),
             onPressed: () => showProfileMenu(context),
           ),
 
@@ -583,11 +584,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.sync, color: Colors.white, size: 26),
+                icon: const Icon(Icons.sync, color: AppColors.textLight, size: 26),
                 onPressed: () => _showMessage('Sync data with the database'),
               ),
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                icon: const Icon(Icons.notifications_outlined, color: AppColors.textLight, size: 26),
                 onPressed: () => _showMessage('Notifications coming soon'),
               ),
             ],
@@ -606,10 +607,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: AppColors.textLight.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: AppColors.textLight.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -626,8 +627,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   child: Switch(
                     value: provider.trackingEnabled,
                     onChanged: (value) => provider.toggleTracking(value),
-                    activeColor: Colors.green,
-                    activeTrackColor: Colors.green.shade300,
+                    activeColor: AppColors.success,
+                    activeTrackColor: AppColors.success.shade300,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
@@ -724,9 +725,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: AppColors.textHint.shade50,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: AppColors.textHint.shade300),
           ),
           child: Column(
             children: [
@@ -739,7 +740,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
+                        color: AppColors.textHint.shade700,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -750,7 +751,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: AppColors.success,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -772,7 +773,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                        color: AppColors.error,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -802,7 +803,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 ],
               ),
 
-              Divider(height: 20, color: Colors.grey.shade400, thickness: 1.5),
+              Divider(height: 20, color: AppColors.textHint.shade400, thickness: 1.5),
 
               // Data Row
               Row(
@@ -813,7 +814,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
+                        color: AppColors.textHint.shade800,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -824,7 +825,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: AppColors.success,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -846,7 +847,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                        color: AppColors.error,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -886,7 +887,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           height: 220,
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textLight,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -909,12 +910,12 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       PieChartSectionData(
                         value: totalPresent.toDouble(),
                         title: '$totalPresent',
-                        color: Colors.green,
+                        color: AppColors.success,
                         radius: 50,
                         titleStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                         ),
                       ),
                       PieChartSectionData(
@@ -925,18 +926,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                         titleStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                         ),
                       ),
                       PieChartSectionData(
                         value: totalAbsent.toDouble(),
                         title: '$totalAbsent',
-                        color: Colors.red,
+                        color: AppColors.error,
                         radius: 50,
                         titleStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                         ),
                       ),
                       PieChartSectionData(
@@ -947,7 +948,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                         titleStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                         ),
                       ),
                       PieChartSectionData(
@@ -958,7 +959,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                         titleStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textLight,
                         ),
                       ),
                     ],
@@ -975,11 +976,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildPieLegendItem('Present', Colors.green, totalPresent),
+                    _buildPieLegendItem('Present', AppColors.success, totalPresent),
                     SizedBox(height: 8),
                     _buildPieLegendItem('Leave', Colors.orange, totalLeave),
                     SizedBox(height: 8),
-                    _buildPieLegendItem('Absent', Colors.red, totalAbsent),
+                    _buildPieLegendItem('Absent', AppColors.error, totalAbsent),
                     SizedBox(height: 8),
                     _buildPieLegendItem('OnTime', Colors.blue, totalOnTime),
                     SizedBox(height: 8),
@@ -1012,7 +1013,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade700,
+            color: AppColors.textHint.shade700,
           ),
         ),
       ],
@@ -1041,7 +1042,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textLight,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -1063,7 +1064,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                           'Check-in Time',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textHint.shade600,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1072,7 +1073,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                           children: [
                             Icon(
                               Icons.login,
-                              color: Colors.green,
+                              color: AppColors.success,
                               size: 18,
                             ),
                             const SizedBox(width: 6),
@@ -1083,7 +1084,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                                color: AppColors.success,
                               ),
                             ),
                           ],
@@ -1096,7 +1097,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   Container(
                     height: 40,
                     width: 1,
-                    color: Colors.grey.shade300,
+                    color: AppColors.textHint.shade300,
                   ),
 
                   // Right: Countdown Timer (Counts DOWN)
@@ -1108,7 +1109,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                           'Time Remaining',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textHint.shade600,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1119,10 +1120,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                             Icon(
                               Icons.timer,
                               color: _remainingTime!.inMinutes > 60
-                                  ? Colors.green
+                                  ? AppColors.success
                                   : (_remainingTime!.inMinutes > 0
                                   ? Colors.orange
-                                  : Colors.red),
+                                  : AppColors.error),
                               size: 18,
                             ),
                             const SizedBox(width: 6),
@@ -1132,10 +1133,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: _remainingTime!.inMinutes > 60
-                                    ? Colors.green
+                                    ? AppColors.success
                                     : (_remainingTime!.inMinutes > 0
                                     ? Colors.orange
-                                    : Colors.red),
+                                    : AppColors.error),
                               ),
                             ),
                           ],
@@ -1154,8 +1155,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               style: TextStyle(
                 fontSize: 14,
                 color: provider.canCheckIn || provider.canCheckOut
-                    ? Colors.green
-                    : Colors.red,
+                    ? AppColors.success
+                    : AppColors.error,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1277,12 +1278,12 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 // Location
                 Row(
                   children: [
-                    const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    const Icon(Icons.location_on, size: 12, color: AppColors.textHint),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         project.site,
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: 11, color: AppColors.textHint.shade600),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -1349,12 +1350,12 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   Widget _buildProjectDetailRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.grey.shade600, size: 16),
+        Icon(icon, color: AppColors.textHint.shade600, size: 16),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+            style: TextStyle(fontSize: 13, color: AppColors.textHint.shade700),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -1366,7 +1367,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.textHint.shade50,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

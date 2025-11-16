@@ -1,6 +1,7 @@
 
 // providers/attendance_details_provider.dart
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 import '../models/attendance_record.dart';
 import '../models/attendance_stats.dart';
@@ -101,8 +102,7 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 

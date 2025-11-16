@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class StatusUtils {
   static Color getStatusColor(String status) {
     switch (status) {
       case "Approved":
-        return Colors.green;
+        return AppColors.success;
       case "Rejected":
-        return Colors.red;
+        return AppColors.error;
       case "Pending":
         return Colors.orange;
       case "Apply":
@@ -35,16 +36,16 @@ class StatusUtils {
     return Icon(
       getStatusIcon(status),
       size: size,
-      color: Colors.white,
+      color: AppColors.textLight,
     );
   }
 
   static Color getLeaveStatusColor(String status) {
     switch (status) {
       case 'Approved':
-        return Colors.green;
+        return AppColors.success;
       case 'Rejected':
-        return Colors.red;
+        return AppColors.error;
       default:
         return Colors.orange;
     }

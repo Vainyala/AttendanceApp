@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'dart:ui';
 
 // Export Options Sheet
@@ -21,7 +22,7 @@ class ExportOptionsSheet extends StatelessWidget {
             height: 4,
             margin: EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.textHint.shade300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -41,7 +42,7 @@ class ExportOptionsSheet extends StatelessWidget {
             icon: Icons.picture_as_pdf,
             title: 'Export as PDF',
             subtitle: 'Download attendance report',
-            color: Colors.red,
+            color: AppColors.error,
             format: 'PDF',
           ),
           _buildExportOption(
@@ -49,7 +50,7 @@ class ExportOptionsSheet extends StatelessWidget {
             icon: Icons.table_chart,
             title: 'Export as Excel',
             subtitle: 'Download .xlsx file',
-            color: Colors.green,
+            color: AppColors.success,
             format: 'Excel',
           ),
           _buildExportOption(
@@ -103,13 +104,13 @@ class ExportOptionsSheet extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textHint.shade600,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import '../widgets/custom_bars.dart';
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class TimesheetScreen extends StatelessWidget {
   const TimesheetScreen({super.key});
@@ -12,7 +13,7 @@ class TimesheetScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Timesheet'),
           backgroundColor: const Color(0xFF4A90E2),
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.textLight,
           elevation: 0,
         ),
         body: const Center(
@@ -37,7 +38,7 @@ class TimesheetScreen extends StatelessWidget {
                 'Access via bottom menu',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: AppColors.textHint,
                 ),
               ),
             ],

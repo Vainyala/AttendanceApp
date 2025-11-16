@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/splash_provider.dart';
 import 'dashboard_screen.dart';
@@ -46,7 +47,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a role to continue'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -98,7 +99,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     const Icon(
                       Icons.account_circle,
                       size: 80,
-                      color: Colors.white,
+                      color: AppColors.textLight,
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -106,7 +107,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textLight,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -114,7 +115,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       'Choose the role that best describes you',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppColors.textLight.withOpacity(0.9),
                       ),
                     ),
                   ],
@@ -125,7 +126,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
@@ -153,11 +154,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? roleOption.color.withOpacity(0.1)
-                                  : Colors.white,
+                                  : AppColors.textLight,
                               border: Border.all(
                                 color: isSelected
                                     ? roleOption.color
-                                    : Colors.grey.shade300,
+                                    : AppColors.textHint.shade300,
                                 width: isSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(16),
@@ -211,7 +212,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                                           roleOption.description,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: Colors.grey.shade600,
+                                            color: AppColors.textHint.shade600,
                                           ),
                                         ),
                                       ],
@@ -228,7 +229,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                                   else
                                     Icon(
                                       Icons.circle_outlined,
-                                      color: Colors.grey.shade400,
+                                      color: AppColors.textHint.shade400,
                                       size: 28,
                                     ),
                                 ],
@@ -244,7 +245,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
               // Continue Button
               Container(
-                color: Colors.white,
+                color: AppColors.textLight,
                 padding: const EdgeInsets.all(24),
                 child: SizedBox(
                   width: double.infinity,
@@ -253,8 +254,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     onPressed: _isLoading ? null : _proceedToDashboard,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4A90E2),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade400,
+                      foregroundColor: AppColors.textLight,
+                      disabledBackgroundColor: AppColors.textHint.shade400,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -265,7 +266,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.textLight,
                         strokeWidth: 2,
                       ),
                     )
