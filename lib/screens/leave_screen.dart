@@ -20,6 +20,7 @@ import '../utils/leave_utils.dart';
 import '../utils/leave_dialogs.dart';
 
 // Widgets
+import '../widgets/common/leaves_pie_chart.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/custom_card.dart';
 import '../widgets/date_time_utils.dart';
@@ -779,42 +780,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  // ==================== ADD LEAVE BUTTON ====================
-  Widget _buildAddLeaveButton(BuildContext context) {
-    return CustomCard(
-      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.marginLarge),
-      child: InkWell(
-        onTap: () => _showLeaveFormDialog(context),
-        borderRadius: AppStyles.radiusMedium,
-        child: Container(
-          padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingSmall),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.textLight,
-                  size: AppDimensions.iconMedium,
-                ),
-              ),
-              const SizedBox(width: AppDimensions.marginMedium),
-              Text(
-                'Add Leave',
-                style: AppStyles.headingMedium.copyWith(color: AppColors.primaryBlue),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // ==================== BUILD METHOD ====================
   @override
   Widget build(BuildContext context) {
@@ -826,6 +791,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
             currentIndex: 2,
             child: Scaffold(
               backgroundColor: AppColors.background,
+              floatingActionButton: FloatingActionButton(
+                backgroundColor: AppColors.primaryBlue,
+                onPressed: () => _showLeaveFormDialog(context),
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
+              floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
               body: SafeArea(
                 child: Column(
                   children: [
@@ -836,9 +807,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
                         child: Column(
                           children: [
                             _buildLeaveFilters(context),
-                            _buildPieChart(context),
-                            const SizedBox(height: AppDimensions.marginLarge),
-                            _buildAddLeaveButton(context),
+                            LeavePieChartWidget(
+                              data: provider.leaveTypeCount,
+                            ),
                             const SizedBox(height: AppDimensions.marginLarge),
                             _buildLeaveHistoryWithFilter(context),
                             const SizedBox(height: 100),

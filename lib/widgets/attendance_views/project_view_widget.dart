@@ -1,21 +1,21 @@
 // widgets/attendance_views/project_view_widget.dart
 import 'package:AttendanceApp/widgets/attendance_views/project_detail_screen.dart';
 import 'package:flutter/material.dart';
-import '../../models/project_model.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../screens/project_details_screen.dart';
 import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
-import '../../providers/analytics_provider.dart';
+import '../../models/project_model.dart';
 
 class ProjectViewWidget extends StatelessWidget {
   const ProjectViewWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AnalyticsProvider>(
+    return Consumer<AppProvider>(
       builder: (context, provider, child) {
-        final projects = provider.employeeProjects;
+        // Get projects from AppProvider
+        final projects = provider.user?.projects ?? [];
 
         print('🔍 ProjectViewWidget - Projects count: ${projects.length}');
 
@@ -65,14 +65,14 @@ class ProjectViewWidget extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.textHint.shade800,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '(${projects.length})',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textLight,
+                        color: AppColors.textDark,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -90,7 +90,7 @@ class ProjectViewWidget extends StatelessWidget {
 }
 
 class ActiveProjectCard extends StatelessWidget {
-  final Map<String, dynamic> project;
+  final ProjectModel project;
 
   const ActiveProjectCard({
     Key? key,
@@ -101,7 +101,10 @@ class ActiveProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.read<AppProvider>().setSelectedProject(ProjectModel.fromJson(project));
+        // Set the selected project in AppProvider before navigating
+        context.read<AppProvider>().setSelectedProject(project);
+
+        // Navigate to ProjectDetailsScreen
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -113,7 +116,7 @@ class ActiveProjectCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.textHint.shade800,
+          color: AppColors.textLight,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -131,11 +134,11 @@ class ActiveProjectCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    project['name'] ?? 'Project Name',
+                    project.name,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textLight,
+                      color: AppColors.textDark,
                     ),
                   ),
                 ),
@@ -146,7 +149,7 @@ class ActiveProjectCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    project['status'] ?? 'ACTIVE',
+                    'ACTIVE',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -158,19 +161,21 @@ class ActiveProjectCard extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              _getProjectDescription(project['name']),
+              project.description,
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textHint.shade400,
+                color: AppColors.textDark,
                 height: 1.4,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             SizedBox(height: 16),
             Text(
               'Progress',
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textHint.shade400,
+                color: AppColors.textDark,
               ),
             ),
             SizedBox(height: 8),
@@ -179,12 +184,12 @@ class ActiveProjectCard extends StatelessWidget {
                 Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    color: AppColors.textHint.shade700,
+                    color: AppColors.textDark,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
                 FractionallySizedBox(
-                  widthFactor: (project['progress'] ?? 0) / 100,
+                  widthFactor: 0.65, // You can make this dynamic later
                   child: Container(
                     height: 8,
                     decoration: BoxDecoration(
@@ -197,11 +202,11 @@ class ActiveProjectCard extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              '${project['progress'] ?? 0}%',
+              '65%',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textHint.shade400,
+                color: AppColors.textDark,
               ),
             ),
           ],
@@ -209,14 +214,4 @@ class ActiveProjectCard extends StatelessWidget {
       ),
     );
   }
-
-  String _getProjectDescription(String? projectName) {
-    final descriptions = {
-      'E-Commerce Platform': 'Development of new e-commerce platform with modern features',
-      'Mobile App Redesign': 'Redesign of customer mobile application with new UI/UX',
-      'Banking System Upgrade': 'Modernization of legacy banking system with enhanced security',
-    };
-    return descriptions[projectName] ?? 'Project description not available';
-  }
-
 }
