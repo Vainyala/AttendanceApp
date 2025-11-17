@@ -1,6 +1,9 @@
 // widgets/attendance_views/project_view_widget.dart
 import 'package:AttendanceApp/widgets/attendance_views/project_detail_screen.dart';
 import 'package:flutter/material.dart';
+import '../../models/project_model.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../screens/project_details_screen.dart';
 import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/analytics_provider.dart';
@@ -98,10 +101,11 @@ class ActiveProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        context.read<AppProvider>().setSelectedProject(ProjectModel.fromJson(project));
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProjectDetailScreen(project: project),
+            builder: (_) => ProjectDetailsScreen(),
           ),
         );
       },
@@ -200,27 +204,6 @@ class ActiveProjectCard extends StatelessWidget {
                 color: AppColors.textHint.shade400,
               ),
             ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildProjectStatItem(
-                  Icons.group,
-                  '${project['members'] ?? 0} members',
-                  Colors.blue.shade300,
-                ),
-                _buildProjectStatItem(
-                  Icons.task_alt,
-                  '${project['tasks'] ?? 0} tasks',
-                  Colors.orange.shade300,
-                ),
-                _buildProjectStatItem(
-                  Icons.calendar_today,
-                  '${project['daysLeft'] ?? 0} days left',
-                  Colors.purple.shade300,
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -236,19 +219,4 @@ class ActiveProjectCard extends StatelessWidget {
     return descriptions[projectName] ?? 'Project description not available';
   }
 
-  Widget _buildProjectStatItem(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 11,
-            color: AppColors.textHint.shade300,
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -10,7 +10,7 @@ class AppDimensions {
   // Margin
   static const double marginSmall = 8.0;
   static const double marginMedium = 12.0;
-  static const double marginLarge = 16.0;
+  static const double marginLarge = 12.0;
   static const double marginXLarge = 20.0;
 
   // Icon Sizes

@@ -1,14 +1,13 @@
 // providers/attendance_analytics_provider.dart
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
-
 import '../models/analytics_data.dart';
+import '../widgets/date_time_utils.dart';
 
-enum ViewMode { group, person, project }
+enum ViewMode { all, project }
 
 class AnalyticsProvider with ChangeNotifier {
   // View Mode State
-  ViewMode _viewMode = ViewMode.group;
+  ViewMode _viewMode = ViewMode.all;
   ViewMode get viewMode => _viewMode;
 
   // Analytics Mode State
@@ -51,32 +50,26 @@ class AnalyticsProvider with ChangeNotifier {
   List<Map<String, dynamic>> _employeeProjects = [];
   List<Map<String, dynamic>> get employeeProjects => _employeeProjects;
 
-  // Team Summary Data
-  Map<String, dynamic> _teamSummary = {
-    'Days': 50,
-    'present': 35,
-    'leave': 5,
-    'absent': 10,
-    'onTime': 30,
-    'late': 5,
-  };
-  Map<String, dynamic> get teamSummary => _teamSummary;
-
   AnalyticsProvider() {
     _initializeData();
   }
 
   void _initializeData() {
+    print('🚀 Initializing AnalyticsProvider...');
     _generateDummyData();
-    _loadEmployeeProjects();
+    //_loadEmployeeProjects();
+    print('✅ Initialization complete');
   }
 
   void _generateDummyData() {
     print('🔄 Generating dummy data...');
     _dailyData = {
+      'employeeId': 'emp123',
+      'projectId': null,
+      'projectName': null,
       'date': _selectedDate,
-      'checkIn': '09:15 AM',
-      'checkOut': '06:30 PM',
+      'checkIn': '09:15 \nAM',
+      'checkOut': '06:30 \nPM',
       'totalHours': 8.25,
       'requiredHours': 9.0,
       'shortfall': 0.75,
@@ -84,6 +77,9 @@ class AnalyticsProvider with ChangeNotifier {
     };
 
     _weeklyData = {
+      'employeeId': 'emp123',
+      'projectId': null,
+      'projectName': null,
       'totalDays': 7,
       'present': 5,
       'leave': 1,
@@ -93,6 +89,9 @@ class AnalyticsProvider with ChangeNotifier {
     };
 
     _monthlyData = {
+      'employeeId': 'emp123',
+      'projectId': null,
+      'projectName': null,
       'totalDays': 30,
       'present': 22,
       'leave': 3,
@@ -102,6 +101,9 @@ class AnalyticsProvider with ChangeNotifier {
     };
 
     _quarterlyData = {
+      'employeeId': 'emp123',
+      'projectId': null,
+      'projectName': null,
       'totalDays': 90,
       'present': 70,
       'leave': 10,
@@ -109,69 +111,74 @@ class AnalyticsProvider with ChangeNotifier {
       'onTime': 60,
       'late': 20,
     };
+    print('✅ Dummy data generated');
   }
 
-  void _loadEmployeeProjects() {
-    _employeeProjects = [
-      {
-        'id': 'proj1',
-        'name': 'E-Commerce Platform',
-        'status': 'ACTIVE',
-        'progress': 65.0,
-        'members': 8,
-        'tasks': 23,
-        'daysLeft': 45,
-        'teamMembers': ['Amit Kumar', 'Neha Patel', 'Rahul Sharma'],
-        'myTask': 'Frontend Development',
-        'present': 18,
-        'leave': 2,
-        'absent': 1,
-        'onTime': 16,
-        'late': 3,
-      },
-      {
-        'id': 'proj2',
-        'name': 'Mobile App Redesign',
-        'status': 'ACTIVE',
-        'progress': 35.0,
-        'members': 5,
-        'tasks': 12,
-        'daysLeft': 60,
-        'teamMembers': ['Priya Singh', 'Vikram Desai'],
-        'myTask': 'UI/UX Design',
-        'present': 15,
-        'leave': 1,
-        'absent': 0,
-        'onTime': 14,
-        'late': 2,
-      },
-      {
-        'id': 'proj3',
-        'name': 'Banking System Upgrade',
-        'status': 'ACTIVE',
-        'progress': 85.0,
-        'members': 12,
-        'tasks': 45,
-        'daysLeft': 15,
-        'teamMembers': ['Sandeep Gupta', 'Anjali Verma', 'Karan Singh'],
-        'myTask': 'Backend Development',
-        'present': 20,
-        'leave': 3,
-        'absent': 2,
-        'onTime': 18,
-        'late': 4,
-      },
-    ];
-  }
+  // void _loadEmployeeProjects() {
+  //   print('📂 Loading employee projects...');
+  //   _employeeProjects = [
+  //     {
+  //       'id': 'proj1',
+  //       'name': 'E-Commerce Platform',
+  //       'status': 'ACTIVE',
+  //       'progress': 65.0,
+  //       'members': 8,
+  //       'tasks': 23,
+  //       'daysLeft': 45,
+  //       'teamMembers': ['Amit Kumar', 'Neha Patel', 'Rahul Sharma'],
+  //       'myTask': 'Frontend Development',
+  //       'present': 18,
+  //       'leave': 2,
+  //       'absent': 1,
+  //       'onTime': 16,
+  //       'late': 3,
+  //     },
+  //     {
+  //       'id': 'proj2',
+  //       'name': 'Mobile App Redesign',
+  //       'status': 'ACTIVE',
+  //       'progress': 35.0,
+  //       'members': 5,
+  //       'tasks': 12,
+  //       'daysLeft': 60,
+  //       'teamMembers': ['Priya Singh', 'Vikram Desai'],
+  //       'myTask': 'UI/UX Design',
+  //       'present': 15,
+  //       'leave': 1,
+  //       'absent': 0,
+  //       'onTime': 14,
+  //       'late': 2,
+  //     },
+  //     {
+  //       'id': 'proj3',
+  //       'name': 'Banking System Upgrade',
+  //       'status': 'ACTIVE',
+  //       'progress': 85.0,
+  //       'members': 12,
+  //       'tasks': 45,
+  //       'daysLeft': 15,
+  //       'teamMembers': ['Sandeep Gupta', 'Anjali Verma', 'Karan Singh'],
+  //       'myTask': 'Backend Development',
+  //       'present': 20,
+  //       'leave': 3,
+  //       'absent': 2,
+  //       'onTime': 18,
+  //       'late': 4,
+  //     },
+  //   ];
+  //   print('✅ Projects loaded: ${_employeeProjects.length}');
+  // }
 
   // View Mode Methods
   void setViewMode(ViewMode mode) {
+    print('🔄 Setting view mode: $mode');
     _viewMode = mode;
     notifyListeners();
   }
 
   // Analytics Mode Methods
   void setMode(AnalyticsMode mode) {
+    print('🔄 Setting analytics mode: $mode');
     _mode = mode;
     notifyListeners();
   }
@@ -179,7 +186,7 @@ class AnalyticsProvider with ChangeNotifier {
   // Date Selection Methods
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
-    _generateDummyData(); // Regenerate data for new date
+    _generateDummyData();
     notifyListeners();
   }
 
@@ -354,15 +361,18 @@ class AnalyticsProvider with ChangeNotifier {
   String _getMonthLabel(int index) {
     final now = DateTime.now();
     final targetMonth = DateTime(now.year, now.month - index, 1);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    int safeMonth = targetMonth.month - 1;
-    if (safeMonth < 0) safeMonth += 12;
+    // Safe month calculation
+    int monthIndex = targetMonth.month - 1;
+    if (monthIndex < 0) monthIndex = 11; // December
+    if (monthIndex >= DateTimeUtils.months.length) monthIndex = 0; // January
+
+    String monthName = DateTimeUtils.months[monthIndex];
 
     if (index == 0) {
-      return 'Current Month\n(${months[safeMonth]} ${targetMonth.year})';
+      return 'Current Month\n($monthName ${targetMonth.year})';
     } else {
-      return '${months[safeMonth]} ${targetMonth.year}';
+      return '$monthName ${targetMonth.year}';
     }
   }
 
@@ -381,16 +391,19 @@ class AnalyticsProvider with ChangeNotifier {
   }
 
   String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month - 1];
+    int monthIndex = month - 1;
+    if (monthIndex < 0 || monthIndex >= DateTimeUtils.months.length) {
+      return 'Jan'; // Fallback
+    }
+    return DateTimeUtils.months[monthIndex];
   }
 
   // Refresh data method
   Future<void> refreshData() async {
     setLoading(true);
-    await Future.delayed(Duration(seconds: 1)); // Simulate API call
+    await Future.delayed(Duration(seconds: 1));
     _generateDummyData();
-    _loadEmployeeProjects();
+   // _loadEmployeeProjects();
     setLoading(false);
   }
 }

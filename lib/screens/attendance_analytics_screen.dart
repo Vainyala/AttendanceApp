@@ -4,14 +4,10 @@ import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../models/analytics_data.dart';
 import '../providers/analytics_provider.dart';
-import '../providers/analytics_provider.dart';
-import '../providers/dashboard_provider.dart';
-import '../utils/app_colors.dart';
 import '../widgets/month_selection_drawer.dart';
 import '../widgets/quarter_selection_drawer.dart';
 import '../widgets/week_selection_drawer.dart';
 import '../widgets/attendance_views/group_view_widget.dart';
-import '../widgets/attendance_views/person_view_widget.dart';
 import '../widgets/attendance_views/project_view_widget.dart';
 
 class AttendanceAnalyticsScreen extends StatefulWidget {
@@ -24,72 +20,70 @@ class AttendanceAnalyticsScreen extends StatefulWidget {
 }
 
 class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
-  late AnalyticsProvider _provider;
 
   @override
   void initState() {
     super.initState();
-    _provider = AnalyticsProvider();
-    if (widget.preSelectedProjectId != null) {
-      _provider.setProjectId(widget.preSelectedProjectId);
-    }
-  }
-
-  @override
-  void dispose() {
-    _provider.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<AnalyticsProvider>();
+      if (widget.preSelectedProjectId != null) {
+        provider.setProjectId(widget.preSelectedProjectId);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _provider,
-      child: Consumer<AnalyticsProvider>(
-        builder: (context, provider, child) {
-          return Scaffold(
-            backgroundColor: AppColors.primaryBlue,
-            appBar: AppBar(
-              title: Text(
-                'Attendance Analytics',
-                style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold),
-              ),
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              iconTheme: IconThemeData(color: AppColors.textLight),
-            ),
-            body: Column(
-              children: [
-                _ModeSelector(),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.textHint.shade50,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          _DateSelector(),
-                          SizedBox(height: 10),
-                          _TopSummaryBar(),
-                          SizedBox(height: 20),
-                          _ContentView(),
-                          SizedBox(height: 40),
-                        ],
-                      ),
-                    ),
-                  ),
+    print('📱 Building AttendanceAnalyticsScreen');
+    final provider = context.watch<AnalyticsProvider>();
+    print('📊 Current mode: ${provider.mode}');
+    print('👁️ Current view: ${provider.viewMode}');
+    print('📅 Current data: ${provider.getCurrentModeData()}');
+
+    return Scaffold(
+      backgroundColor: AppColors.primaryBlue,
+      appBar: AppBar(
+        title: Text(
+          'Attendance Analytics',
+          style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppColors.textLight),
+      ),
+      body: Column(
+        children: [
+          _ModeSelector(),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.textHint.shade50,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
-              ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 10),
+                    _DateSelector(),
+                    SizedBox(height: 10),
+                    _TopSummaryBar(),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: _ContentView(),
+                    ),
+                    SizedBox(height: 40),
+
+                  ],
+                ),
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -228,36 +222,10 @@ class _TopSummaryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AnalyticsProvider>();
-    final summary = provider.teamSummary;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.textLight,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTopMiniBox("Team", "${summary['team']}", Colors.blue, "100%"),
-              _buildTopMiniBox("Present", "${summary['present']}", AppColors.success, "70%"),
-              _buildTopMiniBox("Leave", "${summary['leave']}", Colors.orange, "10%"),
-              _buildTopMiniBox("Absent", "${summary['absent']}", AppColors.error, "20%"),
-              _buildTopMiniBox("OnTime", "${summary['onTime']}", Colors.teal, "60%"),
-              _buildTopMiniBox("Late", "${summary['late']}", Colors.purple, "10%"),
-            ],
-          ),
-          SizedBox(height: 12),
           Align(
             alignment: Alignment.center,
             child: Container(
@@ -278,21 +246,14 @@ class _TopSummaryBar extends StatelessWidget {
                 children: [
                   _buildIconButton(
                     context,
-                    Icons.group,
-                    provider.viewMode == ViewMode.group,
-                        () => provider.setViewMode(ViewMode.group),
+                    Icons.all_inbox,
+                    provider.viewMode == ViewMode.all,
+                        () => provider.setViewMode(ViewMode.all),
                   ),
-                  SizedBox(width: 10),
+                  SizedBox(width: 15),
                   _buildIconButton(
                     context,
-                    Icons.person,
-                    provider.viewMode == ViewMode.person,
-                        () => provider.setViewMode(ViewMode.person),
-                  ),
-                  SizedBox(width: 10),
-                  _buildIconButton(
-                    context,
-                    Icons.add_circle_outline,
+                    Icons.drive_file_move_sharp,
                     provider.viewMode == ViewMode.project,
                         () => provider.setViewMode(ViewMode.project),
                   ),
@@ -305,50 +266,6 @@ class _TopSummaryBar extends StatelessWidget {
     );
   }
 
-  Widget _buildTopMiniBox(String label, String value, Color color, String percent) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: 2),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.textHint.shade200,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.textHint.shade400,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        SizedBox(height: 2),
-        Text(
-          percent,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildIconButton(
       BuildContext context,
@@ -366,7 +283,7 @@ class _TopSummaryBar extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          size: 18,
+          size: 21,
           color: AppColors.textLight,
         ),
       ),
@@ -403,7 +320,7 @@ class _DateSelector extends StatelessWidget {
               shape: CircleBorder(),
             ),
           ),
-          Expanded(
+          Flexible(
             child: GestureDetector(
               onTap: () {
                 if (provider.mode == AnalyticsMode.daily) {
@@ -554,11 +471,10 @@ class _ContentView extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AnalyticsProvider>();
 
+    // FIXED: Remove SizedBox wrapper, just return the widget directly
     switch (provider.viewMode) {
-      case ViewMode.group:
+      case ViewMode.all:
         return GroupViewWidget();
-      case ViewMode.person:
-        return PersonViewWidget();
       case ViewMode.project:
         return ProjectViewWidget();
       default:
