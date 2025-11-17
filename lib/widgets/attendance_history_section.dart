@@ -1,5 +1,9 @@
 
+import 'package:AttendanceApp/widgets/export_option_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:provider/provider.dart';
+import '../providers/attendance_details_provider.dart';
 import '../utils/app_colors.dart';
 import 'dart:ui';
 import '../models/attendance_record.dart';
@@ -19,23 +23,10 @@ class AttendanceHistorySection extends StatelessWidget {
     required this.onFilterChanged,
   });
 
-  String get _title {
-    switch (periodType) {
-      case 'daily':
-        return 'Daily Attendance History';
-      case 'weekly':
-        return 'Weekly Attendance History';
-      case 'monthly':
-        return 'Monthly Attendance History';
-      case 'quarterly':
-        return 'Quarterly Attendance History';
-      default:
-        return 'Attendance History';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AttendanceDetailsProvider>(context);
     return Container(
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(16),
@@ -54,15 +45,6 @@ class AttendanceHistorySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textHint.shade800,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
             'Attendance History',
             style: TextStyle(
               fontSize: 18,
@@ -75,11 +57,67 @@ class AttendanceHistorySection extends StatelessWidget {
           SizedBox(height: 16),
           _buildTableHeader(),
           SizedBox(height: 8),
-          ...attendanceRecords.map((record) => _buildRecordRow(record)).toList(),
+          if (periodType.toLowerCase() == "quarterly")
+            _buildQuarterlyDownloadBox(context, provider)
+          else
+            ...attendanceRecords.map((record) => _buildRecordRow(record)).toList(),
         ],
       ),
     );
   }
+
+  Widget _buildQuarterlyDownloadBox(
+      BuildContext context,
+      AttendanceDetailsProvider provider
+      ) {
+    return GestureDetector(
+      onTap: () => _showExportOptions(context, provider),
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
+        ),
+        child: SingleChildScrollView(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.download, color: AppColors.primaryBlue, size: 20),
+              SizedBox(width: 8),
+              Text(
+                "Click here to download \nfull attendance history",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
+  void _showExportOptions(BuildContext context, AttendanceDetailsProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => ExportOptionsSheet(
+        onExport: (format) {
+          provider.exportData(format);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
 
   Widget _buildFilters() {
     return SingleChildScrollView(
@@ -138,11 +176,12 @@ class AttendanceHistorySection extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: _buildHeaderText('Date')),
-          Expanded(flex: 2, child: _buildHeaderText('Status')),
-          Expanded(flex: 2, child: _buildHeaderText('Check In')),
-          Expanded(flex: 2, child: _buildHeaderText('Check Out')),
+          Expanded(flex: 1, child: _buildHeaderText('Date')),
+          Expanded(flex: 1, child: _buildHeaderText('Status')),
+          Expanded(flex: 1, child: _buildHeaderText('Check \nIn')),
+          Expanded(flex: 1, child: _buildHeaderText('Check \nOut')),
           Expanded(flex: 1, child: _buildHeaderText('Hours')),
+          Expanded(flex: 1, child: _buildHeaderText('Shortfall')),
         ],
       ),
     );
@@ -171,14 +210,14 @@ class AttendanceHistorySection extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   record.dateFormatted.split('/')[0],
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textHint.shade800,
                   ),
@@ -194,11 +233,11 @@ class AttendanceHistorySection extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _buildStatusBadge(record.status),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Text(
               record.checkIn,
               style: TextStyle(fontSize: 12, color: AppColors.textHint.shade700),
@@ -206,7 +245,7 @@ class AttendanceHistorySection extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Text(
               record.checkOut,
               style: TextStyle(fontSize: 12, color: AppColors.textHint.shade700),
@@ -216,7 +255,7 @@ class AttendanceHistorySection extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Text(
-              record.hours > 0 ? '${record.hours.toStringAsFixed(0)}h ${((record.hours % 1) * 60).toStringAsFixed(0)}m' : '-',
+              record.hours > 0 ? formatHM(record.hours) : "-",
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
@@ -225,9 +264,35 @@ class AttendanceHistorySection extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
+          Expanded(
+            flex: 1,
+            child: Builder(
+              builder: (_) {
+                const required = 9.0; // required hours
+                double shortfall = required - record.hours;
+
+                return Text(
+                  shortfall > 0 ? formatHM(shortfall) : "0h 0m",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: shortfall > 0 ? Colors.red : Colors.green,
+                  ),
+                  textAlign: TextAlign.center,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String formatHM(double hours) {
+    if (hours <= 0) return "-";
+    final h = hours.floor();
+    final m = ((hours % 1) * 60).round();
+    return "${h}h ${m}m";
   }
 
   Widget _buildStatusBadge(String status) {
@@ -237,15 +302,15 @@ class AttendanceHistorySection extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'present':
         color = Color(0xFF4CAF50);
-        label = 'Present';
+        label = 'P';
         break;
       case 'absent':
         color = Color(0xFFE53935);
-        label = 'Absent';
+        label = 'A';
         break;
       case 'late':
         color = Color(0xFFFF9800);
-        label = 'Late';
+        label = 'L';
         break;
       default:
         color = AppColors.textHint;
@@ -261,7 +326,7 @@ class AttendanceHistorySection extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: color,
         ),

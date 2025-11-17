@@ -528,7 +528,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   Widget _buildCenterProfileSection(AppProvider provider) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10), // Added padding to move higher
+      padding: const EdgeInsets.only(top: 2), // Added padding to move higher
       child: Column(
         children: [
           // Profile Image
@@ -541,7 +541,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               child: Icon(Icons.person, size: 55, color: AppColors.textHint.shade600),
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height:5),
 
           // Employee Name
           Text(
@@ -711,7 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  Icons.open_in_full,
+                  Icons.file_open,
                   color: AppColors.primaryBlue,
                   size: 18,
                 ),
@@ -1227,7 +1227,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       child: Text("No projects mapped", style: AppStyles.text),
     )
         : SizedBox(
-      height: 260,
+      height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: provider.user!.projects.length,
@@ -1241,110 +1241,102 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   Widget _buildProjectCard(AppProvider provider, dynamic project) {
     return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Container(
         width: 270,
         margin: const EdgeInsets.only(right: 15, bottom: 10),
-        child: Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Row with Icon + Project Name
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.blue.shade100,
-                      child: Icon(Icons.work, color: Colors.blue.shade700, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        project.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+
+          onTap: () {
+            provider.setSelectedProject(project);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProjectDetailsScreen(),
+              ),
+            );
+          },
+
+          child: Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  // Row with project icon + name + arrow icon
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.blue.shade100,
+                        child: Icon(Icons.work,
+                            color: Colors.blue.shade700, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: Text(
+                          project.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
 
-                // Location
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 12, color: AppColors.textHint),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        project.site,
-                        style: TextStyle(fontSize: 11, color: AppColors.textHint.shade600),
-                        overflow: TextOverflow.ellipsis,
+                      Icon(Icons.arrow_forward_ios,
+                          size: 12, color: Colors.grey),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Location
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on,
+                          size: 12, color: AppColors.textHint),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          project.site,
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textHint.shade600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 20, thickness: 1),
+                    ],
+                  ),
 
-                // Details (Shift, Manager, Email)
-                _buildProjectDetailRow(Icons.access_time, 'Shift: ${project.shift}'),
-                const SizedBox(height: 8),
-                _buildProjectDetailRow(Icons.person, 'Manager: ${project.managerName}'),
-                const SizedBox(height: 8),
-                _buildProjectDetailRow(Icons.email, project.managerEmail),
+                  const Divider(height: 5, thickness: 1),
+                  const SizedBox(height: 5),
+                  // Details
+                  _buildProjectDetailRow(
+                      Icons.access_time, 'Shift: ${project.shift}'),
+                  const SizedBox(height: 5),
 
-                const SizedBox(height: 5),
+                  _buildProjectDetailRow(
+                      Icons.person, 'Manager: ${project.managerName}'),
+                  const SizedBox(height: 5),
 
-                // Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () {
-                          provider.setSelectedProject(project);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ProjectDetailsScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.info_outline, size: 14),
-                        label: const Text('Details', style: TextStyle(fontSize: 12)),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AttendanceAnalyticsScreen(
-                                preSelectedProjectId: project.id,
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.analytics, size: 14),
-                        label: const Text('Analytics', style: TextStyle(fontSize: 12)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  _buildProjectDetailRow(
+                      Icons.email, project.managerEmail),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
 
 
   Widget _buildProjectDetailRow(IconData icon, String text) {
@@ -1379,7 +1371,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           ),
           const Divider(height: 20),
           CustomStatRow(
-            label: 'Monthly Total',
+            label: 'Monthly Avg',
             value: '${provider.monthlyAvgHours.toStringAsFixed(0)} Hrs',
             isGood: provider.monthlyAvgHours >= 160,
           ),

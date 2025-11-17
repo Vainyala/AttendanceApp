@@ -59,18 +59,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
               SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    PeriodTabsWidget(
-                      selectedPeriod: provider.selectedPeriod,
-                      onPeriodChanged: (period) {
-                        provider.changePeriod(
-                          period,
-                          widget.employeeId,
-                          projectId: widget.projectId,
-                        );
-                      },
-                    ),
                     SizedBox(height: 16),
-
                     // Show project filter if provided
                     if (widget.projectId != null && widget.projectName != null)
                       _buildProjectFilterBanner(),
@@ -83,14 +72,10 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                       dateRange: provider.dateRange,
                     ),
                     SizedBox(height: 16),
-                    EmployeeInfoCard(employee: provider.employee),
-                    SizedBox(height: 16),
                     AttendanceOverviewCard(
                       periodType: provider.selectedPeriod,
                       attendanceStats: provider.attendanceStats,
                     ),
-                    SizedBox(height: 16),
-                    AllocatedProjectsCard(projects: provider.allocatedProjects),
                     SizedBox(height: 16),
                     AttendanceHistorySection(
                       periodType: provider.selectedPeriod,
@@ -189,69 +174,38 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
 
   Widget _buildAppBar(BuildContext context, AttendanceDetailsProvider provider) {
     return SliverAppBar(
-      expandedHeight: 70,
+      expandedHeight: 50,
       pinned: true,
       backgroundColor: AppColors.primaryBlue,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: AppColors.textLight),
         onPressed: () => Navigator.pop(context),
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primaryBlue,
-                AppColors.primaryBlue.withOpacity(0.8),
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(60, 20, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    widget.projectId != null
-                        ? 'Project Attendance'
-                        : 'Employee Details',
-                    style: TextStyle(
-                      color: AppColors.textLight,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+
+      title: Text(
+        'Attendance Details',
+        style: TextStyle(
+          color: AppColors.textLight,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
       ),
+
+      centerTitle: false,
+
+      // DOWNLOAD ICON WITH NO SHADOW
       actions: [
-        Container(
-          margin: EdgeInsets.only(right: 16, top: 10),
-          child: ElevatedButton.icon(
-            onPressed: () => _showExportOptions(context, provider),
-            icon: Icon(Icons.file_download, size: 18),
-            label: Text("", style: TextStyle(fontSize: 11)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.textLight.withOpacity(0.2),
-              foregroundColor: AppColors.textLight,
-              elevation: 0,
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+        IconButton(
+          onPressed: () => _showExportOptions(context, provider),
+          icon: Icon(Icons.download, color: AppColors.textLight, size: 24),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
         ),
       ],
+      elevation: 0, // no shadow
     );
   }
+
 
   void _showExportOptions(BuildContext context, AttendanceDetailsProvider provider) {
     showModalBottomSheet(

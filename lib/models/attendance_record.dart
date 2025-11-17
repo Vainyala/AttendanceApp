@@ -1,4 +1,6 @@
 
+import '../widgets/date_time_utils.dart';
+
 class AttendanceRecord {
   final DateTime date;
   final String status;
@@ -16,10 +18,12 @@ class AttendanceRecord {
 
   String get dateFormatted {
     final day = date.day.toString().padLeft(2, '0');
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '$day/${months[date.month - 1]}/${date.year}';
+    final monthName = DateTimeUtils.months[date.month];
+
+    return "$day/$monthName/${date.year}";
   }
+
+
 
   String get dayName {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

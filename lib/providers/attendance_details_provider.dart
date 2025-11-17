@@ -1,5 +1,6 @@
 
 // providers/attendance_details_provider.dart
+import 'package:AttendanceApp/widgets/date_time_utils.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
@@ -102,9 +103,12 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    final day = date.day.toString().padLeft(2, '0');
+    final monthName = DateTimeUtils.months[date.month]; // Example: 1 → January
+
+    return "$day $monthName ${date.year}";
   }
+
 
   void _generateAttendanceData() {
     _attendanceRecords.clear();
@@ -202,10 +206,10 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   EmployeeModel _generateDummyEmployee() {
     return EmployeeModel(
       id: 'EMP001',
-      name: 'Amit Kumar',
-      designation: 'QA Engineer',
-      email: 'amit.kumar@nutantek.com',
-      phone: '+919876543212',
+      name: 'Vainyala Samal',
+      designation: 'Mobile App Dev',
+      email: 'vainyala@nutantek.com',
+      phone: '+911234564555',
       status: 'active',
       avatarUrl: null,
     );

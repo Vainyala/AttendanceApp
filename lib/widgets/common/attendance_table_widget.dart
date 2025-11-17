@@ -14,7 +14,6 @@ class AttendanceTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Null safety check
     if (data.isEmpty) {
       return Container(
         padding: EdgeInsets.all(16),
@@ -44,42 +43,55 @@ class AttendanceTableWidget extends StatelessWidget {
           Row(
             children: isDailyView
                 ? [
-              _buildHeaderText('Check In', AppColors.success),
-              _buildHeaderText('Check Out', AppColors.error),
-              _buildHeaderText('Total Hrs', Colors.blue),
-              _buildHeaderText(
+              _buildHeaderFlexible('Check \nIn', AppColors.success),
+              _buildHeaderFlexible('Check Out', AppColors.error),
+              _buildHeaderFlexible('Total \nHrs', Colors.blue),
+              _buildHeaderFlexible(
                 'Shortfall',
-                (data['hasShortfall'] ?? false) ? AppColors.error : AppColors.success,
+                data['hasShortfall'] ? AppColors.error : AppColors.success,
               ),
+              _buildHeaderFlexible('Status', AppColors.primaryBlue),
             ]
                 : [
-              _buildHeaderText('Days', AppColors.textHint.shade700),
-              _buildHeaderText('P', AppColors.success),
-              _buildHeaderText('L', Colors.orange),
-              _buildHeaderText('A', AppColors.error),
-              _buildHeaderText('OnTime', Colors.blue),
-              _buildHeaderText('Late', Colors.purple),
+              _buildHeaderFlexible('Days', AppColors.textHint.shade700),
+              _buildHeaderFlexible('P', AppColors.success),
+              _buildHeaderFlexible('L', Colors.orange),
+              _buildHeaderFlexible('A', AppColors.error),
+              _buildHeaderFlexible('OnTime', Colors.blue),
+              _buildHeaderFlexible('Late', Colors.purple),
             ],
           ),
+
+
           Divider(height: 20, color: AppColors.textHint.shade400, thickness: 1.5),
+
           Row(
             children: isDailyView
                 ? [
-              _buildDataText(data['checkIn'] ?? 'N/A', AppColors.success),
-              _buildDataText(data['checkOut'] ?? 'N/A', AppColors.error),
-              _buildDataText('${data['totalHours'] ?? 0}h', Colors.blue),
-              _buildDataText(
-                (data['hasShortfall'] ?? false) ? '${data['shortfall'] ?? 0}h' : 'None',
-                (data['hasShortfall'] ?? false) ? AppColors.error : AppColors.success,
+              _buildDataFlexible(data['checkIn'] ?? 'N/A', AppColors.success),
+              _buildDataFlexible(data['checkOut'] ?? 'N/A', AppColors.error),
+              _buildDataFlexible('${data['totalHours'] ?? 0}h', Colors.blue),
+              _buildDataFlexible(
+                (data['hasShortfall'] ?? false)
+                    ? '${data['shortfall'] ?? 0}h'
+                    : 'None',
+                (data['hasShortfall'] ?? false)
+                    ? AppColors.error
+                    : AppColors.success,
+              ),
+              Flexible(
+                child: Center(
+                  child: _buildShortfallIcon(data),
+                ),
               ),
             ]
                 : [
-              _buildDataText('${data['totalDays'] ?? 0}', AppColors.textHint.shade800),
-              _buildDataText('${data['present'] ?? 0}', AppColors.success),
-              _buildDataText('${data['leave'] ?? 0}', Colors.orange),
-              _buildDataText('${data['absent'] ?? 0}', AppColors.error),
-              _buildDataText('${data['onTime'] ?? 0}', Colors.blue),
-              _buildDataText('${data['late'] ?? 0}', Colors.purple),
+              _buildDataFlexible('${data['totalDays'] ?? 0}', AppColors.textHint.shade800),
+              _buildDataFlexible('${data['present'] ?? 0}', AppColors.success),
+              _buildDataFlexible('${data['leave'] ?? 0}', Colors.orange),
+              _buildDataFlexible('${data['absent'] ?? 0}', AppColors.error),
+              _buildDataFlexible('${data['onTime'] ?? 0}', Colors.blue),
+              _buildDataFlexible('${data['late'] ?? 0}', Colors.purple),
             ],
           ),
         ],
@@ -87,27 +99,54 @@ class AttendanceTableWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderText(String text, Color color) => Expanded(
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: color,
+  Widget _buildHeaderFlexible(String text, Color color) {
+    return Flexible(
+      flex: 1,
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _buildDataText(String text, Color color) => Expanded(
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: color,
+  Widget _buildDataFlexible(String text, Color color) {
+    return Flexible(
+      flex: 1,
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: color,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+
+  /// FUNCTION TO SHOW THUMBS UP / DOWN
+  Widget _buildShortfallIcon(Map<String, dynamic> data) {
+    final hasShortfall = data['hasShortfall'] ?? false;
+    final shortfall = (data['shortfall'] ?? 0).toDouble();
+
+    if (!hasShortfall) {
+      return Icon(Icons.thumb_up, color: AppColors.success, size: 15);
+    }
+
+    if (shortfall <= 1) {
+      return Icon(Icons.thumb_up, color: AppColors.success, size: 15);
+    } else {
+      return Icon(Icons.thumb_down, color: AppColors.error, size: 15);
+    }
+  }
 }
