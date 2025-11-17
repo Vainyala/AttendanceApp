@@ -40,6 +40,30 @@ class LeaveProvider extends ChangeNotifier {
     'Paternity Leave',
   ];
 
+  // =================== LEAVE TYPE PIE CHART DATA =====================
+  Map<String, int> get leaveTypeCount {
+    final Map<String, int> counts = {
+      "Casual Leave": 0,
+      "Sick Leave": 0,
+      "Annual Leave": 0,
+      "Emergency Leave": 0,
+      "Maternity Leave": 0,
+      "Paternity Leave": 0,
+    };
+
+    for (var leave in allLeaves) {
+      String type = leave['type'];
+      int days = leave['days'];
+
+      if (counts.containsKey(type)) {
+        counts[type] = counts[type]! + days;
+      }
+    }
+
+    return counts;
+  }
+
+
   final List<String> _statusFilters = ['All', 'Pending', 'Approved', 'Rejected'];
 
   // Dummy leave data

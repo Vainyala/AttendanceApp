@@ -25,6 +25,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   late TabController _tabController;
   bool _isInitialized = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<DateTime> _filteredMonths = [];
 
   @override
   void didChangeDependencies() {
@@ -37,18 +38,48 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
   void _initializeScreen() {
     final provider = context.read<RegularisationProvider>();
-    provider.initializeMonths();
-    provider.loadAttendance();
 
+    // Initialize months WITHOUT triggering notifyListeners during build
+    if (provider.availableMonths.isEmpty) {
+      // Call this after the build completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        provider.initializeMonths();
+        provider.loadAttendance();
+      });
+
+      // Create a temporary filtered list for initial render
+      final now = DateTime.now();
+      _filteredMonths = [
+        DateTime(now.year, now.month - 1),
+        DateTime(now.year, now.month),
+      ];
+    } else {
+      // Filter to only show current and previous month
+      final now = DateTime.now();
+      _filteredMonths = provider.availableMonths.where((month) {
+        final isCurrentMonth = month.month == now.month && month.year == now.year;
+        final prevMonthDate = DateTime(now.year, now.month - 1);
+        final isPreviousMonth = month.month == prevMonthDate.month &&
+            month.year == prevMonthDate.year;
+        return isCurrentMonth || isPreviousMonth;
+      }).toList();
+    }
+
+    // Create TabController with filtered months length
     _tabController = TabController(
-      length: provider.availableMonths.length,
+      length: _filteredMonths.length,
       vsync: this,
-      initialIndex: provider.currentMonthIndex,
+      initialIndex: _filteredMonths.length - 1, // Default to current month
     );
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        provider.setCurrentMonthIndex(_tabController.index);
+        // Find the actual index in the full availableMonths list
+        final selectedMonth = _filteredMonths[_tabController.index];
+        final actualIndex = provider.availableMonths.indexOf(selectedMonth);
+        if (actualIndex != -1) {
+          provider.setCurrentMonthIndex(actualIndex);
+        }
       }
     });
   }
@@ -66,9 +97,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(
-              color: AppColors.primaryBlue,
-            ),
+            decoration: const BoxDecoration(color: AppColors.primaryBlue),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -76,18 +105,23 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   radius: 30,
                   backgroundColor: AppColors.textLight,
                   child: Icon(
-                      Icons.person, size: 35, color: AppColors.primaryBlue),
+                    Icons.person,
+                    size: 35,
+                    color: AppColors.primaryBlue,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'John Doe',
                   style: AppStyles.headingLarge.copyWith(
-                      color: AppColors.textLight),
+                    color: AppColors.textLight,
+                  ),
                 ),
                 Text(
                   'john.doe@company.com',
                   style: AppStyles.text.copyWith(
-                      color: AppColors.textLight.withOpacity(0.9)),
+                    color: AppColors.textLight.withOpacity(0.9),
+                  ),
                 ),
               ],
             ),
@@ -155,7 +189,8 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               Text(
                 'Monthly Overview',
                 style: AppStyles.headingLarge.copyWith(
-                    color: AppColors.textLight),
+                  color: AppColors.textLight,
+                ),
               ),
             ],
           ),
@@ -186,22 +221,34 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             children: [
               Expanded(
                 child: _buildSmallStatCard(
-                    'Apply', stats['Apply'] ?? 0, AppColors.warning),
+                  'Apply',
+                  stats['Apply'] ?? 0,
+                  AppColors.warning,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildSmallStatCard(
-                    'Pending', stats['Pending'] ?? 0, AppColors.warning),
+                  'Pending',
+                  stats['Pending'] ?? 0,
+                  AppColors.warning,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildSmallStatCard(
-                    'Approved', stats['Approved'] ?? 0, AppColors.success),
+                  'Approved',
+                  stats['Approved'] ?? 0,
+                  AppColors.success,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildSmallStatCard(
-                    'Rejected', stats['Rejected'] ?? 0, AppColors.error),
+                  'Rejected',
+                  stats['Rejected'] ?? 0,
+                  AppColors.error,
+                ),
               ),
             ],
           ),
@@ -210,8 +257,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon,
-      Color bgColor) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color bgColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -268,10 +319,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   }
 
   // Regularization Details Dialog
-  void _showRegularisationDetails(String dateStr,
-      DateTime actualDate,
-      List<AttendanceModel> dayRecords,
-      String status,) {
+  void _showRegularisationDetails(
+    String dateStr,
+    DateTime actualDate,
+    List<AttendanceModel> dayRecords,
+    String status,
+  ) {
     final provider = context.read<RegularisationProvider>();
     final projectGroups = provider.getProjectGroups(dayRecords);
     final isEditable = status == 'Apply' || status == 'Rejected';
@@ -298,173 +351,182 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   }
 
   // Project Selection Dialog
-  void _showProjectSelectionDialog(String dateStr,
-      DateTime actualDate,
-      Map<String, List<AttendanceModel>> projectGroups,
-      String status,
-      bool isEditable,) {
+  void _showProjectSelectionDialog(
+    String dateStr,
+    DateTime actualDate,
+    Map<String, List<AttendanceModel>> projectGroups,
+    String status,
+    bool isEditable,
+  ) {
     showDialog(
       context: context,
-      builder: (context) =>
-          Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, color: AppColors.primaryBlue,
-                          size: 22),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  Icon(
+                    Icons.calendar_today,
+                    color: AppColors.primaryBlue,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(dateStr, style: AppStyles.headingLarge),
+                        Text(
+                          DateFormat('EEEE').format(actualDate),
+                          style: AppStyles.text,
+                        ),
+                      ],
+                    ),
+                  ),
+                  StatusBadge(status: status, fontSize: 11),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isEditable
+                    ? 'Select Project to Regularize'
+                    : 'Select Project to View',
+                style: AppStyles.headingLarge,
+              ),
+              const SizedBox(height: 16),
+              ...projectGroups.entries.map((entry) {
+                final projectRecords = entry.value;
+                final checkIn = projectRecords.firstWhere(
+                  (r) => r.type == AttendanceType.checkIn,
+                  orElse: () => projectRecords.first,
+                );
+                final checkOut = projectRecords.lastWhere(
+                  (r) => r.type == AttendanceType.checkOut,
+                  orElse: () => projectRecords.last,
+                );
+
+                final duration = checkOut.timestamp.difference(
+                  checkIn.timestamp,
+                );
+                final hours = duration.inHours;
+                final minutes = duration.inMinutes % 60;
+                final checkInTime = DateFormat(
+                  'hh:mm a',
+                ).format(checkIn.timestamp);
+                final checkOutTime = DateFormat(
+                  'hh:mm a',
+                ).format(checkOut.timestamp);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Material(
+                    color: AppColors.textLight,
+                    borderRadius: BorderRadius.circular(12),
+                    elevation: 1,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showProjectDetailDialog(
+                          dateStr,
+                          actualDate,
+                          entry.key,
+                          projectRecords,
+                          status,
+                          isEditable,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.grey200),
+                        ),
+                        child: Row(
                           children: [
-                            Text(dateStr, style: AppStyles.headingLarge),
-                            Text(
-                              DateFormat('EEEE').format(actualDate),
-                              style: AppStyles.text,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.folder_outlined,
+                                color: AppColors.primaryBlue,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(entry.key, style: AppStyles.heading),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$checkInTime - $checkOutTime',
+                                    style: AppStyles.text.copyWith(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Worked: ${hours}h ${minutes}m',
+                                    style: AppStyles.text.copyWith(
+                                      color: AppColors.primaryBlue,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: AppColors.grey300,
                             ),
                           ],
                         ),
                       ),
-                      StatusBadge(status: status, fontSize: 11),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Select Project to Regularize',
-                    style: AppStyles.headingLarge.copyWith(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ...projectGroups.entries.map((entry) {
-                    final projectRecords = entry.value;
-                    final checkIn = projectRecords.firstWhere(
-                          (r) => r.type == AttendanceType.checkIn,
-                      orElse: () => projectRecords.first,
-                    );
-                    final checkOut = projectRecords.lastWhere(
-                          (r) => r.type == AttendanceType.checkOut,
-                      orElse: () => projectRecords.last,
-                    );
-
-                    final duration = checkOut.timestamp.difference(
-                        checkIn.timestamp);
-                    final hours = duration.inHours;
-                    final minutes = duration.inMinutes % 60;
-                    final checkInTime = DateFormat('hh:mm a').format(
-                        checkIn.timestamp);
-                    final checkOutTime = DateFormat('hh:mm a').format(
-                        checkOut.timestamp);
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: Material(
-                        color: AppColors.textLight,
-                        borderRadius: BorderRadius.circular(12),
-                        elevation: 1,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showProjectDetailDialog(
-                              dateStr,
-                              actualDate,
-                              entry.key,
-                              projectRecords,
-                              status,
-                              isEditable,
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.grey200),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryBlue.withOpacity(
-                                        0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.folder_outlined,
-                                    color: AppColors.primaryBlue,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
-                                    children: [
-                                      Text(entry.key, style: AppStyles.heading),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$checkInTime - $checkOutTime',
-                                        style: AppStyles.text.copyWith(
-                                            fontSize: 12),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Worked: ${hours}h ${minutes}m',
-                                        style: AppStyles.text.copyWith(
-                                          color: AppColors.primaryBlue,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: AppColors.grey300,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
                     ),
                   ),
-                ],
+                );
+              }).toList(),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
               ),
-            ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
   // Project Detail Dialog with Form
-  void _showProjectDetailDialog(String dateStr,
-      DateTime actualDate,
-      String projectName,
-      List<AttendanceModel> projectRecords,
-      String status,
-      bool isEditable,) {
+  void _showProjectDetailDialog(
+    String dateStr,
+    DateTime actualDate,
+    String projectName,
+    List<AttendanceModel> projectRecords,
+    String status,
+    bool isEditable,
+  ) {
     final checkIn = projectRecords.firstWhere(
-          (r) => r.type == AttendanceType.checkIn,
+      (r) => r.type == AttendanceType.checkIn,
       orElse: () => projectRecords.first,
     );
     final checkOut = projectRecords.lastWhere(
-          (r) => r.type == AttendanceType.checkOut,
+      (r) => r.type == AttendanceType.checkOut,
       orElse: () => projectRecords.last,
     );
 
@@ -474,240 +536,229 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
     showDialog(
       context: context,
-      builder: (context) =>
-          StatefulBuilder(
-            builder: (context, setDialogState) =>
-                Dialog(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header
-                          Row(
-                            children: [
-                              const Icon(Icons.edit_calendar,
-                                  color: AppColors.primaryBlue, size: 24),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  isEditable
-                                      ? 'Regularization Request'
-                                      : 'Request Details',
-                                  style: AppStyles.headingLarge,
-                                ),
-                              ),
-                              StatusBadge(status: status, fontSize: 11),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.edit_calendar,
+                        color: AppColors.primaryBlue,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          isEditable
+                              ? 'Regularization Request'
+                              : 'Request Details',
+                          style: AppStyles.headingLarge,
+                        ),
+                      ),
+                      StatusBadge(status: status, fontSize: 11),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                          // Info Cards
-                          InfoCard(
-                            icon: Icons.calendar_today,
-                            label: 'Date',
-                            value: dateStr,
-                            color: AppColors.primaryBlue,
-                          ),
-                          const SizedBox(height: 12),
-                          InfoCard(
-                            icon: Icons.folder_outlined,
-                            label: 'Project',
-                            value: projectName,
-                            color: AppColors.primaryBlue,
-                          ),
-                          const SizedBox(height: 12),
-                          InfoCard(
-                            icon: Icons.login,
-                            label: 'Check-in Time',
-                            value: DateFormat('hh:mm a').format(
-                                checkIn.timestamp),
-                            color: AppColors.success,
-                          ),
-                          const SizedBox(height: 12),
-                          InfoCard(
-                            icon: Icons.logout,
-                            label: 'Check-out Time',
-                            value: DateFormat('hh:mm a').format(
-                                checkOut.timestamp),
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 12),
-                          InfoCard(
-                            icon: Icons.access_time,
-                            label: 'Worked Hours',
-                            value: AppHelpers.formatDuration(
-                              checkOut.timestamp.difference(checkIn.timestamp),
+                  // Info Cards
+                  InfoCard(
+                    icon: Icons.calendar_today,
+                    label: 'Date',
+                    value: dateStr,
+                    color: AppColors.primaryBlue,
+                  ),
+                  const SizedBox(height: 12),
+                  InfoCard(
+                    icon: Icons.folder_outlined,
+                    label: 'Project',
+                    value: projectName,
+                    color: AppColors.primaryBlue,
+                  ),
+                  const SizedBox(height: 12),
+                  InfoCard(
+                    icon: Icons.login,
+                    label: 'Check-in Time',
+                    value: DateFormat('hh:mm a').format(checkIn.timestamp),
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(height: 12),
+                  InfoCard(
+                    icon: Icons.logout,
+                    label: 'Check-out Time',
+                    value: DateFormat('hh:mm a').format(checkOut.timestamp),
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 12),
+                  InfoCard(
+                    icon: Icons.access_time,
+                    label: 'Worked Hours',
+                    value: AppHelpers.formatDuration(
+                      checkOut.timestamp.difference(checkIn.timestamp),
+                    ),
+                    color: AppColors.primaryBlue,
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (isEditable) ...[
+                    // Regularize Time Selection
+                    Text('Shortfall Hours', style: AppStyles.heading),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.grey300),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.schedule,
+                              color: AppColors.primaryBlue,
+                              size: 22,
                             ),
-                            color: AppColors.primaryBlue,
-                          ),
-                          const SizedBox(height: 24),
-
-                          if (isEditable) ...[
-                            // Regularize Time Selection
-                            Text('Shortfall Hours',
-                                style: AppStyles.heading),
-                            const SizedBox(height: 12),
-                            InkWell(
-                              onTap: () async {
-                                final time = await showTimePicker(
-                                  context: context,
-                                  initialTime: selectedTime,
-                                );
-                                if (time != null) {
-                                  setDialogState(() => selectedTime = time);
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.grey50,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.grey300),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.schedule,
-                                        color: AppColors.primaryBlue, size: 22),
-                                    const SizedBox(width: 12),
-                                    Text(selectedTime.format(context),
-                                        style: AppStyles.heading),
-                                    const Spacer(),
-                                    Icon(Icons.edit, size: 18,
-                                        color: AppColors.grey600),
-                                  ],
-                                ),
-                              ),
+                            const SizedBox(width: 12),
+                            Text(
+                              selectedTime.format(context),
+                              style: AppStyles.heading,
                             ),
-                            const SizedBox(height: 20),
-
-                            // Justification
-                            Text('Justification / Reason *',
-                                style: AppStyles.heading),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: justificationController,
-                              maxLines: 4,
-                              decoration: InputDecoration(
-                                hintText: 'Explain the reason for regularization...\n(e.g., Forgot to punch out, System issue, etc.)',
-                                filled: true,
-                                fillColor: AppColors.grey50,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                      color: AppColors.grey300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                      color: AppColors.grey300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.primaryBlue, width: 2),
-                                ),
-                              ),
-                            ),
-                          ] else
-                            ...[
-                              InfoCard(
-                                icon: Icons.schedule,
-                                label: 'Submitted Time',
-                                value: selectedTime.format(context),
-                                color: AppColors.primaryBlue,
-                              ),
-                              const SizedBox(height: 12),
-                              Text('Justification', style: AppStyles.heading),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.grey50,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.grey200),
-                                ),
-                                child: Text(
-                                  'Forgot to check out. Was working till late.',
-                                  style: AppStyles.text.copyWith(height: 1.5),
-                                ),
-                              ),
-                            ],
-
-                          // Manager Comment Section
-                          if (status != 'Apply') ...[
-                            const SizedBox(height: 20),
-                            _buildManagerCommentSection(status, managerComment),
                           ],
-
-                          const SizedBox(height: 24),
-
-                          // Action Buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Text('Close', style: AppStyles.text),
-                                ),
-                              ),
-                              if (isEditable) ...[
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  flex: 2,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      if (justificationController.text
-                                          .trim()
-                                          .isEmpty) {
-                                        AppHelpers.showErrorSnackbar(
-                                          context,
-                                          'Please provide justification',
-                                        );
-                                        return;
-                                      }
-                                      _handleSubmit(
-                                        dateStr,
-                                        projectName,
-                                        selectedTime,
-                                        justificationController.text.trim(),
-                                      );
-                                      Navigator.pop(context);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryBlue,
-                                      foregroundColor: AppColors.textLight,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: Text('Submit Request',
-                                        style: AppStyles.buttonText),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+
+                    // Justification
+                    Text('Justification / Reason *', style: AppStyles.heading),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: justificationController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Explain the reason for regularization...\n(e.g., Forgot to punch out, System issue, etc.)',
+                        filled: true,
+                        fillColor: AppColors.grey50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.grey300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.grey300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    InfoCard(
+                      icon: Icons.schedule,
+                      label: 'Submitted Time',
+                      value: selectedTime.format(context),
+                      color: AppColors.primaryBlue,
+                    ),
+                    const SizedBox(height: 12),
+                    Text('Justification', style: AppStyles.heading),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.grey50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.grey200),
+                      ),
+                      child: Text(
+                        'Forgot to check out. Was working till late.',
+                        style: AppStyles.text.copyWith(height: 1.5),
+                      ),
+                    ),
+                  ],
+
+                  // Manager Comment Section
+                  if (status != 'Apply') ...[
+                    const SizedBox(height: 20),
+                    _buildManagerCommentSection(status, managerComment),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text('Close', style: AppStyles.text),
+                        ),
+                      ),
+                      if (isEditable) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (justificationController.text.trim().isEmpty) {
+                                AppHelpers.showErrorSnackbar(
+                                  context,
+                                  'Please provide justification',
+                                );
+                                return;
+                              }
+                              _handleSubmit(
+                                dateStr,
+                                projectName,
+                                selectedTime,
+                                justificationController.text.trim(),
+                              );
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: AppColors.textLight,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Submit Request',
+                              style: AppStyles.buttonText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ),
+                ],
+              ),
+            ),
           ),
+        ),
+      ),
     );
   }
 
@@ -771,19 +822,18 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            comment,
-            style: AppStyles.text.copyWith(height: 1.4),
-          ),
+          Text(comment, style: AppStyles.text.copyWith(height: 1.4)),
         ],
       ),
     );
   }
 
-  void _handleSubmit(String dateStr,
-      String projectName,
-      TimeOfDay selectedTime,
-      String justification,) {
+  void _handleSubmit(
+    String dateStr,
+    String projectName,
+    TimeOfDay selectedTime,
+    String justification,
+  ) {
     context.read<RegularisationProvider>().submitRegularisation(
       date: dateStr,
       projectName: projectName,
@@ -794,15 +844,19 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
 
     AppHelpers.showSuccessSnackbar(
-        context, 'Regularization request submitted successfully');
+      context,
+      'Regularization request submitted successfully',
+    );
   }
 
-  Widget _buildAttendanceCard(String date,
-      String hours,
-      String shortfall,
-      String status,
-      DateTime actualDate,
-      List<AttendanceModel> dayRecords,) {
+  Widget _buildAttendanceCard(
+    String date,
+    String hours,
+    String shortfall,
+    String status,
+    DateTime actualDate,
+    List<AttendanceModel> dayRecords,
+  ) {
     final provider = context.read<RegularisationProvider>();
     final projectGroups = provider.getProjectGroups(dayRecords);
 
@@ -914,7 +968,9 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                     children: projectGroups.keys.take(3).map((projectName) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryBlue.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
@@ -925,8 +981,11 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.folder, size: 14,
-                                color: AppColors.primaryBlue),
+                            Icon(
+                              Icons.folder,
+                              size: 14,
+                              color: AppColors.primaryBlue,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               projectName,
@@ -998,10 +1057,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
               style: AppStyles.headingLarge.copyWith(color: AppColors.grey600),
             ),
             const SizedBox(height: 8),
-            Text(
-              'No attendance records for this month',
-              style: AppStyles.text,
-            ),
+            Text('No attendance records for this month', style: AppStyles.text),
           ],
         ),
       );
@@ -1048,10 +1104,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
         appBar: AppBar(
           title: const Text(
             'Regularisation',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
           ),
           backgroundColor: AppColors.primaryBlue,
           foregroundColor: AppColors.textLight,
@@ -1064,31 +1117,38 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             preferredSize: const Size.fromHeight(48),
             child: Consumer<RegularisationProvider>(
               builder: (context, provider, _) {
+                // Update filtered months when provider updates
+                if (provider.availableMonths.isNotEmpty) {
+                  final now = DateTime.now();
+                  _filteredMonths = provider.availableMonths.where((month) {
+                    final isCurrentMonth = month.month == now.month && month.year == now.year;
+                    final prevMonthDate = DateTime(now.year, now.month - 1);
+                    final isPreviousMonth = month.month == prevMonthDate.month &&
+                        month.year == prevMonthDate.year;
+                    return isCurrentMonth || isPreviousMonth;
+                  }).toList();
+                }
+
                 return Container(
                   color: AppColors.textLight,
                   child: TabBar(
                     controller: _tabController,
-                    isScrollable: true,
-                    tabAlignment: TabAlignment.start,
+                    isScrollable: false, // Changed to false
+                    tabAlignment: TabAlignment.fill, // Changed to fill
                     indicator: const UnderlineTabIndicator(
                       borderSide: BorderSide(
                         color: AppColors.primaryBlue,
                         width: 3,
                       ),
-                      insets: EdgeInsets.symmetric(horizontal: 16),
                     ),
                     labelColor: AppColors.primaryBlue,
                     unselectedLabelColor: AppColors.grey600,
                     labelStyle: AppStyles.label,
                     unselectedLabelStyle: AppStyles.text,
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 20),
-                    tabs: provider.availableMonths.map((month) {
-                      final isCurrentMonth = month.month == DateTime
-                          .now()
-                          .month &&
-                          month.year == DateTime
-                              .now()
-                              .year;
+                    tabs: _filteredMonths.map((month) {
+                      final isCurrentMonth = month.month == DateTime.now().month &&
+                          month.year == DateTime.now().year;
+
                       return Tab(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -1127,7 +1187,8 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   children: [
                     const CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryBlue),
+                        AppColors.primaryBlue,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text('Loading attendance data...', style: AppStyles.text),
@@ -1147,10 +1208,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                       color: AppColors.error.shade300,
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      'Oops!',
-                      style: AppStyles.headingLarge,
-                    ),
+                    Text('Oops!', style: AppStyles.headingLarge),
                     const SizedBox(height: 8),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -1169,7 +1227,9 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                         backgroundColor: AppColors.primaryBlue,
                         foregroundColor: AppColors.textLight,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1182,7 +1242,7 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
             return TabBarView(
               controller: _tabController,
-              children: provider.availableMonths
+              children: _filteredMonths
                   .map((month) => _buildRecordsList(month))
                   .toList(),
             );
