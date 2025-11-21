@@ -4,7 +4,6 @@ import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/attendance_details_provider.dart';
 import '../utils/app_colors.dart';
-import '../widgets/allocated_pro_cards.dart';
 import '../widgets/attendance_history_section.dart';
 import '../widgets/attendance_overview_card.dart';
 import '../widgets/attendance_widgets.dart';

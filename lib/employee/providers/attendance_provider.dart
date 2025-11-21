@@ -14,7 +14,6 @@ class AttendanceProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   List<Map<String, dynamic>> get attendanceList => _attendanceList;
   String? get errorMessage => _errorMessage;
-
   // Fetch attendance from server and sync with local database
   Future<void> fetchAttendance({bool forceRefresh = false}) async {
     _isLoading = true;
@@ -62,6 +61,8 @@ class AttendanceProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+
 
   // Mark attendance (check-in)
   Future<bool> checkIn({String? location}) async {

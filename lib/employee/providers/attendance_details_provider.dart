@@ -1,9 +1,9 @@
 
 // providers/attendance_details_provider.dart
+import 'package:AttendanceApp/employee/models/attendance_record.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-import '../models/attendance_record.dart';
 import '../models/attendance_stats.dart';
 import '../models/emp_model.dart';
 import '../models/projects_model.dart';
@@ -17,7 +17,7 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   EmployeeModel? _employee;
   AttendanceStats? _attendanceStats;
   List<ProjectsModel> _allocatedProjects = [];
-  List<AttendanceRecord> _attendanceRecords = [];
+  List<AttendanceRecords> _attendanceRecords = [];
   String _dateRange = '';
 
   // Getters
@@ -27,10 +27,10 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   EmployeeModel? get employee => _employee;
   AttendanceStats? get attendanceStats => _attendanceStats;
   List<ProjectsModel> get allocatedProjects => _allocatedProjects;
-  List<AttendanceRecord> get attendanceRecords => _filteredRecords;
+  List<AttendanceRecords> get attendanceRecords => _filteredRecords;
   String get dateRange => _dateRange;
 
-  List<AttendanceRecord> get _filteredRecords {
+  List<AttendanceRecords> get _filteredRecords {
     if (_selectedFilter == 'all') return _attendanceRecords;
     return _attendanceRecords
         .where((record) => record.status.toLowerCase() == _selectedFilter)
@@ -142,7 +142,7 @@ class AttendanceDetailsProvider extends ChangeNotifier {
         hours = 9.0 + (dayNum % 2) * 0.25;
       }
 
-      _attendanceRecords.add(AttendanceRecord(
+      _attendanceRecords.add(AttendanceRecords(
         date: date,
         status: status,
         checkIn: checkIn,

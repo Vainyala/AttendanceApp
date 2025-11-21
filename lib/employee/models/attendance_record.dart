@@ -1,14 +1,14 @@
 
 import '../widgets/date_time_utils.dart';
 
-class AttendanceRecord {
+class AttendanceRecords {
   final DateTime date;
   final String status;
   final String checkIn;
   final String checkOut;
   final double hours;
 
-  AttendanceRecord({
+  AttendanceRecords({
     required this.date,
     required this.status,
     required this.checkIn,

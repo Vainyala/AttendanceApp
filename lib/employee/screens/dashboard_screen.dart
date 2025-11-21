@@ -8,18 +8,14 @@ import '../providers/dashboard_provider.dart';
 import '../services/location_service.dart';
 import '../services/geofencing_service.dart';
 import '../services/notification_service.dart';
-import '../utils/app_colors.dart';
 import '../utils/app_styles.dart';
-import '../widgets/attendance_chart_utils.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custome_stat_row.dart';
 import '../widgets/date_time_utils.dart';
 import '../widgets/menu_drawer.dart';
 import 'package:intl/intl.dart';
-import '../widgets/attendance_graph.dart';
 import 'attendance_analytics_screen.dart';
-import 'attendance_history_screen.dart';
 import 'project_details_screen.dart';
 import 'auth_verification_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -655,8 +651,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDateTimeStatus(provider),
-            const SizedBox(height: 3),
-            _buildLocationToggle(provider),
+            // const SizedBox(height: 3),
+            // _buildLocationToggle(provider),
             const SizedBox(height: 5),
             _buildCheckInOutButtons(provider),
             const SizedBox(height: 20),
@@ -1031,9 +1027,36 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       child: Column(
         children: [
           // Date at top
-          Text(
-            DateTimeUtils.formatDateTime(DateTime.now()),
-            style: AppStyles.time,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // LEFT: Date
+              Text(
+                DateTimeUtils.formatDateTime(DateTime.now()),
+                style: AppStyles.time,
+              ),
+
+              // RIGHT SIDE: Location icon + toggle
+              Row(
+                children: [
+                  Icon(
+                    provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+                    color: Colors.black,
+                    size: 25, // Smaller icon
+                  ),
+                  Transform.scale(
+                    scale: 0.5, // Smaller switch
+                    child: Switch(
+                      value: provider.trackingEnabled,
+                      onChanged: (value) => provider.toggleTracking(value),
+                      activeColor: AppColors.success,
+                      activeTrackColor: AppColors.success.shade300,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
+              )
+            ],
           ),
           const SizedBox(height: 7),
 

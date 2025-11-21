@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/models/attendance_model.dart';
+import 'package:AttendanceApp/manager/models/managermodels/manager_dashboard_model.dart';
 import 'package:AttendanceApp/manager/models/user_model.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../employee/models/attendance_record.dart';
-import '../../models/managermodels/manager_dashboard_model.dart';
-import '../../models/projectmodels/project_models.dart';
+
+import '../../models/project_model.dart';
+import '../../models/team_model.dart';
 import '../../services/managerservices/attendance_service.dart';
 import '../../services/managerservices/project_service.dart';
 import '../../services/managerservices/team_service.dart';

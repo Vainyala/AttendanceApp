@@ -49,6 +49,10 @@ class AnalyticsProvider with ChangeNotifier {
   // Employee Projects Data
   List<Map<String, dynamic>> _employeeProjects = [];
   List<Map<String, dynamic>> get employeeProjects => _employeeProjects;
+  String? _selectedProjectName;
+  String? get selectedProjectName => _selectedProjectName;
+
+  bool get hasProjectSelected => _selectedProjectId != null;
 
   AnalyticsProvider() {
     _initializeData();
@@ -114,62 +118,6 @@ class AnalyticsProvider with ChangeNotifier {
     print('✅ Dummy data generated');
   }
 
-  // void _loadEmployeeProjects() {
-  //   print('📂 Loading employee projects...');
-  //   _employeeProjects = [
-  //     {
-  //       'id': 'proj1',
-  //       'name': 'E-Commerce Platform',
-  //       'status': 'ACTIVE',
-  //       'progress': 65.0,
-  //       'members': 8,
-  //       'tasks': 23,
-  //       'daysLeft': 45,
-  //       'teamMembers': ['Amit Kumar', 'Neha Patel', 'Rahul Sharma'],
-  //       'myTask': 'Frontend Development',
-  //       'present': 18,
-  //       'leave': 2,
-  //       'absent': 1,
-  //       'onTime': 16,
-  //       'late': 3,
-  //     },
-  //     {
-  //       'id': 'proj2',
-  //       'name': 'Mobile App Redesign',
-  //       'status': 'ACTIVE',
-  //       'progress': 35.0,
-  //       'members': 5,
-  //       'tasks': 12,
-  //       'daysLeft': 60,
-  //       'teamMembers': ['Priya Singh', 'Vikram Desai'],
-  //       'myTask': 'UI/UX Design',
-  //       'present': 15,
-  //       'leave': 1,
-  //       'absent': 0,
-  //       'onTime': 14,
-  //       'late': 2,
-  //     },
-  //     {
-  //       'id': 'proj3',
-  //       'name': 'Banking System Upgrade',
-  //       'status': 'ACTIVE',
-  //       'progress': 85.0,
-  //       'members': 12,
-  //       'tasks': 45,
-  //       'daysLeft': 15,
-  //       'teamMembers': ['Sandeep Gupta', 'Anjali Verma', 'Karan Singh'],
-  //       'myTask': 'Backend Development',
-  //       'present': 20,
-  //       'leave': 3,
-  //       'absent': 2,
-  //       'onTime': 18,
-  //       'late': 4,
-  //     },
-  //   ];
-  //   print('✅ Projects loaded: ${_employeeProjects.length}');
-  // }
-
-  // View Mode Methods
   void setViewMode(ViewMode mode) {
     print('🔄 Setting view mode: $mode');
     _viewMode = mode;
@@ -256,9 +204,11 @@ class AnalyticsProvider with ChangeNotifier {
     }
   }
 
-  // Project Selection Methods
-  void setProjectId(String? projectId) {
+  void setProjectId(String? projectId, {String? projectName}) {
+    print('🔄 Setting project: $projectId - $projectName');
     _selectedProjectId = projectId;
+    _selectedProjectName = projectName;
+    _generateDummyDataForProject(projectId);
     notifyListeners();
   }
 
@@ -378,16 +328,101 @@ class AnalyticsProvider with ChangeNotifier {
 
   String _getQuarterLabel(int index) {
     final now = DateTime.now();
-    final currentQuarter = ((now.month - 1) ~/ 3) + 1;
-    final targetQuarter = currentQuarter - index;
-    final year = targetQuarter > 0 ? now.year : now.year - 1;
-    final quarter = targetQuarter > 0 ? targetQuarter : 4 + targetQuarter;
+    int year = now.year;
+
+    // Identify Current Quarter
+    int currentQuarter;
+    if (now.month >= 10) {
+      currentQuarter = 4;
+    } else if (now.month >= 7) {
+      currentQuarter = 3;
+    } else if (now.month >= 4) {
+      currentQuarter = 2;
+    } else {
+      currentQuarter = 1;
+    }
+
+    // Calculate quarter and year
+    int quarter = currentQuarter;
+    int qYear = year;
+
+    if (index == 1) {
+      // previous quarter
+      quarter = currentQuarter - 1;
+
+      if (quarter == 0) {
+        quarter = 4;
+        qYear = year - 1;
+      }
+    }
 
     if (index == 0) {
-      return 'Current Quarter\n(Q$quarter $year)';
+      return "Current Quarter\n(Q$quarter $qYear)";
     } else {
-      return 'Q$quarter $year';
+      return "Q$quarter $qYear";
     }
+  }
+
+
+
+  void clearProjectSelection() {
+    _selectedProjectId = null;
+    _selectedProjectName = null;
+    _generateDummyData();
+    notifyListeners();
+  }
+
+  void _generateDummyDataForProject(String? projectId) {
+    print('🔄 Generating dummy data for project: $projectId');
+    _dailyData = {
+      'employeeId': 'emp123',
+      'projectId': projectId,
+      'projectName': _selectedProjectName,
+      'date': _selectedDate,
+      'checkIn': '08:45 \nAM',
+      'checkOut': '05:30 \nPM',
+      'totalHours': 8.75,
+      'requiredHours': 9.0,
+      'shortfall': 0.25,
+      'hasShortfall': true,
+    };
+
+    _weeklyData = {
+      'employeeId': 'emp123',
+      'projectId': projectId,
+      'projectName': _selectedProjectName,
+      'totalDays': 7,
+      'present': 6,
+      'leave': 0,
+      'absent': 1,
+      'onTime': 5,
+      'late': 1,
+    };
+
+    _monthlyData = {
+      'employeeId': 'emp123',
+      'projectId': projectId,
+      'projectName': _selectedProjectName,
+      'totalDays': 30,
+      'present': 25,
+      'leave': 2,
+      'absent': 3,
+      'onTime': 20,
+      'late': 5,
+    };
+
+    _quarterlyData = {
+      'employeeId': 'emp123',
+      'projectId': projectId,
+      'projectName': _selectedProjectName,
+      'totalDays': 90,
+      'present': 75,
+      'leave': 8,
+      'absent': 7,
+      'onTime': 65,
+      'late': 10,
+    };
+    print('✅ Project-specific dummy data generated');
   }
 
   String _getMonthName(int month) {
@@ -403,7 +438,7 @@ class AnalyticsProvider with ChangeNotifier {
     setLoading(true);
     await Future.delayed(Duration(seconds: 1));
     _generateDummyData();
-   // _loadEmployeeProjects();
+    // _loadEmployeeProjects();
     setLoading(false);
   }
 }

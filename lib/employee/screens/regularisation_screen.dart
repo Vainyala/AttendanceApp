@@ -4,14 +4,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/regularisation_provider.dart';
 import '../models/attendance_model.dart';
-import '../utils/app_colors.dart';
 import '../utils/app_styles.dart';
 import '../utils/app_helpers.dart';
-import '../utils/app_text.dart';
+import '../widgets/attendance_cards.dart';
 import '../widgets/custom_bars.dart';
+import '../widgets/monthly_stats_header.dart';
+import '../widgets/project_selection_dialog.dart';
+import '../widgets/regularisation_detail_dailog.dart';
 import '../widgets/status_badge.dart';
-import '../widgets/info_card.dart';
-import '../widgets/stat_item.dart';
 
 class RegularisationScreen extends StatefulWidget {
   const RegularisationScreen({super.key});
@@ -39,22 +39,18 @@ class _RegularisationScreenState extends State<RegularisationScreen>
   void _initializeScreen() {
     final provider = context.read<RegularisationProvider>();
 
-    // Initialize months WITHOUT triggering notifyListeners during build
     if (provider.availableMonths.isEmpty) {
-      // Call this after the build completes
       WidgetsBinding.instance.addPostFrameCallback((_) {
         provider.initializeMonths();
         provider.loadAttendance();
       });
 
-      // Create a temporary filtered list for initial render
       final now = DateTime.now();
       _filteredMonths = [
         DateTime(now.year, now.month - 1),
         DateTime(now.year, now.month),
       ];
     } else {
-      // Filter to only show current and previous month
       final now = DateTime.now();
       _filteredMonths = provider.availableMonths.where((month) {
         final isCurrentMonth = month.month == now.month && month.year == now.year;
@@ -65,16 +61,14 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       }).toList();
     }
 
-    // Create TabController with filtered months length
     _tabController = TabController(
       length: _filteredMonths.length,
       vsync: this,
-      initialIndex: _filteredMonths.length - 1, // Default to current month
+      initialIndex: _filteredMonths.length - 1,
     );
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        // Find the actual index in the full availableMonths list
         final selectedMonth = _filteredMonths[_tabController.index];
         final actualIndex = provider.availableMonths.indexOf(selectedMonth);
         if (actualIndex != -1) {
@@ -156,177 +150,26 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     );
   }
 
-  // Monthly Statistics Header
-  Widget _buildMonthlyStatsHeader(DateTime month) {
-    final provider = context.read<RegularisationProvider>();
-    final stats = provider.getMonthlyStatistics(month);
-
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primaryBlue,
-            AppColors.primaryBlue.withOpacity(0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(Icons.analytics, color: AppColors.textLight, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'Monthly Overview',
-                style: AppStyles.headingLarge.copyWith(
-                  color: AppColors.textLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Avg. Shortfall',
-                  stats['avgShortfall'] ?? '00:00',
-                  Icons.trending_down,
-                  AppColors.error.shade100,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildStatCard(
-                  'Total Days',
-                  '${stats['totalDays'] ?? 0}',
-                  Icons.calendar_today,
-                  AppColors.success.shade100,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSmallStatCard(
-                  'Apply',
-                  stats['Apply'] ?? 0,
-                  AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSmallStatCard(
-                  'Pending',
-                  stats['Pending'] ?? 0,
-                  AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSmallStatCard(
-                  'Approved',
-                  stats['Approved'] ?? 0,
-                  AppColors.success,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSmallStatCard(
-                  'Rejected',
-                  stats['Rejected'] ?? 0,
-                  AppColors.error,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color bgColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.textLight,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 24),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: AppStyles.headingLarge.copyWith(
-              fontSize: 20,
-              color: AppColors.primaryBlue,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppStyles.text.copyWith(fontSize: 8),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallStatCard(String label, int count, MaterialColor color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      decoration: BoxDecoration(
-        color: AppColors.textLight,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '$count',
-            style: AppStyles.heading.copyWith(
-              color: color.shade700,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppStyles.text.copyWith(fontSize: 10),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Regularization Details Dialog
+  // Show regularisation details with month check
   void _showRegularisationDetails(
-    String dateStr,
-    DateTime actualDate,
-    List<AttendanceModel> dayRecords,
-    String status,
-  ) {
+      String dateStr,
+      DateTime actualDate,
+      List<AttendanceModel> dayRecords,
+      String status,
+      ) {
     final provider = context.read<RegularisationProvider>();
     final projectGroups = provider.getProjectGroups(dayRecords);
+
+    // Check if month is editable
+    final isMonthEditable = provider.isMonthEditable(actualDate);
+
+    // If previous month, show read-only view
+    if (!isMonthEditable) {
+      _showPreviousMonthMessage(dateStr, actualDate, projectGroups, status);
+      return;
+    }
+
+    // Current month logic
     final isEditable = status == 'Apply' || status == 'Rejected';
 
     if (projectGroups.length == 1) {
@@ -350,490 +193,141 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     }
   }
 
-  // Project Selection Dialog
-  void _showProjectSelectionDialog(
-    String dateStr,
-    DateTime actualDate,
-    Map<String, List<AttendanceModel>> projectGroups,
-    String status,
-    bool isEditable,
-  ) {
+  // Show message for previous month
+  void _showPreviousMonthMessage(
+      String dateStr,
+      DateTime actualDate,
+      Map<String, List<AttendanceModel>> projectGroups,
+      String status,
+      ) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: AppColors.primaryBlue,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(dateStr, style: AppStyles.headingLarge),
-                        Text(
-                          DateFormat('EEEE').format(actualDate),
-                          style: AppStyles.text,
-                        ),
-                      ],
-                    ),
-                  ),
-                  StatusBadge(status: status, fontSize: 11),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Text(
-                isEditable
-                    ? 'Select Project to Regularize'
-                    : 'Select Project to View',
-                style: AppStyles.headingLarge,
-              ),
-              const SizedBox(height: 16),
-              ...projectGroups.entries.map((entry) {
-                final projectRecords = entry.value;
-                final checkIn = projectRecords.firstWhere(
-                  (r) => r.type == AttendanceType.checkIn,
-                  orElse: () => projectRecords.first,
-                );
-                final checkOut = projectRecords.lastWhere(
-                  (r) => r.type == AttendanceType.checkOut,
-                  orElse: () => projectRecords.last,
-                );
-
-                final duration = checkOut.timestamp.difference(
-                  checkIn.timestamp,
-                );
-                final hours = duration.inHours;
-                final minutes = duration.inMinutes % 60;
-                final checkInTime = DateFormat(
-                  'hh:mm a',
-                ).format(checkIn.timestamp);
-                final checkOutTime = DateFormat(
-                  'hh:mm a',
-                ).format(checkOut.timestamp);
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Material(
-                    color: AppColors.textLight,
-                    borderRadius: BorderRadius.circular(12),
-                    elevation: 1,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showProjectDetailDialog(
-                          dateStr,
-                          actualDate,
-                          entry.key,
-                          projectRecords,
-                          status,
-                          isEditable,
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.grey200),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryBlue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.folder_outlined,
-                                color: AppColors.primaryBlue,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(entry.key, style: AppStyles.heading),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '$checkInTime - $checkOutTime',
-                                    style: AppStyles.text.copyWith(
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Worked: ${hours}h ${minutes}m',
-                                    style: AppStyles.text.copyWith(
-                                      color: AppColors.primaryBlue,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: AppColors.grey300,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-              ),
-            ],
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: AppColors.warning.shade700),
+            const SizedBox(width: 12),
+            Text('Previous Month', style: AppStyles.headingLarge),
+          ],
         ),
-      ),
-    );
-  }
-
-  // Project Detail Dialog with Form
-  void _showProjectDetailDialog(
-    String dateStr,
-    DateTime actualDate,
-    String projectName,
-    List<AttendanceModel> projectRecords,
-    String status,
-    bool isEditable,
-  ) {
-    final checkIn = projectRecords.firstWhere(
-      (r) => r.type == AttendanceType.checkIn,
-      orElse: () => projectRecords.first,
-    );
-    final checkOut = projectRecords.lastWhere(
-      (r) => r.type == AttendanceType.checkOut,
-      orElse: () => projectRecords.last,
-    );
-
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(checkOut.timestamp);
-    final justificationController = TextEditingController();
-    String managerComment = _getManagerComment(status);
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.edit_calendar,
-                        color: AppColors.primaryBlue,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          isEditable
-                              ? 'Regularization Request'
-                              : 'Request Details',
-                          style: AppStyles.headingLarge,
-                        ),
-                      ),
-                      StatusBadge(status: status, fontSize: 11),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Info Cards
-                  InfoCard(
-                    icon: Icons.calendar_today,
-                    label: 'Date',
-                    value: dateStr,
-                    color: AppColors.primaryBlue,
-                  ),
-                  const SizedBox(height: 12),
-                  InfoCard(
-                    icon: Icons.folder_outlined,
-                    label: 'Project',
-                    value: projectName,
-                    color: AppColors.primaryBlue,
-                  ),
-                  const SizedBox(height: 12),
-                  InfoCard(
-                    icon: Icons.login,
-                    label: 'Check-in Time',
-                    value: DateFormat('hh:mm a').format(checkIn.timestamp),
-                    color: AppColors.success,
-                  ),
-                  const SizedBox(height: 12),
-                  InfoCard(
-                    icon: Icons.logout,
-                    label: 'Check-out Time',
-                    value: DateFormat('hh:mm a').format(checkOut.timestamp),
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 12),
-                  InfoCard(
-                    icon: Icons.access_time,
-                    label: 'Worked Hours',
-                    value: AppHelpers.formatDuration(
-                      checkOut.timestamp.difference(checkIn.timestamp),
-                    ),
-                    color: AppColors.primaryBlue,
-                  ),
-                  const SizedBox(height: 24),
-
-                  if (isEditable) ...[
-                    // Regularize Time Selection
-                    Text('Shortfall Hours', style: AppStyles.heading),
-                    const SizedBox(height: 12),
-                    InkWell(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.grey300),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.schedule,
-                              color: AppColors.primaryBlue,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              selectedTime.format(context),
-                              style: AppStyles.heading,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Justification
-                    Text('Justification / Reason *', style: AppStyles.heading),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: justificationController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        hintText:
-                            'Explain the reason for regularization...\n(e.g., Forgot to punch out, System issue, etc.)',
-                        filled: true,
-                        fillColor: AppColors.grey50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.grey300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.grey300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.primaryBlue,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    InfoCard(
-                      icon: Icons.schedule,
-                      label: 'Submitted Time',
-                      value: selectedTime.format(context),
-                      color: AppColors.primaryBlue,
-                    ),
-                    const SizedBox(height: 12),
-                    Text('Justification', style: AppStyles.heading),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.grey50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.grey200),
-                      ),
-                      child: Text(
-                        'Forgot to check out. Was working till late.',
-                        style: AppStyles.text.copyWith(height: 1.5),
-                      ),
-                    ),
-                  ],
-
-                  // Manager Comment Section
-                  if (status != 'Apply') ...[
-                    const SizedBox(height: 20),
-                    _buildManagerCommentSection(status, managerComment),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Action Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text('Close', style: AppStyles.text),
-                        ),
-                      ),
-                      if (isEditable) ...[
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (justificationController.text.trim().isEmpty) {
-                                AppHelpers.showErrorSnackbar(
-                                  context,
-                                  'Please provide justification',
-                                );
-                                return;
-                              }
-                              _handleSubmit(
-                                dateStr,
-                                projectName,
-                                selectedTime,
-                                justificationController.text.trim(),
-                              );
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryBlue,
-                              foregroundColor: AppColors.textLight,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Submit Request',
-                              style: AppStyles.buttonText,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Date: $dateStr',
+              style: AppStyles.heading.copyWith(color: AppColors.primaryBlue),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.warning.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warning.shade200),
+              ),
+              child: Text(
+                'This record is from a previous month and cannot be edited or applied for regularisation. Only current month records can be regularised.',
+                style: AppStyles.text.copyWith(height: 1.5),
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+            Text('Status: ', style: AppStyles.text),
+            const SizedBox(height: 8),
+            StatusBadge(status: status, fontSize: 12),
+          ],
         ),
-      ),
-    );
-  }
-
-  String _getManagerComment(String status) {
-    if (status == 'Pending') {
-      return 'Your request is under review by the manager.';
-    } else if (status == 'Rejected') {
-      return 'Insufficient justification provided. Please provide more details about the reason for late check-out.';
-    } else if (status == 'Approved') {
-      return 'Request approved successfully. Your attendance hours have been regularized.';
-    }
-    return '';
-  }
-
-  Widget _buildManagerCommentSection(String status, String comment) {
-    Color bgColor, borderColor, iconColor, textColor;
-
-    if (status == 'Approved') {
-      bgColor = AppColors.success.shade50;
-      borderColor = AppColors.success.shade200;
-      iconColor = AppColors.success.shade700;
-      textColor = AppColors.success.shade900;
-    } else if (status == 'Rejected') {
-      bgColor = AppColors.error.shade50;
-      borderColor = AppColors.error.shade200;
-      iconColor = AppColors.error.shade700;
-      textColor = AppColors.error.shade900;
-    } else {
-      bgColor = AppColors.warning.shade50;
-      borderColor = AppColors.warning.shade200;
-      iconColor = AppColors.warning.shade700;
-      textColor = AppColors.warning.shade900;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                status == 'Approved'
-                    ? Icons.check_circle
-                    : status == 'Rejected'
-                    ? Icons.cancel
-                    : Icons.info,
-                color: iconColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Manager Comment',
-                style: AppStyles.heading.copyWith(color: textColor),
-              ),
-            ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
-          const SizedBox(height: 8),
-          Text(comment, style: AppStyles.text.copyWith(height: 1.4)),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              // Show detailed view in read-only mode
+              if (projectGroups.length == 1) {
+                final projectEntry = projectGroups.entries.first;
+                _showProjectDetailDialog(
+                  dateStr,
+                  actualDate,
+                  projectEntry.key,
+                  projectEntry.value,
+                  status,
+                  false, // Read-only
+                );
+              }
+            },
+            icon: const Icon(Icons.visibility),
+            label: const Text('View Details'),
+          ),
         ],
       ),
     );
   }
 
+  // Project Selection Dialog (extracted for reusability)
+  void _showProjectSelectionDialog(
+      String dateStr,
+      DateTime actualDate,
+      Map<String, List<AttendanceModel>> projectGroups,
+      String status,
+      bool isEditable,
+      ) {
+    showDialog(
+      context: context,
+      builder: (context) => ProjectSelectionDialog(
+        dateStr: dateStr,
+        actualDate: actualDate,
+        projectGroups: projectGroups,
+        status: status,
+        isEditable: isEditable,
+        onProjectSelected: (projectName, projectRecords) {
+          Navigator.pop(context);
+          _showProjectDetailDialog(
+            dateStr,
+            actualDate,
+            projectName,
+            projectRecords,
+            status,
+            isEditable,
+          );
+        },
+      ),
+    );
+  }
+
+  // Project Detail Dialog (extracted for reusability)
+  void _showProjectDetailDialog(
+      String dateStr,
+      DateTime actualDate,
+      String projectName,
+      List<AttendanceModel> projectRecords,
+      String status,
+      bool isEditable,
+      ) {
+    showDialog(
+      context: context,
+      builder: (context) => RegularisationDetailDialog(
+        dateStr: dateStr,
+        actualDate: actualDate,
+        projectName: projectName,
+        projectRecords: projectRecords,
+        status: status,
+        isEditable: isEditable,
+        onSubmit: _handleSubmit,
+      ),
+    );
+  }
+
   void _handleSubmit(
-    String dateStr,
-    String projectName,
-    TimeOfDay selectedTime,
-    String justification,
-  ) {
+      String dateStr,
+      String projectName,
+      TimeOfDay selectedTime,
+      String justification,
+      DateTime actualDate,
+      ) {
     context.read<RegularisationProvider>().submitRegularisation(
       date: dateStr,
       projectName: projectName,
@@ -841,181 +335,12 @@ class _RegularisationScreenState extends State<RegularisationScreen>
       type: selectedTime.hour < 12 ? 'AM' : 'PM',
       notes: justification,
       description: '',
+      actualDate: actualDate,
     );
 
     AppHelpers.showSuccessSnackbar(
       context,
       'Regularization request submitted successfully',
-    );
-  }
-
-  Widget _buildAttendanceCard(
-    String date,
-    String hours,
-    String shortfall,
-    String status,
-    DateTime actualDate,
-    List<AttendanceModel> dayRecords,
-  ) {
-    final provider = context.read<RegularisationProvider>();
-    final projectGroups = provider.getProjectGroups(dayRecords);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: AppColors.textLight,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        child: InkWell(
-          onTap: () =>
-              _showRegularisationDetails(date, actualDate, dayRecords, status),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_today,
-                        color: AppColors.primaryBlue,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(date, style: AppStyles.heading),
-                          Text(
-                            DateFormat('EEEE').format(actualDate),
-                            style: AppStyles.text,
-                          ),
-                        ],
-                      ),
-                    ),
-                    StatusBadge(status: status, fontSize: 11),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: StatItem(
-                        icon: Icons.access_time,
-                        label: 'Check-in Hr',
-                        value: hours,
-                        color: AppColors.primaryBlue,
-                      ),
-                    ),
-                    Container(width: 1, height: 40, color: AppColors.grey200),
-                    Expanded(
-                      child: StatItem(
-                        icon: Icons.trending_down,
-                        label: 'Shortfall Hr',
-                        value: shortfall,
-                        color: shortfall == '00:00'
-                            ? AppColors.success
-                            : AppColors.error,
-                      ),
-                    ),
-                    Container(width: 1, height: 40, color: AppColors.grey200),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Column(
-                          children: [
-                            Icon(
-                              status == 'Apply'
-                                  ? Icons.add_circle_outline
-                                  : status == 'Approved'
-                                  ? Icons.check_circle
-                                  : Icons.pending,
-                              size: 20,
-                              color: status == 'Apply'
-                                  ? AppColors.warning
-                                  : status == 'Approved'
-                                  ? AppColors.success
-                                  : AppColors.primaryBlue,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Regularize',
-                              style: AppStyles.text.copyWith(fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (projectGroups.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Divider(height: 1, color: AppColors.grey200),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: projectGroups.keys.take(3).map((projectName) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.primaryBlue.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.folder,
-                              size: 14,
-                              color: AppColors.primaryBlue,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              projectName,
-                              style: AppStyles.text.copyWith(
-                                color: AppColors.primaryBlue,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  if (projectGroups.length > 3) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      '+${projectGroups.length - 3} more projects',
-                      style: AppStyles.text.copyWith(
-                        color: AppColors.grey600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -1065,20 +390,26 @@ class _RegularisationScreenState extends State<RegularisationScreen>
 
     return Column(
       children: [
-        _buildMonthlyStatsHeader(month),
+        MonthlyStatsHeader(month: month),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: allRecords.length,
             itemBuilder: (context, index) {
               final record = allRecords[index];
-              return _buildAttendanceCard(
-                record['date'],
-                record['hours'],
-                record['shortfall'],
-                _getStatusFromRecord(record),
-                record['actualDate'],
-                record['records'],
+              return AttendanceCard(
+                date: record['date'],
+                hours: record['hours'],
+                shortfall: record['shortfall'],
+                status: _getStatusFromRecord(record),
+                actualDate: record['actualDate'],
+                dayRecords: record['records'],
+                onTap: () => _showRegularisationDetails(
+                  record['date'],
+                  record['actualDate'],
+                  record['records'],
+                  _getStatusFromRecord(record),
+                ),
               );
             },
           ),
@@ -1117,7 +448,6 @@ class _RegularisationScreenState extends State<RegularisationScreen>
             preferredSize: const Size.fromHeight(48),
             child: Consumer<RegularisationProvider>(
               builder: (context, provider, _) {
-                // Update filtered months when provider updates
                 if (provider.availableMonths.isNotEmpty) {
                   final now = DateTime.now();
                   _filteredMonths = provider.availableMonths.where((month) {
@@ -1133,8 +463,8 @@ class _RegularisationScreenState extends State<RegularisationScreen>
                   color: AppColors.textLight,
                   child: TabBar(
                     controller: _tabController,
-                    isScrollable: false, // Changed to false
-                    tabAlignment: TabAlignment.fill, // Changed to fill
+                    isScrollable: false,
+                    tabAlignment: TabAlignment.fill,
                     indicator: const UnderlineTabIndicator(
                       borderSide: BorderSide(
                         color: AppColors.primaryBlue,

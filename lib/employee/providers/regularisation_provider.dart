@@ -11,12 +11,26 @@ class RegularisationProvider extends ChangeNotifier {
   int _currentMonthIndex = 0;
   Map<String, Map<String, dynamic>> _monthlyStats = {};
 
+  // NEW: Track applied regularisations
+  Map<String, String> _appliedRegularisations = {}; // Key: "date_projectName", Value: status
+
   // Getters
   List<AttendanceModel> get attendance => _attendance;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<DateTime> get availableMonths => _availableMonths;
   int get currentMonthIndex => _currentMonthIndex;
+
+  // NEW: Check if a month is editable (current month only)
+  bool isMonthEditable(DateTime month) {
+    final now = DateTime.now();
+    return month.year == now.year && month.month == now.month;
+  }
+
+  // NEW: Get applied regularisation key
+  String _getRegularisationKey(DateTime date, String projectName) {
+    return '${DateFormat('yyyy-MM-dd').format(date)}_$projectName';
+  }
 
   // Initialize available months
   void initializeMonths() {
@@ -89,12 +103,10 @@ class RegularisationProvider extends ChangeNotifier {
       final status = getStatusForDay(date, shortfall);
 
       if (stats.containsKey(monthKey)) {
-        // Count status
         if (stats[monthKey]!.containsKey(status)) {
           stats[monthKey]![status] = stats[monthKey]![status]! + 1;
         }
 
-        // Calculate shortfall minutes
         final shortfallParts = shortfall.split(':');
         final shortfallMinutes = int.parse(shortfallParts[0]) * 60 + int.parse(shortfallParts[1]);
 
@@ -104,7 +116,6 @@ class RegularisationProvider extends ChangeNotifier {
       }
     }
 
-    // Calculate average shortfall
     for (var monthKey in stats.keys) {
       final totalDays = stats[monthKey]!['totalDays'] as int;
       final totalShortfallMinutes = stats[monthKey]!['totalShortfallMinutes'] as int;
@@ -159,11 +170,9 @@ class RegularisationProvider extends ChangeNotifier {
         final currentDate = DateTime(month.year, month.month, day);
         final dateKey = DateFormat('yyyy-MM-dd').format(currentDate);
 
-        // Skip Sundays and holidays
         if (currentDate.weekday == DateTime.sunday) continue;
         if (holidays.contains(dateKey)) continue;
 
-        // Determine number of projects for this day (1-3)
         final numProjects = 1 + ((day * month.month) % 3);
         final dayProjects = <String>[];
 
@@ -175,7 +184,6 @@ class RegularisationProvider extends ChangeNotifier {
           }
         }
 
-        // Create variations in work hours
         final dayVariation = (day * 3 + month.month * 7) % 10;
 
         for (int i = 0; i < dayProjects.length; i++) {
@@ -184,21 +192,16 @@ class RegularisationProvider extends ChangeNotifier {
           int workHours;
           int workMinutes;
 
-          // Create realistic shortfalls
           if (dayVariation < 2) {
-            // Major shortfall (2.5-3 hours)
             workHours = 2;
             workMinutes = 30 + ((day + i) % 30);
           } else if (dayVariation < 4) {
-            // Moderate shortfall (3-3.5 hours)
             workHours = 3;
             workMinutes = ((day * i) % 60);
           } else if (dayVariation < 7) {
-            // Minor shortfall (3.5-4 hours)
             workHours = 3;
             workMinutes = 30 + ((day - i) % 30);
           } else {
-            // Near complete or complete hours (4-4.5 hours)
             workHours = 4;
             workMinutes = ((day + month.month + i) % 45);
           }
@@ -287,7 +290,7 @@ class RegularisationProvider extends ChangeNotifier {
     try {
       final parts = clockHours.split(':');
       final workedMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
-      final standardMinutes = 8 * 60; // 8 hours standard
+      final standardMinutes = 8 * 60;
 
       if (workedMinutes >= standardMinutes) return '00:00';
 
@@ -300,11 +303,19 @@ class RegularisationProvider extends ChangeNotifier {
     }
   }
 
-  // Get status for a day
-  String getStatusForDay(DateTime date, String shortfall) {
+  // UPDATED: Get status for a day with applied regularisations
+  String getStatusForDay(DateTime date, String shortfall, {String? projectName}) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
+
+    // Check if regularisation has been applied
+    if (projectName != null) {
+      final key = _getRegularisationKey(date, projectName);
+      if (_appliedRegularisations.containsKey(key)) {
+        return _appliedRegularisations[key]!;
+      }
+    }
 
     // Future dates and today are automatically approved
     if (checkDate.isAtSameMomentAs(today) || checkDate.isAfter(today)) {
@@ -317,15 +328,23 @@ class RegularisationProvider extends ChangeNotifier {
     // Generate pseudo-random status based on date
     final random = (date.day * 3 + date.month * 7) % 20;
 
-    if (random < 5) return 'Apply';      // 25% need to apply
-    if (random < 9) return 'Pending';    // 20% pending
-    if (random < 12) return 'Rejected';  // 15% rejected
-    return 'Approved';                   // 40% approved
+    if (random < 5) return 'Apply';
+    if (random < 9) return 'Pending';
+    if (random < 12) return 'Rejected';
+    return 'Approved';
   }
 
   // Check if record can be edited
   bool canEditRecord(DateTime date, String status) {
     final now = DateTime.now();
+    final recordMonth = DateTime(date.year, date.month);
+    final currentMonth = DateTime(now.year, now.month);
+
+    // Can only edit records in current month
+    if (recordMonth.isBefore(currentMonth)) {
+      return false;
+    }
+
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
 
@@ -384,7 +403,7 @@ class RegularisationProvider extends ChangeNotifier {
     return projectGroups;
   }
 
-  // Submit regularisation request
+  // UPDATED: Submit regularisation request
   Future<void> submitRegularisation({
     required String date,
     required String projectName,
@@ -392,11 +411,15 @@ class RegularisationProvider extends ChangeNotifier {
     required String type,
     required String description,
     required String notes,
+    required DateTime actualDate,
   }) async {
     // Simulate API call
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // In a real app, you would send this to your backend
+    // Mark as applied/pending
+    final key = _getRegularisationKey(actualDate, projectName);
+    _appliedRegularisations[key] = 'Pending';
+
     print('Submitting regularisation:');
     print('Date: $date');
     print('Project: $projectName');
@@ -405,8 +428,10 @@ class RegularisationProvider extends ChangeNotifier {
     print('Description: $description');
     print('Notes: $notes');
 
-    // Reload attendance to reflect changes
-    await loadAttendance();
+    // Recalculate stats
+    _calculateMonthlyStats(_attendance);
+
+    notifyListeners();
   }
 
   // Set current month index

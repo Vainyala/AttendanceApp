@@ -153,63 +153,21 @@ class _LeaveScreenState extends State<LeaveScreen> {
           ),
           child: child!,
         );
+
       },
     );
 
     if (picked != null) {
-      isFromTime ? provider.setFromTime(picked) : provider.setToTime(picked);
+      if (isFromTime) {
+        provider.setFromTime(picked);
+      } else {
+        provider.setToTime(picked);
+      }
+
+      provider.calculateDayType();
     }
   }
 
-  // ==================== PIE CHART ====================
-  Widget _buildPieChart(BuildContext context) {
-    final provider = Provider.of<LeaveProvider>(context);
-
-    return CustomCard(
-      padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
-      child: SizedBox(
-        height: AppDimensions.chartHeight,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 0,
-                  sections: provider.leaveBalance.entries.map((entry) {
-                    return PieChartSectionData(
-                      color: entry.value['color'],
-                      value: entry.value['count'].toDouble(),
-                      title: '',
-                      radius: 80,
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: provider.leaveBalance.entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppDimensions.paddingXSmall),
-                    child: LegendItem(
-                      color: entry.value['color'],
-                      label: entry.key,
-                      count: entry.value['count'],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ==================== DOWNLOAD LEAVE ====================
 
@@ -653,36 +611,39 @@ class _LeaveScreenState extends State<LeaveScreen> {
   Widget _buildLeaveForm(BuildContext context, LeaveProvider provider, Map<String, dynamic>? leave) {
     final formKey = GlobalKey<FormState>();
 
-    return Form(
-      key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDateTimeFields(context, provider),
-          const SizedBox(height: AppDimensions.marginMedium),
-          _buildHalfDayCheckboxes(provider),
-          const SizedBox(height: AppDimensions.paddingXLarge),
-          LeaveTypeDropdown(
-            selectedValue: provider.selectedLeaveType,
-            leaveTypes: provider.leaveTypes,
-            onChanged: (value) {
-              if (value != null) provider.setSelectedLeaveType(value);
-            },
-          ),
-          const SizedBox(height: AppDimensions.paddingXXLarge),
-          _buildJustificationField(provider),
-          const SizedBox(height: 30),
-          SubmitButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                _submitLeave(context);
-              }
-            },
-            isLoading: provider.isLoading,
-          ),
-        ],
+    return SingleChildScrollView(
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDateTimeFields(context, provider),
+            const SizedBox(height: AppDimensions.marginMedium),
+            _buildHalfDayCheckboxes(provider),
+            const SizedBox(height: AppDimensions.paddingXLarge),
+            LeaveTypeDropdown(
+              selectedValue: provider.selectedLeaveType,
+              leaveTypes: provider.leaveTypes,
+              onChanged: (value) {
+                if (value != null) provider.setSelectedLeaveType(value);
+              },
+            ),
+            const SizedBox(height: AppDimensions.paddingXXLarge),
+            _buildJustificationField(provider),
+            const SizedBox(height: 30),
+            SubmitButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  _submitLeave(context);
+                }
+              },
+              isLoading: provider.isLoading,
+            ),
+          ],
+        ),
       ),
     );
+
   }
 
   Widget _buildDateTimeFields(BuildContext context, LeaveProvider provider) {
@@ -690,16 +651,20 @@ class _LeaveScreenState extends State<LeaveScreen> {
       children: [
         Row(
           children: [
-            CustomDateField(
-              label: 'From Date',
-              value: DateFormattingUtils.formatDate(provider.fromDate),
-              onTap: () => _selectDate(context, true),
+            Expanded(
+              child: CustomDateField(
+                label: 'From Date',
+                value: DateFormattingUtils.formatDate(provider.fromDate),
+                onTap: () => _selectDate(context, true),
+              ),
             ),
             const SizedBox(width: AppDimensions.marginLarge),
-            CustomDateField(
-              label: 'To Date',
-              value: DateFormattingUtils.formatDate(provider.toDate),
-              onTap: () => _selectDate(context, false),
+            Expanded(
+              child: CustomDateField(
+                label: 'To Date',
+                value: DateFormattingUtils.formatDate(provider.toDate),
+                onTap: () => _selectDate(context, false),
+              ),
             ),
           ],
         ),
@@ -727,13 +692,32 @@ class _LeaveScreenState extends State<LeaveScreen> {
         Expanded(
           child: HalfDayCheckbox(
             value: provider.isHalfDayFrom,
-            onChanged: (value) => provider.setIsHalfDayFrom(value ?? false),
+            onChanged: (value) {
+              provider.setIsHalfDayFrom(value ?? false);
+
+              if (value == true) {
+                provider.setFromTime(TimeOfDay(hour: 9, minute: 30));
+                provider.setToTime(TimeOfDay(hour: 13, minute: 30));
+              }
+
+              provider.notifyListeners();
+            },
           ),
         ),
         Expanded(
           child: HalfDayCheckbox(
             value: provider.isHalfDayTo,
-            onChanged: (value) => provider.setIsHalfDayTo(value ?? false),
+            onChanged: (value) {
+              provider.setIsHalfDayTo(value ?? false);
+
+              if (value == true) {
+                provider.setFromTime(TimeOfDay(hour: 13, minute: 30));
+                provider.setToTime(TimeOfDay(hour: 18, minute: 30));
+              }
+
+              provider.notifyListeners();
+            },
+
           ),
         ),
       ],

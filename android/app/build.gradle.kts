@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.nic.AttendanceApp"
+    namespace = "com.nic.Attendance"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.nic.attendanceapp"
+        applicationId = "com.nic.Attendance"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

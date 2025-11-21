@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../manager/view_models/auth_view_model.dart';
 import '../../role_selection_screen.dart';
 import '../utils/app_colors.dart';
 import 'package:flutter/services.dart';
@@ -31,8 +32,24 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      // ✅ Test login
-      if (email == 'vainyala@nutantek.com' && password == '123456') {
+      if ((email == 'vainyala@nutantek.com' && password == '123456') ||
+          (email == 'manager1@nutantek.com' && password == 'manager123')) {
+        final authVM = context.read<AuthViewModel>();
+
+        if (email == 'vainyala@nutantek.com' && password == '123456') {
+          authVM.setCurrentUser(
+              email: email,
+              role: "Employee"
+          );
+        }
+
+        if (email == 'manager1@nutantek.com' && password == 'manager123') {
+          authVM.setCurrentUser(
+              email: email,
+              role: "Manager"
+          );
+        }
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),

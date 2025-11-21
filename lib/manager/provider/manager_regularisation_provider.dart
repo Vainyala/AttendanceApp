@@ -1,7 +1,7 @@
 // providers/manager_regularisation_provider.dart
+import 'package:AttendanceApp/manager/services/projectservices/project_service.dart';
 import 'package:flutter/material.dart';
 
-import '../services/managerservices/project_service.dart';
 import '../services/regularisationservices/manager_regularisation_service.dart';
 import '../view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
 

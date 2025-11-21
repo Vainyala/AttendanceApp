@@ -382,15 +382,11 @@ class ProjectService {
   }
 
   Future<List<Project>> getProjects() async {
-    await Future.delayed(
-      const Duration(milliseconds: 500),
-    ); // Simulate API call
     return _projects;
   }
 
-  // ✅ NEW METHOD ADDED - getProjectsSync
-  List<Project> getProjectsSync() {
-    return List<Project>.from(_projects); // Return a copy of the list
+  List<Project> getProjectSync() {
+    return List<Project>.from(_projects);
   }
 
   Future<List<TeamMember>> getAvailableTeam() async {
@@ -458,6 +454,8 @@ class ProjectService {
     _projects.removeWhere((p) => p.id == projectId);
   }
 }
+
+
 
 // import 'package:attendanceapp/models/projectmodels/project_models.dart';
 // import 'package:attendanceapp/models/team_model.dart';
