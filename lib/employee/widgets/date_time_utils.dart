@@ -89,6 +89,8 @@ class CustomDateField extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,

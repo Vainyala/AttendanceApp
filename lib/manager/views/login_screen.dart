@@ -984,6 +984,8 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
+
+
 // import 'package:attendanceapp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
@@ -1906,8 +1908,7 @@ class _LoginScreenState extends State<LoginScreen>
 /* ###################################################################################################################
 
 ************************************                   A I S C R E E N C O D E              **************************
-
-##################################################################################################################### */
+############################ */
 
 // import 'dart:math';
 // import 'dart:ui';

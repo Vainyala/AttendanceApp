@@ -1,5 +1,6 @@
 import '../attendance_model.dart'; // Import existing AttendanceRecord
 
+
 class EmployeeDetails {
   final String id;
   final String name;

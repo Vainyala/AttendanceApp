@@ -1,9 +1,9 @@
 // screens/attendance_analytics_screen.dart
+import 'package:AttendanceApp/employee/providers/analytics_provider.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../models/analytics_data.dart';
-import '../providers/analytics_provider.dart';
 import '../widgets/month_selection_drawer.dart';
 import '../widgets/quarter_selection_drawer.dart';
 import '../widgets/week_selection_drawer.dart';
@@ -226,6 +226,7 @@ class _TopSummaryBar extends StatelessWidget {
     return Container(
       child: Column(
         children: [
+          // Icon buttons row
           Align(
             alignment: Alignment.center,
             child: Container(
@@ -248,24 +249,63 @@ class _TopSummaryBar extends StatelessWidget {
                     context,
                     Icons.all_inbox,
                     provider.viewMode == ViewMode.all,
-                        () => provider.setViewMode(ViewMode.all),
+                        () {
+                      provider.clearProjectSelection();
+                      provider.setViewMode(ViewMode.all);
+                    },
                   ),
-                  SizedBox(width: 15),
-                  _buildIconButton(
-                    context,
-                    Icons.drive_file_move_sharp,
-                    provider.viewMode == ViewMode.project,
-                        () => provider.setViewMode(ViewMode.project),
-                  ),
+                  // Only show project icon if no project is selected
+                  if (!provider.hasProjectSelected) ...[
+                    SizedBox(width: 15),
+                    _buildIconButton(
+                      context,
+                      Icons.drive_file_move_sharp,
+                      provider.viewMode == ViewMode.project,
+                          () => provider.setViewMode(ViewMode.project),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
+          // Show selected project name
+          if (provider.hasProjectSelected) ...[
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.work_outline,
+                    size: 18,
+                    color: AppColors.primaryBlue,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    provider.selectedProjectName ?? 'Project',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
-
 
   Widget _buildIconButton(
       BuildContext context,

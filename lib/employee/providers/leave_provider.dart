@@ -160,6 +160,9 @@ class LeaveProvider extends ChangeNotifier {
     }).toList()..sort((a, b) => b['appliedOn'].compareTo(a['appliedOn']));
   }
 
+
+
+
   bool canCancelPartialLeave(Map<String, dynamic> leave) {
     final now = DateTime.now();
     final fromDate = leave['fromDate'] as DateTime;
@@ -372,6 +375,31 @@ class LeaveProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void calculateDayType() {
+    final from = DateTime(2025, 1, 1, fromTime.hour, fromTime.minute);
+    final to = DateTime(2025, 1, 1, toTime.hour, toTime.minute);
+
+    final difference = to.difference(from).inHours;
+
+    if (difference >= 8) {
+      // FULL DAY
+      setIsHalfDayFrom(false);
+      setIsHalfDayTo(false);
+    }
+    else if (difference >= 4) {
+      // HALF DAY (FIRST HALF)
+      setIsHalfDayFrom(true);
+      setIsHalfDayTo(false);
+    }
+    else {
+      // HALF DAY (SECOND HALF)
+      setIsHalfDayFrom(false);
+      setIsHalfDayTo(true);
+    }
+  }
+
+
   void updateLeaveDay(String leaveId, DateTime date, bool isHalfDay) {
     // Update specific day in the leave record
     // This persists to your backend

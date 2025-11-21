@@ -1,4 +1,5 @@
 // widgets/attendance_views/project_view_widget.dart
+import 'package:AttendanceApp/employee/providers/analytics_provider.dart';
 import 'package:flutter/material.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../screens/project_details_screen.dart';
@@ -97,19 +98,19 @@ class ActiveProjectCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Set the selected project in AppProvider before navigating
-        context.read<AppProvider>().setSelectedProject(project);
+        // Get the analytics provider
+        final analyticsProvider = context.read<AnalyticsProvider>();
 
-        // Navigate to ProjectDetailsScreen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProjectDetailsScreen(),
-          ),
-        );
+        // Set the selected project with name
+        analyticsProvider.setProjectId(project.id, projectName: project.name);
+        analyticsProvider.setViewMode(ViewMode.all);
+
+        // Pop back to attendance analytics screen
+        Navigator.pop(context);
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
@@ -188,7 +189,7 @@ class ActiveProjectCard extends StatelessWidget {
                   ),
                 ),
                 FractionallySizedBox(
-                  widthFactor: 0.65, // You can make this dynamic later
+                  widthFactor: 0.65,
                   child: Container(
                     height: 8,
                     decoration: BoxDecoration(

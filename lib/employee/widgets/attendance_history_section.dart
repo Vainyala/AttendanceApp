@@ -11,7 +11,7 @@ import 'export_option_sheet.dart';
 // Attendance History Section
 class AttendanceHistorySection extends StatelessWidget {
   final String periodType;
-  final List<AttendanceRecord> attendanceRecords;
+  final List<AttendanceRecords> attendanceRecords;
   final String selectedFilter;
   final Function(String) onFilterChanged;
 
@@ -199,7 +199,7 @@ class AttendanceHistorySection extends StatelessWidget {
     );
   }
 
-  Widget _buildRecordRow(AttendanceRecord record) {
+  Widget _buildRecordRow(AttendanceRecords record) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(

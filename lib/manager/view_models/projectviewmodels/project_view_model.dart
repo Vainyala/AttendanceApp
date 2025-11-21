@@ -3,8 +3,9 @@ import 'dart:ui';
 import 'package:AttendanceApp/manager/models/team_model.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../core/view_models/theme_view_model.dart';
 import '../../models/projectmodels/project_models.dart';
-import '../../services/managerservices/project_service.dart';
+import '../../services/projectservices/project_service.dart';
 
 class ProjectViewModel with ChangeNotifier {
   final ProjectService _service = ProjectService();

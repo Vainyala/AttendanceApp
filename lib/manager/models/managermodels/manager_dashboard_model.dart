@@ -1,7 +1,8 @@
+import 'package:AttendanceApp/manager/models/attendance_model.dart';
 import 'package:AttendanceApp/manager/models/user_model.dart';
 
 import '../../../employee/models/attendance_record.dart';
-import '../projectmodels/project_models.dart';
+import '../project_model.dart';
 import '../team_model.dart';
 
 class ManagerDashboard {
@@ -91,56 +92,3 @@ class DashboardStats {
   }
 }
 
-// import 'package:attendanceapp/models/attendance_model.dart';
-// import 'package:attendanceapp/models/project_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/models/user_model.dart';
-
-// class ManagerDashboard {
-//   final User profile;
-//   final List<AttendanceRecord> teamAttendance;
-//   final List<TeamMember> teamMembers;
-//   final List<Project> projects;
-//   final DateTime currentDateTime;
-//   final WorkingHours workingHours;
-
-//   ManagerDashboard({
-//     required this.profile,
-//     required this.teamAttendance,
-//     required this.teamMembers,
-//     required this.projects,
-//     required this.currentDateTime,
-//     required this.workingHours,
-//   });
-// }
-
-// class WorkingHours {
-//   final DateTime? checkIn;
-//   final DateTime? checkOut;
-//   final Duration workedDuration;
-//   final bool isCheckedIn;
-
-//   WorkingHours({
-//     this.checkIn,
-//     this.checkOut,
-//     required this.workedDuration,
-//     required this.isCheckedIn,
-//   });
-
-//   Duration get remainingTime => const Duration(hours: 9) - workedDuration;
-//   bool get canCheckOut => workedDuration >= const Duration(hours: 9);
-// }
-
-// class DashboardStats {
-//   final int totalTeamMembers;
-//   final int presentToday;
-//   final int activeProjects;
-//   final int pendingLeaves;
-
-//   DashboardStats({
-//     required this.totalTeamMembers,
-//     required this.presentToday,
-//     required this.activeProjects,
-//     required this.pendingLeaves,
-//   });
-// }
