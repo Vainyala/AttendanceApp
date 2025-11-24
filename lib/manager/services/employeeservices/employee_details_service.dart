@@ -1,8 +1,6 @@
-
-
-import '../../models/attendance_model.dart';
-import '../../models/employeemodels/employee_details_model.dart';
-import '../../models/team_model.dart';
+import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:attendanceapp/manager/models/employeemodels/employee_details_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class EmployeeDetailsService {
   Future<EmployeeDetails> getEmployeeDetails(TeamMember member) async {

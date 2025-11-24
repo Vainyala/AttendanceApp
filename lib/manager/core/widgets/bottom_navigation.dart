@@ -1,6 +1,5 @@
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../view_models/theme_view_model.dart';
 
 class ManagerBottomNavigation extends StatelessWidget {
   final int currentIndex;

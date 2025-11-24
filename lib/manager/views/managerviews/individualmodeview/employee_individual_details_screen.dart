@@ -1,13 +1,12 @@
-import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/widgets/analytics/individualmodeanalytics/EmployeeAttendanceDownloadButton.dart';
+import 'package:attendanceapp/manager/widgets/employee/attendance_history_list.dart';
 import 'package:flutter/material.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:attendanceapp/manager/widgets/analytics/period_selector.dart';
 import 'package:provider/provider.dart';
-
-import '../../../core/view_models/theme_view_model.dart';
-import '../../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-import '../../../view_models/employeeviewmodels/employee_details_view_model.dart';
-import '../../../widgets/analytics/individualmodeanalytics/EmployeeAttendanceDownloadButton.dart';
-import '../../../widgets/analytics/period_selector.dart';
-import '../../../widgets/employee/attendance_history_list.dart';
 
 class EmployeeIndividualDetailsScreen extends StatefulWidget {
   final TeamMember employee;

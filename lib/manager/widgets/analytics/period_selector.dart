@@ -1,9 +1,7 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 class PeriodSelector extends StatefulWidget {
   final AttendanceAnalyticsViewModel viewModel;

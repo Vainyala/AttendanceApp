@@ -1,10 +1,9 @@
-import 'package:AttendanceApp/manager/models/attendancemodels/attendance_analytics_model.dart';
-import 'package:AttendanceApp/manager/services/attendanceservices/attendance_analytics_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:attendanceapp/manager/models/attendancemodels/attendance_analytics_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/services/attendanceservices/attendance_analytics_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../../models/team_model.dart';
 
 class AttendanceAnalyticsViewModel with ChangeNotifier {
   final AttendanceAnalyticsService _service = AttendanceAnalyticsService();

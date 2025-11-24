@@ -1,8 +1,7 @@
 // widgets/project_graph.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-import '../../view_models/projectviewmodels/project_analytics_view_model.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_analytics_view_model.dart';
 
 class ProjectGraph extends StatefulWidget {
   final ProjectAnalyticsViewModel viewModel;

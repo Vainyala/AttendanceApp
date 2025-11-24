@@ -1,8 +1,6 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 class PerformanceSummary extends StatelessWidget {
   final AttendanceAnalyticsViewModel viewModel;

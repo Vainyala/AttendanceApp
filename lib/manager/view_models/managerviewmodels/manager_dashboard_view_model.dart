@@ -1,16 +1,14 @@
 import 'dart:async';
 
-import 'package:AttendanceApp/manager/models/attendance_model.dart';
-import 'package:AttendanceApp/manager/models/managermodels/manager_dashboard_model.dart';
-import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:attendanceapp/manager/models/managermodels/manager_dashboard_model.dart';
+import 'package:attendanceapp/manager/models/project_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/services/managerservices/attendance_service.dart';
+import 'package:attendanceapp/manager/services/managerservices/project_service.dart';
+import 'package:attendanceapp/manager/services/managerservices/team_service.dart';
 import 'package:flutter/foundation.dart';
-
-
-import '../../models/project_model.dart';
-import '../../models/team_model.dart';
-import '../../services/managerservices/attendance_service.dart';
-import '../../services/managerservices/project_service.dart';
-import '../../services/managerservices/team_service.dart';
 
 class ManagerDashboardViewModel with ChangeNotifier {
   final AttendanceService _attendanceService = AttendanceService();

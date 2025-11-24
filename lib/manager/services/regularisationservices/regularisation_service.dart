@@ -1,7 +1,5 @@
-
-
-import '../../models/projectmodels/project_models.dart' show Project;
-import '../../models/regularisationmodels/regularisation_model.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
 
 class RegularisationService {
   // Mock implementation - replace with actual API calls

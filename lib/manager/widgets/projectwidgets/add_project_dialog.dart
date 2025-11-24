@@ -1,9 +1,7 @@
-
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../models/projectmodels/project_models.dart';
-import '../../view_models/projectviewmodels/project_view_model.dart';
 
 class AddProjectDialog extends StatefulWidget {
   const AddProjectDialog({super.key});

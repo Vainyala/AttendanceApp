@@ -1,8 +1,5 @@
-
-
-import '../../models/project_model.dart' hide Project;
-import '../../models/projectmodels/project_models.dart';
-import '../../models/team_model.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class ProjectService {
   List<Project> _projects = [];
@@ -382,11 +379,15 @@ class ProjectService {
   }
 
   Future<List<Project>> getProjects() async {
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    ); // Simulate API call
     return _projects;
   }
 
-  List<Project> getProjectSync() {
-    return List<Project>.from(_projects);
+  // ✅ NEW METHOD ADDED - getProjectsSync
+  List<Project> getProjectsSync() {
+    return List<Project>.from(_projects); // Return a copy of the list
   }
 
   Future<List<TeamMember>> getAvailableTeam() async {
@@ -454,8 +455,6 @@ class ProjectService {
     _projects.removeWhere((p) => p.id == projectId);
   }
 }
-
-
 
 // import 'package:attendanceapp/models/projectmodels/project_models.dart';
 // import 'package:attendanceapp/models/team_model.dart';

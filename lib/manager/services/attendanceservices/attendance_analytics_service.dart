@@ -1,8 +1,6 @@
-
+import 'package:attendanceapp/manager/models/attendancemodels/attendance_analytics_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 import 'package:intl/intl.dart';
-
-import '../../models/attendancemodels/attendance_analytics_model.dart';
-import '../../models/team_model.dart';
 
 class AttendanceAnalyticsService {
   AttendanceAnalytics generateAnalytics(
