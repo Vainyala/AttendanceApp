@@ -1,4 +1,4 @@
-import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class Project {
   final String id;

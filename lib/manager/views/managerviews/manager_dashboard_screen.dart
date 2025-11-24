@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:AttendanceApp/manager/models/user_model.dart';
-import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
-import 'package:AttendanceApp/manager/views/managerviews/timeline.dart';
+import 'package:attendanceapp/manager/views/managerviews/leavescreen.dart';
+import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
+import 'package:attendanceapp/manager/views/managerviews/regularisation_screen.dart';
+import 'package:attendanceapp/manager/views/managerviews/timeline.dart';
+import 'package:attendanceapp/manager/widgets/mangerwidgets/manager_drawer.dart';
+import 'package:attendanceapp/manager/widgets/mangerwidgets/matrix_counter.dart';
+import 'package:attendanceapp/manager/widgets/mangerwidgets/presentdashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../core/widgets/bottom_navigation.dart';
-import '../../view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import '../../widgets/mangerwidgets/attendance_timer.dart';
-import '../../widgets/mangerwidgets/dashboard_cards.dart';
-import '../../widgets/mangerwidgets/manager_drawer.dart';
-import '../../widgets/mangerwidgets/matrix_counter.dart';
-import '../../widgets/mangerwidgets/presentdashboard.dart';
-import 'leavescreen.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:attendanceapp/manager/widgets/mangerwidgets/attendance_timer.dart';
+import 'package:attendanceapp/manager/widgets/mangerwidgets/dashboard_cards.dart';
 
 class ManagerDashboardScreen extends StatefulWidget {
   final User user;
@@ -66,7 +66,9 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen>
     } else if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => LeaveScreen(user: widget.user)),
+        MaterialPageRoute(
+          builder: (context) => ManagerLeaveScreen(user: widget.user),
+        ),
       );
     } else if (index == 3) {
       Navigator.push(

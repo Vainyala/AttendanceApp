@@ -1,8 +1,7 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../view_models/managerviewmodels/manager_dashboard_view_model.dart';
 
 class AttendanceTimerSection extends StatefulWidget {
   const AttendanceTimerSection({super.key});

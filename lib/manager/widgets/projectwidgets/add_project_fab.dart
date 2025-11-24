@@ -1,8 +1,6 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/widgets/projectwidgets/add_project_dialog.dart';
 import 'package:flutter/material.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import 'add_project_dialog.dart';
 
 class AddProjectFAB extends StatelessWidget {
   const AddProjectFAB({super.key});

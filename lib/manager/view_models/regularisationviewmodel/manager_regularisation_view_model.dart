@@ -1,11 +1,10 @@
 // view_models/manager_regularisation_view_model.dart
+import 'package:attendanceapp/manager/models/regularisationmodels/manager_regularisation_model.dart';
+import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:attendanceapp/manager/services/regularisationservices/manager_regularisation_service.dart';
+import 'package:attendanceapp/manager/services/projectservices/project_service.dart'; // ✅ Add this import
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/regularisationmodels/manager_regularisation_model.dart';
-import '../../models/regularisationmodels/regularisation_model.dart';
-import '../../services/projectservices/project_service.dart';
-import '../../services/regularisationservices/manager_regularisation_service.dart';
 
 class ManagerRegularisationViewModel with ChangeNotifier {
   final ManagerRegularisationService _service;
@@ -56,7 +55,7 @@ class ManagerRegularisationViewModel with ChangeNotifier {
   // ✅ NEW METHOD: Get employee projects
   List<String> getEmployeeProjects(String employeeEmail) {
     try {
-      final projects = _projectService.getProjectSync();
+      final projects = _projectService.getProjectsSync();
       final employeeProjects = <String>[];
 
       for (final project in projects) {

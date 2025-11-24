@@ -1,11 +1,9 @@
-
-import 'package:AttendanceApp/manager/models/team_model.dart';
-import 'package:AttendanceApp/manager/views/managerviews/employee_detail_screen.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/employee_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-import '../../../core/view_models/theme_view_model.dart';
-import '../../../models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
   final Project project;

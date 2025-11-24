@@ -1,10 +1,9 @@
-
+import 'package:attendanceapp/manager/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/theme_view_model.dart';
 import '../core/view_models/button_view_model.dart';
 import '../core/view_models/common_view_model.dart';
-import '../database/database_helper.dart';
 import '../view_models/auth_view_model.dart';
 import '../services/geofencing_service.dart';
 import '../services/ai_auth_service.dart';
@@ -984,8 +983,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-
-
 // import 'package:attendanceapp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
@@ -1908,7 +1905,8 @@ class _LoginScreenState extends State<LoginScreen>
 /* ###################################################################################################################
 
 ************************************                   A I S C R E E N C O D E              **************************
-############################ */
+
+##################################################################################################################### */
 
 // import 'dart:math';
 // import 'dart:ui';

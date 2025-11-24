@@ -1,19 +1,17 @@
-
-import 'package:AttendanceApp/manager/views/managerviews/projectmodeview/project_detail_screen.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/projectmodeview/project_detail_screen.dart';
+import 'package:attendanceapp/manager/widgets/analytics/graph_toggle.dart';
+import 'package:attendanceapp/manager/widgets/analytics/horizontalAttendanceStats.dart';
+import 'package:attendanceapp/manager/widgets/analytics/individualmodeanalytics/individual_graphs.dart';
+import 'package:attendanceapp/manager/widgets/analytics/merged_graph.dart';
+import 'package:attendanceapp/manager/widgets/analytics/period_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../models/projectmodels/project_models.dart';
-import '../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-import '../../view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import '../../view_models/projectviewmodels/project_view_model.dart';
-import '../../widgets/analytics/graph_toggle.dart';
-import '../../widgets/analytics/horizontalAttendanceStats.dart';
-import '../../widgets/analytics/individualmodeanalytics/individual_graphs.dart';
-import '../../widgets/analytics/merged_graph.dart';
-import '../../widgets/analytics/period_selector.dart';
 
 class AttendanceDetailScreen extends StatefulWidget {
   const AttendanceDetailScreen({super.key});

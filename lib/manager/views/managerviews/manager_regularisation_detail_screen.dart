@@ -1,10 +1,10 @@
 // views/managerviews/manager_regularisation_detail_screen.dart
-
+import 'package:attendanceapp/manager/models/regularisationmodels/manager_regularisation_model.dart';
+import 'package:attendanceapp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
+import 'package:attendanceapp/manager/widgets/fakewidgets/fakedashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/view_models/theme_view_model.dart';
-import '../../models/regularisationmodels/manager_regularisation_model.dart';
-import '../../view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
 
 class ManagerRegularisationDetailScreen extends StatefulWidget {
   final ManagerRegularisationRequest request;
@@ -55,6 +55,8 @@ class _ManagerRegularisationDetailScreenState
         key: _formKey,
         child: Column(
           children: [
+            MonthlyOverviewWidget(isDarkMode: isDarkMode),
+            const SizedBox(height: 5),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -62,15 +64,15 @@ class _ManagerRegularisationDetailScreenState
                   children: [
                     // Employee Information
                     _buildEmployeeSection(employeeProjects, isDarkMode),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 5),
 
                     // Request Details & Time Comparison
                     _buildOverviewSection(isDarkMode),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 5),
 
                     // Reason Section
                     _buildReasonSection(isDarkMode),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 5),
 
                     // Manager Remarks
                     _buildRemarksSection(isDarkMode),
@@ -90,17 +92,17 @@ class _ManagerRegularisationDetailScreenState
   // ✅ SIMPLIFIED: Employee Section
   Widget _buildEmployeeSection(List<String> employeeProjects, bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      // padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.surfaceDark : Colors.white,
+        color: isDarkMode ? Colors.transparent : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.05),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 4),
+        //   ),
+        // ],
       ),
       child: Column(
         children: [
@@ -229,7 +231,7 @@ class _ManagerRegularisationDetailScreenState
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Assigned Projects',
+                  'Projects',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -276,17 +278,17 @@ class _ManagerRegularisationDetailScreenState
   // ✅ SIMPLIFIED: Overview Section (Request Details + Time Comparison)
   Widget _buildOverviewSection(bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      //padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDarkMode ? Colors.transparent : Colors.white,
+        // borderRadius: BorderRadius.circular(16),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.05),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 4),
+        //   ),
+        // ],
       ),
       child: Column(
         children: [
@@ -349,50 +351,76 @@ class _ManagerRegularisationDetailScreenState
                   isDarkMode,
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Shortfall Hrs',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDarkMode
+                            ? AppColors.textInverse
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      widget.request.formattedShortfallTime,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          // const SizedBox(width: 12),
+          // const SizedBox(height: 16),
+          //     const SizedBox(width: 12),
 
-          // Shortfall Time
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(isDarkMode ? 0.15 : 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.timer, color: AppColors.error, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Shortfall Time',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode
-                              ? AppColors.textInverse
-                              : AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        widget.request.formattedShortfallTime,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppColors.error,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          //     // Shortfall Time
+          //     Container(
+          //       padding: const EdgeInsets.all(16),
+          //       decoration: BoxDecoration(
+          //         color: AppColors.error.withOpacity(isDarkMode ? 0.15 : 0.08),
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //       child: Row(
+          //         children: [
+          //           Icon(Icons.timer, color: AppColors.error, size: 20),
+          //           const SizedBox(width: 12),
+          //           Expanded(
+          //             child: Column(
+          //               crossAxisAlignment: CrossAxisAlignment.start,
+          //               children: [
+          //                 Text(
+          //                   'Shortfall Time',
+          //                   style: TextStyle(
+          //                     fontSize: 14,
+          //                     color: isDarkMode
+          //                         ? AppColors.textInverse
+          //                         : AppColors.textPrimary,
+          //                     fontWeight: FontWeight.w600,
+          //                   ),
+          //                 ),
+          //                 Text(
+          //                   widget.request.formattedShortfallTime,
+          //                   style: TextStyle(
+          //                     fontSize: 18,
+          //                     color: AppColors.error,
+          //                     fontWeight: FontWeight.w700,
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
         ],
       ),
     );
@@ -401,17 +429,17 @@ class _ManagerRegularisationDetailScreenState
   // ✅ SIMPLIFIED: Reason Section
   Widget _buildReasonSection(bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      // padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDarkMode ? Colors.transparent : Colors.white,
+        // borderRadius: BorderRadius.circular(16),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.05),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 4),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +453,7 @@ class _ManagerRegularisationDetailScreenState
               ),
               const SizedBox(width: 8),
               Text(
-                'Employee Reason',
+                'Reason',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -460,17 +488,17 @@ class _ManagerRegularisationDetailScreenState
   // ✅ SIMPLIFIED: Remarks Section
   Widget _buildRemarksSection(bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      // padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: isDarkMode ? Colors.transparent : Colors.white,
+        //borderRadius: BorderRadius.circular(16),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.05),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 4),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +512,7 @@ class _ManagerRegularisationDetailScreenState
               ),
               const SizedBox(width: 8),
               Text(
-                'Manager Remarks *',
+                'Remarks *',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -558,7 +586,7 @@ class _ManagerRegularisationDetailScreenState
                 child: Text(
                   '${_remarksController.text.length}/200',
                   style: TextStyle(
-                    color: _remarksController.text.length >= 200
+                    color: _remarksController.text.length <= 200
                         ? AppColors.success
                         : AppColors.warning,
                     fontSize: 12,
@@ -669,12 +697,12 @@ class _ManagerRegularisationDetailScreenState
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: _isSubmitting ? null : () => _handleMoreInfo(),
-              icon: Icon(Icons.help_outline, size: 18),
-              label: Text('Quary'),
+              onPressed: _isSubmitting ? null : () => _handleReject(),
+              icon: Icon(Icons.close, size: 18),
+              label: Text('Reject'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warning,
-                side: BorderSide(color: AppColors.warning),
+                foregroundColor: AppColors.error,
+                side: BorderSide(color: AppColors.error),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -685,12 +713,12 @@ class _ManagerRegularisationDetailScreenState
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: _isSubmitting ? null : () => _handleReject(),
-              icon: Icon(Icons.close, size: 18),
-              label: Text('Reject'),
+              onPressed: _isSubmitting ? null : () => _handleMoreInfo(),
+              icon: Icon(Icons.help_outline, size: 18),
+              label: Text('Query'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error),
+                foregroundColor: AppColors.warning,
+                side: BorderSide(color: AppColors.warning),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

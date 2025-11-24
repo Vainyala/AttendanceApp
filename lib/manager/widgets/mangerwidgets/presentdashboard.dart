@@ -1,11 +1,9 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/models/managermodels/manager_dashboard_model.dart';
+import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../models/managermodels/manager_dashboard_model.dart';
-import '../../view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import '../../view_models/projectviewmodels/project_view_model.dart';
 
 class PresentDashboardCardSection extends StatefulWidget {
   const PresentDashboardCardSection({super.key});
@@ -160,12 +158,19 @@ class _PresentDashboardCardSectionState
           SizedBox(width: spacing),
           _buildPremiumStatItem(
             'Absent',
-            stats.absentToday,
-            Icons.person_off_rounded,
+            overallPresentPercentage,
+            Icons.trending_up_rounded,
             isDarkMode,
             textColor: textColor,
             secondaryTextColor: secondaryTextColor,
             iconColor: iconColor,
+            isPercentage: true,
+            // stats.absentToday,
+            // Icons.person_off_rounded,
+            // isDarkMode,
+            // textColor: textColor,
+            // secondaryTextColor: secondaryTextColor,
+            // iconColor: iconColor,
           ),
           SizedBox(width: spacing),
           // ✅ Safe percentage display

@@ -1,11 +1,10 @@
 // widgets/manager/manager_drawer.dart
-import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/attendance_detail_screen.dart';
+import 'package:attendanceapp/manager/views/managerviews/employee_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../views/managerviews/attendance_detail_screen.dart';
-import '../../views/managerviews/employee_list_screen.dart';
 
 class ManagerDrawer extends StatelessWidget {
   final User user;

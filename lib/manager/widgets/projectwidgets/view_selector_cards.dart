@@ -1,8 +1,6 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../view_models/projectviewmodels/project_view_model.dart';
 
 class ViewSelectorCards extends StatelessWidget {
   final ProjectViewModel viewModel;

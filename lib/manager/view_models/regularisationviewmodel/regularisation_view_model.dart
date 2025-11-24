@@ -1,11 +1,10 @@
 // view_models/regularisation_view_model.dart
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:attendanceapp/manager/services/regularisationservices/regularisation_service.dart';
+import 'package:attendanceapp/manager/services/regularisationservices/regularisation_local_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/projectmodels/project_models.dart';
-import '../../models/regularisationmodels/regularisation_model.dart';
-import '../../services/regularisationservices/regularisation_local_service.dart';
-import '../../services/regularisationservices/regularisation_service.dart';
 
 class RegularisationViewModel with ChangeNotifier {
   final RegularisationService _apiService = RegularisationService();

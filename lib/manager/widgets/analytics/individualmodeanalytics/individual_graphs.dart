@@ -1,10 +1,9 @@
-import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/individualmodeview/employee_individual_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-import '../../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-import '../../../view_models/projectviewmodels/project_view_model.dart';
-import '../../../views/managerviews/individualmodeview/employee_individual_details_screen.dart';
 
 class IndividualGraphs extends StatefulWidget {
   final AttendanceAnalyticsViewModel viewModel;
