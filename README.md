@@ -10,7 +10,7 @@ A mobile attendance app for employees with biometric authentication, face detect
 - Mark attendance using face detection, fingerprint, or manually.
 - View attendance graphs and reports.
 
-### 📝 Regularisation
+### 📝 Regularization
 - Apply for corrections of missed attendance entries.
 
 ### 🏖 Leave Management

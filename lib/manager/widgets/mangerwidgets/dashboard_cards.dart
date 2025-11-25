@@ -1217,7 +1217,7 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 // import 'package:attendanceapp/views/managerviews/ProjectDetailScreens.dart';
 // import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
 // import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-// import 'package:attendanceapp/views/managerviews/project_detail_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -2141,7 +2141,7 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 // import 'package:attendanceapp/views/managerviews/ProjectDetailScreens.dart';
 // import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
 // import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-// import 'package:attendanceapp/views/managerviews/project_detail_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -2733,7 +2733,7 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 // import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
 // import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
 // import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-// import 'package:attendanceapp/views/managerviews/project_detail_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -3063,7 +3063,7 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 // import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
 // import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
 // import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-// import 'package:attendanceapp/views/managerviews/project_detail_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

@@ -563,7 +563,7 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 // import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
 // import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/projectmodeview/project_detail_screen.dart';
+
 // import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
 // import 'package:attendanceapp/widgets/analytics/horizontalAttendanceStats.dart';
 // import 'package:attendanceapp/widgets/analytics/individualmodeanalytics/individual_graphs.dart';

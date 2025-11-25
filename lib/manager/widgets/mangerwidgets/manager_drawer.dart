@@ -584,7 +584,7 @@ class _MenuItem {
 // // widgets/manager/manager_drawer.dart
 // import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
 // import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-// import 'package:attendanceapp/views/managerviews/project_detail_screen.dart';
+
 // import 'package:flutter/material.dart';
 // import 'package:attendanceapp/models/user_model.dart';
 // import 'package:attendanceapp/core/view_models/theme_view_model.dart';
