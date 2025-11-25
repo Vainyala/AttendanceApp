@@ -1,6 +1,6 @@
-import 'package:attendanceapp/manager/view_models/regularisationviewmodel/regularisation_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/regularisationviewmodel/regularisation_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
 
 class RegularisationFilters extends StatelessWidget {
   final RegularisationFilter currentFilter;

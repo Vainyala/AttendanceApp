@@ -1,7 +1,7 @@
-// import 'package:attendanceapp/models/attendancemodels/attendance_analytics_model.dart';
+// import 'package:AttendanceApp/models/attendancemodels/attendance_analytics_model.dart';
 // import 'package:flutter/material.dart';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 // class SimpleBarGraph extends StatelessWidget {
 //   final AttendanceAnalyticsViewModel viewModel;

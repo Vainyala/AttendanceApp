@@ -1,5 +1,5 @@
-import 'package:attendanceapp/manager/database/database_helper.dart';
-import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:AttendanceApp/manager/database/database_helper.dart';
+import 'package:AttendanceApp/manager/models/attendance_model.dart';
 
 class AttendanceService {
   final DatabaseHelper _databaseHelper = DatabaseHelper();

@@ -1,6 +1,6 @@
 // view_models/leave_view_model.dart
-import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
-import 'package:attendanceapp/manager/services/leaveservices/leave_database_service.dart';
+import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
+import 'package:AttendanceApp/manager/services/leaveservices/leave_database_service.dart';
 import 'package:flutter/foundation.dart';
 
 class LeaveViewModel with ChangeNotifier {

@@ -1,5 +1,5 @@
 // models/manager_regularisation_model.dart
-import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:AttendanceApp/manager/models/regularisationmodels/regularisation_model.dart';
 import 'package:flutter/material.dart';
 
 class ManagerRegularisationRequest {

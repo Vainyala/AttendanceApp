@@ -1,8 +1,8 @@
 // view_models/regularisation_view_model.dart
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
-import 'package:attendanceapp/manager/services/regularisationservices/regularisation_service.dart';
-import 'package:attendanceapp/manager/services/regularisationservices/regularisation_local_service.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:AttendanceApp/manager/services/regularisationservices/regularisation_service.dart';
+import 'package:AttendanceApp/manager/services/regularisationservices/regularisation_local_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 

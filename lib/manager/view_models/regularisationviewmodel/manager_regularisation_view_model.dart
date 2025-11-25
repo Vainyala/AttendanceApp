@@ -1,8 +1,8 @@
 // view_models/manager_regularisation_view_model.dart
-import 'package:attendanceapp/manager/models/regularisationmodels/manager_regularisation_model.dart';
-import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
-import 'package:attendanceapp/manager/services/regularisationservices/manager_regularisation_service.dart';
-import 'package:attendanceapp/manager/services/projectservices/project_service.dart'; // ✅ Add this import
+import 'package:AttendanceApp/manager/models/regularisationmodels/manager_regularisation_model.dart';
+import 'package:AttendanceApp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:AttendanceApp/manager/services/regularisationservices/manager_regularisation_service.dart';
+import 'package:AttendanceApp/manager/services/projectservices/project_service.dart'; // ✅ Add this import
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -252,9 +252,9 @@ class ManagerRegularisationViewModel with ChangeNotifier {
 
 enum ManagerRegularisationFilter { all, pending, approved, rejected }
 // // view_models/manager_regularisation_view_model.dart
-// import 'package:attendanceapp/models/regularisationmodels/manager_regularisation_model.dart';
-// import 'package:attendanceapp/models/regularisationmodels/regularisation_model.dart';
-// import 'package:attendanceapp/services/regularisationservices/manager_regularisation_service.dart';
+// import 'package:AttendanceApp/models/regularisationmodels/manager_regularisation_model.dart';
+// import 'package:AttendanceApp/models/regularisationmodels/regularisation_model.dart';
+// import 'package:AttendanceApp/services/regularisationservices/manager_regularisation_service.dart';
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
 

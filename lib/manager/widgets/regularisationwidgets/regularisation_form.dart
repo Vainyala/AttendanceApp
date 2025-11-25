@@ -1,6 +1,6 @@
 // // widgets/regularisation/regularisation_form.dart
-// import 'package:attendanceapp/models/regularisationmodels/regularisation_model.dart';
-// import 'package:attendanceapp/view_models/regularisationviewmodel/regularisation_view_model.dart';
+// import 'package:AttendanceApp/models/regularisationmodels/regularisation_model.dart';
+// import 'package:AttendanceApp/view_models/regularisationviewmodel/regularisation_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

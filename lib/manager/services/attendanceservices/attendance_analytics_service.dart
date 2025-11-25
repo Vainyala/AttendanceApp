@@ -1,5 +1,5 @@
-import 'package:attendanceapp/manager/models/attendancemodels/attendance_analytics_model.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/models/attendancemodels/attendance_analytics_model.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceAnalyticsService {
@@ -525,8 +525,8 @@ class AttendanceAnalyticsService {
   }
 }
 
-// import 'package:attendanceapp/models/attendancemodels/attendance_analytics_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/attendancemodels/attendance_analytics_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 
 // class AttendanceAnalyticsService {
 //   AttendanceAnalytics generateAnalytics(

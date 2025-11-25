@@ -1,8 +1,8 @@
 // employee_list_screen.dart
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
-import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/employee_detail_screen.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/employee_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -440,10 +440,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 }
 
 // // employee_list_screen.dart
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/employee_detail_screen.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -828,10 +828,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 ############################################################################################################################ */
 
 // // employee_list_screen.dart
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/employee_detail_screen.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -1407,10 +1407,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 ############################################################################################################################ */
 
 // // employee_list_screen.dart
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/employee_detail_screen.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

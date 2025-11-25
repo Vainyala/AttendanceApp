@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
 import 'package:flutter/material.dart';
 
 class AttendanceSummaryCards extends StatelessWidget {
@@ -36,15 +36,15 @@ class AttendanceSummaryCards extends StatelessWidget {
                 size: 18,
                 color: isDark ? Colors.blue.shade300 : Colors.blue.shade600,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Attendance Summary',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.grey.shade800,
-                ),
-              ),
+              // const SizedBox(width: 8),
+              // Text(
+              //   'Attendance Summary',
+              //   style: TextStyle(
+              //     fontSize: 16,
+              //     fontWeight: FontWeight.w600,
+              //     color: isDark ? Colors.white : Colors.grey.shade800,
+              //   ),
+              // ),
             ],
           ),
           const SizedBox(height: 16),
@@ -187,7 +187,7 @@ class AttendanceSummaryCards extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Attendance Rate',
+                  'Attendance',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class AttendanceSummaryCards extends StatelessWidget {
   }
 }
 
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class AttendanceSummaryCards extends StatelessWidget {
@@ -438,8 +438,8 @@ class AttendanceSummaryCards extends StatelessWidget {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class AttendanceSummaryCards extends StatelessWidget {

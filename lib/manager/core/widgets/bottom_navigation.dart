@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
 import 'package:flutter/material.dart';
 
 class ManagerBottomNavigation extends StatelessWidget {
@@ -42,7 +42,7 @@ class ManagerBottomNavigation extends StatelessWidget {
             ),
             _buildNavButton(
               icon: Icons.calendar_today_rounded,
-              label: 'REGULARISATION',
+              label: 'REGULARIZATION',
               index: 1,
               isSelected: currentIndex == 1,
             ),
@@ -54,7 +54,7 @@ class ManagerBottomNavigation extends StatelessWidget {
             ),
             _buildNavButton(
               icon: Icons.timeline_rounded,
-              label: 'TIMELINE',
+              label: 'TIMESHEET',
               index: 3,
               isSelected: currentIndex == 3,
             ),
@@ -115,7 +115,7 @@ class ManagerBottomNavigation extends StatelessWidget {
   }
 }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class ManagerBottomNavigation extends StatelessWidget {
@@ -283,7 +283,7 @@ class ManagerBottomNavigation extends StatelessWidget {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class ManagerBottomNavigation extends StatelessWidget {
@@ -440,7 +440,7 @@ class ManagerBottomNavigation extends StatelessWidget {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class ManagerBottomNavigation extends StatelessWidget {

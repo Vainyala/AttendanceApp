@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 import 'package:flutter/material.dart';
 
 class GraphToggle extends StatefulWidget {
@@ -301,7 +301,7 @@ class _GraphToggleState extends State<GraphToggle> {
 }
 
 
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class GraphToggle extends StatefulWidget {

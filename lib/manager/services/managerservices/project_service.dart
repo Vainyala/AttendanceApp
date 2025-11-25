@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/models/project_model.dart';
+import 'package:AttendanceApp/manager/models/project_model.dart';
 
 class ProjectService {
   Future<List<Project>> getManagerProjects(String managerEmail) async {

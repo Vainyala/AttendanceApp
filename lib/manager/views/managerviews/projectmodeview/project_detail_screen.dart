@@ -1,9 +1,9 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/employee_detail_screen.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/employee_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
   final Project project;
@@ -840,8 +840,8 @@ class ProjectDetailScreen extends StatelessWidget {
 
 // import 'package:flutter/material.dart';
 // import 'package:fl_chart/fl_chart.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 
 // class ProjectDetailScreen extends StatelessWidget {
 //   final Project project;
@@ -1394,11 +1394,11 @@ class ProjectDetailScreen extends StatelessWidget {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/add_project_fab.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/projects_list.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/view_selector_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/add_project_fab.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/projects_list.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/view_selector_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -1619,11 +1619,11 @@ class ProjectDetailScreen extends StatelessWidget {
 
 ########################################################################################################################## */
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/add_project_fab.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/projects_list.dart';
-// import 'package:attendanceapp/widgets/projectwidgets/view_selector_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/add_project_fab.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/projects_list.dart';
+// import 'package:AttendanceApp/widgets/projectwidgets/view_selector_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

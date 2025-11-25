@@ -1,14 +1,14 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/projectmodeview/project_detail_screen.dart';
-import 'package:attendanceapp/manager/widgets/analytics/graph_toggle.dart';
-import 'package:attendanceapp/manager/widgets/analytics/horizontalAttendanceStats.dart';
-import 'package:attendanceapp/manager/widgets/analytics/individualmodeanalytics/individual_graphs.dart';
-import 'package:attendanceapp/manager/widgets/analytics/merged_graph.dart';
-import 'package:attendanceapp/manager/widgets/analytics/period_selector.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/projectviewmodels/project_view_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/projectmodeview/project_detail_screen.dart';
+import 'package:AttendanceApp/manager/widgets/analytics/graph_toggle.dart';
+import 'package:AttendanceApp/manager/widgets/analytics/horizontalAttendanceStats.dart';
+import 'package:AttendanceApp/manager/widgets/analytics/individualmodeanalytics/individual_graphs.dart';
+import 'package:AttendanceApp/manager/widgets/analytics/merged_graph.dart';
+import 'package:AttendanceApp/manager/widgets/analytics/period_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -558,17 +558,17 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
   }
 }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/horizontalAttendanceStats.dart';
-// import 'package:attendanceapp/widgets/analytics/individualmodeanalytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/projectmodeview/project_detail_screen.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/horizontalAttendanceStats.dart';
+// import 'package:AttendanceApp/widgets/analytics/individualmodeanalytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
@@ -1019,15 +1019,15 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/horizontalAttendanceStats.dart';
-// import 'package:attendanceapp/widgets/analytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
-// import 'package:attendanceapp/widgets/analytics/statistics_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/horizontalAttendanceStats.dart';
+// import 'package:AttendanceApp/widgets/analytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/widgets/analytics/statistics_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
@@ -1275,15 +1275,15 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/horizontalAttendanceStats.dart';
-// import 'package:attendanceapp/widgets/analytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
-// import 'package:attendanceapp/widgets/analytics/statistics_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/horizontalAttendanceStats.dart';
+// import 'package:AttendanceApp/widgets/analytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/widgets/analytics/statistics_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
@@ -1451,15 +1451,15 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/horizontalAttendanceStats.dart';
-// import 'package:attendanceapp/widgets/analytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
-// import 'package:attendanceapp/widgets/analytics/statistics_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/horizontalAttendanceStats.dart';
+// import 'package:AttendanceApp/widgets/analytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/widgets/analytics/statistics_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
@@ -2545,14 +2545,14 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
-// import 'package:attendanceapp/widgets/analytics/statistics_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/widgets/analytics/statistics_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
@@ -3071,15 +3071,15 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/analytics/graph_toggle.dart';
-// import 'package:attendanceapp/widgets/analytics/individual_graphs.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/widgets/analytics/performance_summary.dart';
-// import 'package:attendanceapp/widgets/analytics/period_selector.dart';
-// import 'package:attendanceapp/widgets/analytics/statistics_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/graph_toggle.dart';
+// import 'package:AttendanceApp/widgets/analytics/individual_graphs.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/widgets/analytics/performance_summary.dart';
+// import 'package:AttendanceApp/widgets/analytics/period_selector.dart';
+// import 'package:AttendanceApp/widgets/analytics/statistics_cards.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -3163,9 +3163,9 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

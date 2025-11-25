@@ -1,11 +1,11 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/managermodels/manager_dashboard_model.dart';
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import 'package:attendanceapp/manager/view_models/projectviewmodels/project_view_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/projectmodeview/ProjectDetailListScreens.dart';
-import 'package:attendanceapp/manager/views/managerviews/attendance_detail_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/employee_list_screen.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/managermodels/manager_dashboard_model.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/projectviewmodels/project_view_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/projectmodeview/ProjectDetailListScreens.dart';
+import 'package:AttendanceApp/manager/views/managerviews/attendance_detail_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/employee_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -625,14 +625,14 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
   }
 }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/managermodels/manager_dashboard_model.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/projectmodeview/ProjectDetailListScreens.dart';
-// import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
-// import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/managermodels/manager_dashboard_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/projectmodeview/ProjectDetailListScreens.dart';
+// import 'package:AttendanceApp/views/managerviews/attendance_detail_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_list_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -1209,15 +1209,15 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/managermodels/manager_dashboard_model.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/ProjectDetailScreens.dart';
-// import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
-// import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/managermodels/manager_dashboard_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/ProjectDetailScreens.dart';
+// import 'package:AttendanceApp/views/managerviews/attendance_detail_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_list_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/project_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -2133,15 +2133,15 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/managermodels/manager_dashboard_model.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/view_models/projectviewmodels/project_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/ProjectDetailScreens.dart';
-// import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
-// import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/managermodels/manager_dashboard_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/view_models/projectviewmodels/project_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/ProjectDetailScreens.dart';
+// import 'package:AttendanceApp/views/managerviews/attendance_detail_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_list_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/project_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -2728,12 +2728,12 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 /* *********************************************************************************************************** */
 /* *********************************************************************************************************** */
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/managermodels/manager_dashboard_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
-// import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/managermodels/manager_dashboard_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/attendance_detail_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_list_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/project_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -3058,12 +3058,12 @@ class _DashboardCardsSectionState extends State<DashboardCardsSection> {
 /* *********************************************************************************************************** */
 /* *********************************************************************************************************** */
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/managermodels/manager_dashboard_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/views/managerviews/attendance_detail_screen.dart';
-// import 'package:attendanceapp/views/managerviews/employee_list_screen.dart';
-
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/managermodels/manager_dashboard_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/views/managerviews/attendance_detail_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/employee_list_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/project_detail_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

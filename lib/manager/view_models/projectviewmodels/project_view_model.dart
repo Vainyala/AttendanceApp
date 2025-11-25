@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
-import 'package:attendanceapp/manager/services/projectservices/project_service.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/services/projectservices/project_service.dart';
 import 'package:flutter/foundation.dart';
 
 class ProjectViewModel with ChangeNotifier {
@@ -346,10 +346,10 @@ class ProjectViewModel with ChangeNotifier {
 
 // import 'dart:ui';
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/services/projectservices/project_service.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/services/projectservices/project_service.dart';
 // import 'package:flutter/foundation.dart';
 
 // class ProjectViewModel with ChangeNotifier {
@@ -576,10 +576,10 @@ class ProjectViewModel with ChangeNotifier {
 
 // // import 'dart:ui';
 
-// // import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// // import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// // import 'package:attendanceapp/models/team_model.dart';
-// // import 'package:attendanceapp/services/projectservices/project_service.dart';
+// // import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// // import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// // import 'package:AttendanceApp/models/team_model.dart';
+// // import 'package:AttendanceApp/services/projectservices/project_service.dart';
 // // import 'package:flutter/foundation.dart';
 
 // // class ProjectViewModel with ChangeNotifier {

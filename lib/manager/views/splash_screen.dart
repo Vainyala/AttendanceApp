@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/database/database_helper.dart';
+import 'package:AttendanceApp/manager/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/theme_view_model.dart';
@@ -462,7 +462,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// import 'package:attendanceapp/database/database_helper.dart';
+// import 'package:AttendanceApp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/theme_view_model.dart';
@@ -859,7 +859,7 @@ class _SplashScreenState extends State<SplashScreen>
 
 // import 'dart:math';
 
-// import 'package:attendanceapp/database/database_helper.dart';
+// import 'package:AttendanceApp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/theme_view_model.dart';

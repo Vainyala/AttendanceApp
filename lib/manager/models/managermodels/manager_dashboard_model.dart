@@ -1,7 +1,7 @@
-import 'package:attendanceapp/manager/models/attendance_model.dart';
-import 'package:attendanceapp/manager/models/project_model.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
-import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:AttendanceApp/manager/models/attendance_model.dart';
+import 'package:AttendanceApp/manager/models/project_model.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/models/user_model.dart';
 
 class ManagerDashboard {
   final User profile;
@@ -90,10 +90,10 @@ class DashboardStats {
   }
 }
 
-// import 'package:attendanceapp/models/attendance_model.dart';
-// import 'package:attendanceapp/models/project_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/models/user_model.dart';
+// import 'package:AttendanceApp/models/attendance_model.dart';
+// import 'package:AttendanceApp/models/project_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
 
 // class ManagerDashboard {
 //   final User profile;

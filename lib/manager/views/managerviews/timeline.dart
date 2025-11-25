@@ -1,11 +1,11 @@
-import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
-import 'package:attendanceapp/manager/models/user_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/leavescreen.dart';
-import 'package:attendanceapp/manager/views/managerviews/manager_dashboard_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/regularisation_screen.dart';
+import 'package:AttendanceApp/manager/core/widgets/bottom_navigation.dart';
+import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/leavescreen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/manager_dashboard_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/regularisation_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
 
 class TimelineScreen extends StatelessWidget {
   final User user;
@@ -441,13 +441,13 @@ class TimelineEvent {
   });
 }
 
-// import 'package:attendanceapp/core/widgets/bottom_navigation.dart';
-// import 'package:attendanceapp/models/user_model.dart';
-// import 'package:attendanceapp/views/managerviews/leavescreen.dart';
-// import 'package:attendanceapp/views/managerviews/manager_dashboard_screen.dart';
-// import 'package:attendanceapp/views/managerviews/regularisation_screen.dart';
+// import 'package:AttendanceApp/core/widgets/bottom_navigation.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
+// import 'package:AttendanceApp/views/managerviews/leavescreen.dart';
+// import 'package:AttendanceApp/views/managerviews/manager_dashboard_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/regularisation_screen.dart';
 // import 'package:flutter/material.dart';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 
 // class TimelineScreen extends StatelessWidget {
 //   final User user;

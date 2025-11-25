@@ -32,23 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
+      final authVM = context.read<AuthViewModel>();
+
+      // 🔐 Hardcoded login (Employee / Manager)
       if ((email == 'vainyala@nutantek.com' && password == '123456') ||
           (email == 'manager1@nutantek.com' && password == 'manager123')) {
-        final authVM = context.read<AuthViewModel>();
 
-        if (email == 'vainyala@nutantek.com' && password == '123456') {
-          authVM.setCurrentUser(
-              email: email,
-              role: "Employee"
-          );
-        }
-
-        if (email == 'manager1@nutantek.com' && password == 'manager123') {
-          authVM.setCurrentUser(
-              email: email,
-              role: "Manager"
-          );
-        }
+        // Set user manually (because setCurrentUser doesn't exist)
+        authVM.emergencyLogin(
+          email == 'vainyala@nutantek.com' ? 'employee' : 'manager',
+        );
 
         Navigator.pushReplacement(
           context,
@@ -57,22 +50,22 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 🔐 Normal login flow
-      final authProvider = context.read<AuthProvider>();
-      final error = await authProvider.loginWithEmail(email, password);
+      // 🔐 Normal login flow using database
+      final success = await authVM.login(email, password);
 
       if (mounted) {
-        if (error == null) {
+        if (success) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
           );
         } else {
-          _showErrorDialog(error);
+          _showErrorDialog(authVM.errorMessage);
         }
       }
     }
   }
+
 
   void _showErrorDialog(String message) {
     showDialog(

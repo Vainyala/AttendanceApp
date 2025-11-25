@@ -1,8 +1,8 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
 
 class ProjectDetailListScreens extends StatelessWidget {
   final Project project;
@@ -120,22 +120,22 @@ class ProjectDetailListScreens extends StatelessWidget {
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'Est D. Start Date',
+                        'EstD. Start Date',
                         _formatDate(project.startDate),
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'Est D. End Date',
+                        'EstD. End Date',
                         _formatDate(project.endDate),
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'Est D. Effort',
+                        'EstD. Effort',
                         '765 Man days',
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'Est D. Cost',
+                        'EstD. Cost',
                         '₹${project.budget.toStringAsFixed(2)}',
                         isDarkMode,
                       ),
@@ -592,10 +592,10 @@ class ProjectPhase {
   ProjectPhase(this.name, this.progress);
 }
 
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:url_launcher/url_launcher.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
 
 // class ProjectDetailListScreens extends StatelessWidget {
 //   final Project project;
@@ -717,21 +717,21 @@ class ProjectPhase {
 //                       _buildModernDetailRow('Client', project.client),
 //                       _buildModernDetailRow('Description', project.description),
 //                       _buildModernDetailRow(
-//                         'Est D. Start Date',
+//                         'EstD. Start Date',
 //                         _formatDate(project.startDate),
 //                       ),
 //                       _buildModernDetailRow(
-//                         'Est D. End Date',
+//                         'EstD. End Date',
 //                         _formatDate(project.endDate),
 //                       ),
 //                       _buildModernDetailRow(
-//                         'Est D. Effort',
+//                         'EstD. Effort',
 //                         '765 Man days',
 //                         // '${project.daysRemaining} Mandays',
 //                       ),
 
 //                       _buildModernDetailRow(
-//                         'Est D. Cost',
+//                         'EstD. Cost',
 //                         '₹${project.budget.toStringAsFixed(2)}',
 //                       ),
 //                       _buildModernDetailRow(
@@ -1301,8 +1301,8 @@ class ProjectPhase {
 
 // import 'package:flutter/material.dart';
 // import 'package:syncfusion_flutter_charts/charts.dart';
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 
 // class ProjectDetailListScreens extends StatelessWidget {
 //   final Project project;
