@@ -2,33 +2,24 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-
-// Providers
 import '../providers/leave_provider.dart';
-
-// Utils
-import '../utils/app_colors.dart';
 import '../utils/app_styles.dart';
 import '../utils/app_dimensions.dart';
 import '../utils/leave_utils.dart';
 import '../utils/leave_dialogs.dart';
-
-// Widgets
 import '../widgets/common/leaves_pie_chart.dart';
 import '../widgets/custom_bars.dart';
-import '../widgets/custom_card.dart';
 import '../widgets/date_time_utils.dart';
-import '../widgets/day_leave_edit.dart';
-import '../widgets/detail_row.dart';
-import '../widgets/half_day_checkbox.dart';
-import '../widgets/leave_type_dropdown.dart';
-import '../widgets/legend_item.dart';
-import '../widgets/status_badge.dart';
+import '../widgets/leaves_widgets/custom_card.dart';
+import '../widgets/leaves_widgets/custome_date_time_fields.dart';
+import '../widgets/leaves_widgets/half_day_checkbox.dart';
+import '../widgets/leaves_widgets/leave_card_widget.dart';
+import '../widgets/leaves_widgets/leave_details_card.dart';
+import '../widgets/leaves_widgets/leave_type_dropdown.dart';
 import '../widgets/submit_button.dart';
 
 class LeaveScreen extends StatefulWidget {
@@ -47,8 +38,11 @@ class _LeaveScreenState extends State<LeaveScreen> {
     super.dispose();
   }
 
-  // ==================== SHOW LEAVE FORM DIALOG ====================
-  void _showLeaveFormDialog(BuildContext context, {Map<String, dynamic>? leave}) {
+  void _showLeaveFormDialog(
+      BuildContext context, {
+        Map<String, dynamic>? leave,
+        bool isDecrease = false,
+      }) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
 
     if (leave != null) {
@@ -57,19 +51,18 @@ class _LeaveScreenState extends State<LeaveScreen> {
       provider.resetForm();
     }
 
+    final bool shouldDisableDates = isDecrease;
+
     showDialog(
       context: context,
-      barrierDismissible: false,  // Changed from isBarrierDismissible
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: AppStyles.radiusMedium,
-        ),
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog( // ✅ dialogContext is the key
+        shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusMedium),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Dialog Header
               Container(
                 padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
                 decoration: BoxDecoration(
@@ -83,24 +76,37 @@ class _LeaveScreenState extends State<LeaveScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      leave != null ? 'Edit Leave' : 'Apply For Leave',
-                      style: AppStyles.headingMedium.copyWith(color: AppColors.textLight),
+                      leave == null
+                          ? 'Apply For Leave'
+                          : (isDecrease ? 'Decrease Leave Days' : 'Edit Leave'),
+                      style: AppStyles.headingMedium.copyWith(
+                        color: AppColors.textLight,
+                      ),
                     ),
                     IconButton(
                       onPressed: () {
                         provider.resetForm();
-                        Navigator.pop(context);
+                        Navigator.pop(dialogContext); // ✅ Use dialogContext
                       },
                       icon: const Icon(Icons.close, color: AppColors.textLight),
                     ),
                   ],
                 ),
               ),
-              // Dialog Content
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
-                  child: _buildLeaveForm(context, provider, leave),
+                child: Consumer<LeaveProvider>(
+                  builder: (_, provider, __) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppDimensions.paddingXLarge),
+                      child: _buildLeaveForm(
+                        dialogContext, // ✅ Pass dialogContext here
+                        provider,
+                        leave,
+                        shouldDisableDates,
+                        isDecrease,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -110,68 +116,10 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  // ==================== DATE & TIME PICKERS ====================
-  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
-    final provider = Provider.of<LeaveProvider>(context, listen: false);
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isFromDate ? provider.fromDate : provider.toDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: AppColors.textLight,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      isFromDate ? provider.setFromDate(picked) : provider.setToDate(picked);
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context, bool isFromTime) async {
-    final provider = Provider.of<LeaveProvider>(context, listen: false);
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isFromTime ? provider.fromTime : provider.toTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: AppColors.textLight,
-            ),
-          ),
-          child: child!,
-        );
-
-      },
-    );
-
-    if (picked != null) {
-      if (isFromTime) {
-        provider.setFromTime(picked);
-      } else {
-        provider.setToTime(picked);
-      }
-
-      provider.calculateDayType();
-    }
-  }
-
-
-  // ==================== DOWNLOAD LEAVE ====================
-
-  Future<void> _downloadLeave(BuildContext context, Map<String, dynamic> leave) async {
+  Future<void> _downloadLeave(
+      BuildContext context,
+      List<Map<String, dynamic>> leaves,
+      ) async {
     try {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -182,7 +130,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.textLight,
+                  ),
                 ),
               ),
               SizedBox(width: 16),
@@ -194,47 +144,49 @@ class _LeaveScreenState extends State<LeaveScreen> {
       );
 
       final StringBuffer content = StringBuffer();
-      content.writeln('LEAVE APPLICATION');
-      content.writeln('=' * 40);
-      content.writeln();
-      content.writeln('Leave Type: ${leave['type']}');
-      content.writeln('Status: ${leave['status']}');
-      content.writeln();
-      content.writeln('From Date: ${DateFormat('dd MMM yyyy').format(leave['fromDate'])}');
-      content.writeln('To Date: ${DateFormat('dd MMM yyyy').format(leave['toDate'])}');
-      content.writeln('Duration: ${leave['days']} day${leave['days'] > 1 ? 's' : ''}');
-      content.writeln();
-      content.writeln('Reason:');
-      content.writeln(leave['reason']);
-      content.writeln();
-      content.writeln('Applied On: ${DateFormat('dd MMM yyyy').format(leave['appliedOn'])}');
-      content.writeln('=' * 40);
+      content.writeln('LEAVE HISTORY REPORT');
+      content.writeln('=' * 50);
 
-      // Get temporary directory
+      for (final leave in leaves) {
+        content.writeln('=' * 40);
+        content.writeln();
+        content.writeln('\nLeave Type: ${leave['type']}');
+        content.writeln('Status: ${leave['status']}');
+        content.writeln();
+        content.writeln(
+          'From: ${DateFormat('dd MMM yyyy').format(leave['fromDate'])}',
+        );
+        content.writeln(
+          'To: ${DateFormat('dd MMM yyyy').format(leave['toDate'])}',
+        );
+        content.writeln('Duration: ${leave['days']} days');
+        content.writeln();
+        content.writeln('Reason: ${leave['reason']}');
+        content.writeln(
+          'Applied On: ${DateFormat('dd MMM yyyy').format(leave['appliedOn'])}',
+        );
+        content.writeln('-' * 50);
+      }
+
       final directory = await getTemporaryDirectory();
-      final fileName = 'leave_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.txt';
+      final fileName =
+          'leave_history_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.txt';
       final file = File('${directory.path}/$fileName');
 
-      // Write content to file
       await file.writeAsString(content.toString());
 
-      // Share/download the file
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Leave Application - ${leave['type']}',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Leave History Download');
 
       if (context.mounted) {
-        LeaveUtils.showSuccessMessage(
-          context,
-          'Leave downloaded successfully!',
-        );
+        LeaveUtils.showSuccessMessage(context, 'Leave history downloaded!');
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error downloading leave: $e'),
+            content: Text('Error downloading: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -242,7 +194,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
     }
   }
 
-  // ==================== FILTERS ====================
   Widget _buildLeaveFilters(BuildContext context) {
     final provider = Provider.of<LeaveProvider>(context);
 
@@ -258,10 +209,17 @@ class _LeaveScreenState extends State<LeaveScreen> {
             onChanged: provider.setSearchQuery,
             decoration: AppStyles.getInputDecoration(
               hintText: 'Search leaves...',
-              prefixIcon: Icon(Icons.search, color: AppColors.textPrimary, size: AppDimensions.iconMedium),
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.textPrimary,
+                size: AppDimensions.iconMedium,
+              ),
               suffixIcon: provider.searchQuery.isNotEmpty
                   ? IconButton(
-                icon: const Icon(Icons.clear, size: AppDimensions.iconMedium),
+                icon: const Icon(
+                  Icons.clear,
+                  size: AppDimensions.iconMedium,
+                ),
                 onPressed: () => provider.setSearchQuery(''),
               )
                   : null,
@@ -298,7 +256,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: AppStyles.radiusXLarge,
                 side: BorderSide(
-                  color: isSelected ? AppColors.primaryBlue : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : Colors.transparent,
                 ),
               ),
             ),
@@ -308,7 +268,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  // ==================== LEAVE HISTORY ====================
   Widget _buildLeaveHistoryWithFilter(BuildContext context) {
     final provider = Provider.of<LeaveProvider>(context);
 
@@ -365,38 +324,59 @@ class _LeaveScreenState extends State<LeaveScreen> {
               Text('Leave History', style: AppStyles.headingMedium),
               const SizedBox(height: AppDimensions.paddingXSmall),
               Text(
-                '${provider.filteredLeaves.length} leave${provider.filteredLeaves.length != 1 ? 's' : ''}',
+                '${provider.filteredLeaves.length} leave${provider.filteredLeaves.length != 1 ? 's application' : ''}',
                 style: AppStyles.bodySmall,
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.paddingMedium,
-              vertical: AppDimensions.paddingXSmall,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
-              borderRadius: AppStyles.radiusXLarge,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_month,
-                  size: AppDimensions.iconSmall,
-                  color: AppColors.info,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingMedium,
+                  vertical: AppDimensions.paddingXSmall,
                 ),
-                const SizedBox(width: AppDimensions.paddingXSmall),
-                Text(
-                  'Total: ${provider.totalLeaveDays} days',
-                  style: AppStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.info,
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: AppStyles.radiusXLarge,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_month,
+                      size: AppDimensions.iconSmall,
+                      color: AppColors.info,
+                    ),
+                    const SizedBox(width: AppDimensions.paddingXSmall),
+                    Text(
+                      'Total: ${provider.totalLeaveDays} days',
+                      style: AppStyles.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.info,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Material(
+                color: AppColors.textDark.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  onTap: () => _downloadLeave(context, provider.filteredLeaves),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.download_rounded,
+                      color: AppColors.textDark,
+                      size: 22,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -408,7 +388,8 @@ class _LeaveScreenState extends State<LeaveScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: provider.displayLeaves.length,
-      separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.borderLight),
+      separatorBuilder: (_, __) =>
+          Divider(height: 1, color: AppColors.borderLight),
       itemBuilder: (context, index) {
         return _buildLeaveCard(context, provider.displayLeaves[index]);
       },
@@ -444,137 +425,32 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  // ==================== LEAVE CARD ====================
   Widget _buildLeaveCard(BuildContext context, Map<String, dynamic> leave) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
 
-    final canEdit = leave['status'] != 'Rejected' && provider.canEditOrDeleteLeave(leave);
-    final canCancelPartial = provider.canCancelPartialLeave(leave);
-    final canCancel = leave['status'] == 'Pending' || canCancelPartial;
-    final canOnlyView = leave['status'] == 'Rejected';
+    final canEdit = provider.canEditLeave(leave);
+    final canCancel = provider.canCancelLeave(leave);
+    final canDecrease = provider.canDecreaseLeave(leave);
 
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.marginLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildLeaveCardHeader(leave),
-          const SizedBox(height: AppDimensions.marginSmall),
-          Text(
-            leave['reason'],
-            style: AppStyles.bodyMedium.copyWith(color: AppColors.textHint),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: AppDimensions.marginMedium),
-          _buildLeaveCardFooter(context, leave, canEdit, canCancel, canOnlyView),
-        ],
-      ),
+    return LeaveCardWidget(
+      leave: leave,
+      onView: () => _showLeaveDetails(context, leave),
+      onEdit: canEdit
+          ? () => _showLeaveFormDialog(context, leave: leave)
+          : null,
+      onCancel: canCancel ? () => _handleCancelLeave(context, leave) : null,
+      onDecrease: canDecrease
+          ? () => _showLeaveFormDialog(context, leave: leave, isDecrease: true)
+          : null,
     );
   }
 
-  Widget _buildLeaveCardHeader(Map<String, dynamic> leave) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.paddingSmall,
-                      vertical: AppDimensions.paddingXSmall,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.1),
-                      borderRadius: AppStyles.radiusSmall,
-                    ),
-                    child: Text(
-                      leave['type'],
-                      style: AppStyles.chipText.copyWith(color: AppColors.primaryBlue),
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.paddingSmall),
-                  StatusBadge(status: leave['status']),
-                ],
-              ),
-              const SizedBox(height: AppDimensions.paddingSmall),
-              Text(
-                '${DateFormat('dd MMM yyyy').format(leave['fromDate'])} - '
-                    '${DateFormat('dd MMM yyyy').format(leave['toDate'])}',
-                style: AppStyles.bodyLarge,
-              ),
-              const SizedBox(height: AppDimensions.paddingXSmall),
-              Text(
-                '${leave['days']} day${leave['days'] > 1 ? 's' : ''}',
-                style: AppStyles.bodySmall,
-              ),
-            ],
-          ),
-        ),
-        // Download Icon Button
-        IconButton(
-          onPressed: () => _downloadLeave(context, leave),
-          icon: Icon(
-            Icons.download_rounded,
-            color: AppColors.primaryBlue,
-            size: AppDimensions.iconMedium,
-          ),
-          tooltip: 'Download Leave',
-          padding: const EdgeInsets.all(AppDimensions.paddingSmall),
-          constraints: const BoxConstraints(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLeaveCardFooter(
-      BuildContext context,
-      Map<String, dynamic> leave,
-      bool canEdit,
-      bool canCancel,
-      bool canOnlyView,
-      ) {
-    return Row(
-      children: [
-        Text(
-          'Applied on: ${DateFormat('dd MMM yyyy').format(leave['appliedOn'])}',
-          style: AppStyles.caption,
-        ),
-        const Spacer(),
-        if (canOnlyView)
-          _buildActionButton('View', AppColors.primaryBlue, () => _showLeaveDetails(context, leave)),
-        if (!canOnlyView) ...[
-          if (canEdit)
-            _buildActionButton('Edit', AppColors.primaryBlue, () => _showLeaveFormDialog(context, leave: leave)),
-          if (canCancel)
-            _buildActionButton('Cancel', AppColors.error, () => _handleCancelLeave(context, leave)),
-          if (!canCancel)
-            _buildActionButton('View', AppColors.primaryBlue, () => _showLeaveDetails(context, leave)),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildActionButton(String label, Color color, VoidCallback onPressed) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-        minimumSize: const Size(0, AppDimensions.buttonHeightSmall),
-      ),
-      child: Text(label),
-    );
-  }
-
-  // ==================== LEAVE ACTIONS ====================
   void _handleCancelLeave(BuildContext context, Map<String, dynamic> leave) {
     final provider = Provider.of<LeaveProvider>(context, listen: false);
     final isPartialCancel = provider.canCancelPartialLeave(leave);
-    final remainingDays = isPartialCancel ? provider.getRemainingLeaveDays(leave) : 0;
+    final remainingDays = isPartialCancel
+        ? provider.getRemainingLeaveDays(leave)
+        : 0;
 
     LeaveDialogs.showCancelLeaveDialog(
       context: context,
@@ -593,22 +469,21 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   void _showLeaveDetails(BuildContext context, Map<String, dynamic> leave) {
-    LeaveDialogs.showLeaveDetailsDialog(context: context, leave: leave);
+    showDialog(
+      context: context,
+      builder: (context) => LeaveDetailsCard(leave: leave),
+    );
   }
 
-  Future<void> _submitLeave(BuildContext context) async {
-    final provider = Provider.of<LeaveProvider>(context, listen: false);
-    await provider.submitLeave();
 
-    if (context.mounted) {
-      LeaveUtils.showSuccessMessage(context, 'Leave application submitted successfully!');
-      provider.resetForm();
-      Navigator.pop(context); // Close the dialog
-    }
-  }
 
-  // ==================== LEAVE FORM ====================
-  Widget _buildLeaveForm(BuildContext context, LeaveProvider provider, Map<String, dynamic>? leave) {
+  Widget _buildLeaveForm(
+      BuildContext context,
+      LeaveProvider provider,
+      Map<String, dynamic>? leave,
+      bool shouldDisableDates,  // ✅ Renamed from isEditMode
+      bool isDecrease,
+      ) {
     final formKey = GlobalKey<FormState>();
 
     return SingleChildScrollView(
@@ -617,53 +492,169 @@ class _LeaveScreenState extends State<LeaveScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDateTimeFields(context, provider),
+            if (isDecrease)
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+                margin: const EdgeInsets.only(
+                  bottom: AppDimensions.marginMedium,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: AppStyles.radiusSmall,
+                  border: Border.all(color: AppColors.warning),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: AppColors.warning),
+                    const SizedBox(width: AppDimensions.paddingSmall),
+                    Expanded(
+                      child: Text(
+                        'You can only decrease the end date for ongoing leaves',
+                        style: AppStyles.bodySmall.copyWith(
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            _buildDateTimeFields(context, provider, shouldDisableDates),  // ✅ Pass correct param
             const SizedBox(height: AppDimensions.marginMedium),
-            _buildHalfDayCheckboxes(provider),
-            const SizedBox(height: AppDimensions.paddingXLarge),
+            if (leave == null) _buildHalfDayCheckboxes(provider),  // ✅ Only show for new leaves
+            if (leave == null)
+              const SizedBox(height: AppDimensions.paddingXLarge),
             LeaveTypeDropdown(
               selectedValue: provider.selectedLeaveType,
               leaveTypes: provider.leaveTypes,
-              onChanged: (value) {
+              onChanged: leave == null  // ✅ Only disable for new applications
+                  ? (value) {
                 if (value != null) provider.setSelectedLeaveType(value);
-              },
+              }
+                  : null,
             ),
             const SizedBox(height: AppDimensions.paddingXXLarge),
-            _buildJustificationField(provider),
+            _buildJustificationField(provider, leave != null),  // ✅ Disable justification when editing
             const SizedBox(height: 30),
-            SubmitButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  _submitLeave(context);
-                }
+            Consumer<LeaveProvider>(
+              builder: (context, provider, _) {
+                return SubmitButton(
+                  onPressed: () async {
+                    final isValid = formKey.currentState?.validate() ?? false;
+
+                    // ✅ Additional time validation for same-day leaves
+                    if (isValid && provider.fromDate.year == provider.toDate.year &&
+                        provider.fromDate.month == provider.toDate.month &&
+                        provider.fromDate.day == provider.toDate.day) {
+
+                      final fromMinutes = provider.fromTime.hour * 60 + provider.fromTime.minute;
+                      final toMinutes = provider.toTime.hour * 60 + provider.toTime.minute;
+
+                      if (toMinutes <= fromMinutes) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('End time must be after start time for same-day leaves'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return;
+                      }
+                    }
+
+                    if (isValid) {
+                      if (leave != null) {
+                        await _updateLeave(context, leave['id']); // ✅ Using correct context
+                      } else {
+                        await _submitLeave(context); // ✅ Using correct context
+                      }
+                    }
+                  },
+                  isLoading: provider.isLoading,
+                  text: leave != null ? 'Update' : 'Submit',
+                );
               },
-              isLoading: provider.isLoading,
             ),
           ],
         ),
       ),
     );
-
   }
 
-  Widget _buildDateTimeFields(BuildContext context, LeaveProvider provider) {
+
+  Future<void> _submitLeave(BuildContext dialogContext) async {
+    print('🔵 Submit button pressed');
+
+    final provider = Provider.of<LeaveProvider>(dialogContext, listen: false);
+
+    print('🔵 Provider state:');
+    print('   From Date: ${provider.fromDate}');
+    print('   To Date: ${provider.toDate}');
+    print('   Leave Type: ${provider.selectedLeaveType}');
+    print('   Notes: ${provider.notesController.text}');
+
+    await provider.submitLeave();
+
+    print('🔵 Leave submitted successfully');
+
+    if (dialogContext.mounted) {
+      Navigator.pop(dialogContext); // ✅ This will now close the dialog
+      print('🔵 Leave submitted successfully.....');
+      // Get the scaffold context for showing snackbar
+      final scaffoldContext = Navigator.of(dialogContext).context;
+      LeaveUtils.showSuccessMessage(
+        scaffoldContext,
+        'Leave application submitted successfully!',
+      );
+      provider.resetForm();
+    }
+  }
+
+  Future<void> _updateLeave(BuildContext dialogContext, String leaveId) async {
+    print('🔵 Update button pressed for leave: $leaveId');
+
+    final provider = Provider.of<LeaveProvider>(dialogContext, listen: false);
+
+    provider.updateLeave(
+      leaveId,
+      fromDate: provider.fromDate,
+      toDate: provider.toDate,
+      reason: provider.notesController.text,
+    );
+
+    print('🔵 Leave updated successfully');
+
+    if (dialogContext.mounted) {
+      Navigator.pop(dialogContext); // ✅ This will now close the dialog
+
+      final scaffoldContext = Navigator.of(dialogContext).context;
+      LeaveUtils.showSuccessMessage(
+        scaffoldContext,
+        'Leave updated successfully!',
+      );
+      provider.resetForm();
+    }
+  }
+  Widget _buildDateTimeFields(
+      BuildContext context,
+      LeaveProvider provider,
+      bool shouldDisableDates,  // ✅ Renamed parameter
+      ) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: CustomDateField(
-                label: 'From Date',
-                value: DateFormattingUtils.formatDate(provider.fromDate),
-                onTap: () => _selectDate(context, true),
+                label: "From Date",
+                value: provider.fromDateFormatted,
+                onTap: shouldDisableDates ? null : () => provider.pickFromDate(context),  // ✅ Changed condition
               ),
             ),
             const SizedBox(width: AppDimensions.marginLarge),
             Expanded(
               child: CustomDateField(
-                label: 'To Date',
-                value: DateFormattingUtils.formatDate(provider.toDate),
-                onTap: () => _selectDate(context, false),
+                label: "To Date",
+                value: provider.toDateFormatted,
+                onTap: shouldDisableDates ? null : () => provider.pickToDate(context),  // ✅ Changed condition
               ),
             ),
           ],
@@ -671,14 +662,18 @@ class _LeaveScreenState extends State<LeaveScreen> {
         const SizedBox(height: AppDimensions.marginMedium),
         Row(
           children: [
-            CustomTimeField(
-              value: DateFormattingUtils.formatTime(provider.fromTime),
-              onTap: () => _selectTime(context, true),
+            Expanded(
+              child: CustomTimeField(
+                value: provider.fromTimeFormatted,
+                onTap: shouldDisableDates ? null : () => provider.pickFromTime(context),  // ✅ Changed condition
+              ),
             ),
             const SizedBox(width: AppDimensions.marginLarge),
-            CustomTimeField(
-              value: DateFormattingUtils.formatTime(provider.toTime),
-              onTap: () => _selectTime(context, false),
+            Expanded(
+              child: CustomTimeField(
+                value: provider.toTimeFormatted,
+                onTap: shouldDisableDates ? null : () => provider.pickToTime(context),  // ✅ Changed condition
+              ),
             ),
           ],
         ),
@@ -694,12 +689,10 @@ class _LeaveScreenState extends State<LeaveScreen> {
             value: provider.isHalfDayFrom,
             onChanged: (value) {
               provider.setIsHalfDayFrom(value ?? false);
-
               if (value == true) {
                 provider.setFromTime(TimeOfDay(hour: 9, minute: 30));
                 provider.setToTime(TimeOfDay(hour: 13, minute: 30));
               }
-
               provider.notifyListeners();
             },
           ),
@@ -709,22 +702,19 @@ class _LeaveScreenState extends State<LeaveScreen> {
             value: provider.isHalfDayTo,
             onChanged: (value) {
               provider.setIsHalfDayTo(value ?? false);
-
               if (value == true) {
                 provider.setFromTime(TimeOfDay(hour: 13, minute: 30));
                 provider.setToTime(TimeOfDay(hour: 18, minute: 30));
               }
-
               provider.notifyListeners();
             },
-
           ),
         ),
       ],
     );
   }
 
-  Widget _buildJustificationField(LeaveProvider provider) {
+  Widget _buildJustificationField(LeaveProvider provider, bool isEditMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -733,12 +723,15 @@ class _LeaveScreenState extends State<LeaveScreen> {
         TextFormField(
           controller: provider.notesController,
           maxLines: 4,
+          enabled: !isEditMode,
           style: AppStyles.bodyMedium,
           decoration: InputDecoration(
             hintText: 'Enter reason for leave...',
             hintStyle: AppStyles.hintText,
             filled: true,
-            fillColor: AppColors.textHint,
+            fillColor: isEditMode
+                ? AppColors.textLight.withOpacity(0.5)
+                : AppColors.textHint,
             border: OutlineInputBorder(
               borderRadius: AppStyles.radiusMedium,
               borderSide: BorderSide(color: AppColors.borderLight),
@@ -753,6 +746,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
             contentPadding: const EdgeInsets.all(AppDimensions.paddingMedium),
           ),
           validator: (value) {
+            // Skip validation in edit mode OR validate normally
+            if (isEditMode) return null; // Don't validate when editing/viewing
+
             if (value == null || value.trim().isEmpty) {
               return 'Please enter a reason for leave';
             }
@@ -763,64 +759,66 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
   }
 
-  // ==================== BUILD METHOD ====================
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => LeaveProvider(),
-      child: Consumer<LeaveProvider>(
-        builder: (context, provider, child) {
-          return ScreenWithBottomNav(
-            currentIndex: 2,
-            child: Scaffold(
-              backgroundColor: AppColors.background,
-              floatingActionButton: FloatingActionButton(
-                backgroundColor: AppColors.primaryBlue,
-                onPressed: () => _showLeaveFormDialog(context),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-              floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        child: Column(
-                          children: [
-                            _buildLeaveFilters(context),
-                            LeavePieChartWidget(
-                              data: provider.leaveTypeCount,
-                            ),
-                            const SizedBox(height: AppDimensions.marginLarge),
-                            _buildLeaveHistoryWithFilter(context),
-                            const SizedBox(height: 100),
-                          ],
-                        ),
+    return Consumer<LeaveProvider>(  // ✅ Just use Consumer
+      builder: (context, provider, child) {
+        return ScreenWithBottomNav(
+          currentIndex: 2,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: AppColors.primaryBlue,
+              onPressed: () => _showLeaveFormDialog(context),
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+            floatingActionButtonLocation:
+            FloatingActionButtonLocation.endFloat,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      child: Column(
+                        children: [
+                          _buildLeaveFilters(context),
+                          LeavePieChartWidget(data: provider.leaveTypeCount),
+                          const SizedBox(height: AppDimensions.marginLarge),
+                          _buildLeaveHistoryWithFilter(context),
+                          const SizedBox(height: 100),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildHeader() {
     return Container(
+      width: double.infinity,
+      height: 60,
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.paddingXLarge,
         vertical: AppDimensions.marginLarge,
       ),
-      color: AppColors.textLight,
+      color: AppColors.primaryBlue,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text('Leaves', style: AppStyles.headingLarge),
+          Text(
+            'Leaves',
+            style: AppStyles.headingLarge.copyWith(
+              color: AppColors.textLight,
+            ),
+          ),
         ],
       ),
     );

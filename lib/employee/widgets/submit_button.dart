@@ -1,51 +1,48 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
+import 'package:AttendanceApp/employee/utils/app_colors.dart';
 
 class SubmitButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
   final bool isLoading;
-  final Color color;
-  final Color textColor;
+  final String text;
 
   const SubmitButton({
     super.key,
-    this.label = 'Submit',
     required this.onPressed,
     this.isLoading = false,
-    this.color = const Color(0xFF4A90E2),
-    this.textColor = AppColors.textLight,
+    this.text = 'Submit',
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 48,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: textColor,
+          backgroundColor: AppColors.primaryBlue,
+          disabledBackgroundColor: AppColors.primaryBlue.withOpacity(0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          elevation: 0,
         ),
         child: isLoading
             ? const SizedBox(
-          width: 24,
-          height: 24,
+          height: 20,
+          width: 20,
           child: CircularProgressIndicator(
-            color: AppColors.textLight,
-            strokeWidth: 2.5,
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         )
             : Text(
-          label,
+          text,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textLight,
           ),
         ),
       ),

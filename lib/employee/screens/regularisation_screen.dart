@@ -6,11 +6,11 @@ import '../providers/regularisation_provider.dart';
 import '../models/attendance_model.dart';
 import '../utils/app_styles.dart';
 import '../utils/app_helpers.dart';
-import '../widgets/attendance_cards.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/monthly_stats_header.dart';
 import '../widgets/project_selection_dialog.dart';
 import '../widgets/regularisation_detail_dailog.dart';
+import '../widgets/regularization_widgets/attendance_cards.dart';
 import '../widgets/status_badge.dart';
 
 class RegularisationScreen extends StatefulWidget {
@@ -172,7 +172,16 @@ class _RegularisationScreenState extends State<RegularisationScreen>
     // Current month logic
     final isEditable = status == 'Apply' || status == 'Rejected';
 
-    if (projectGroups.length == 1) {
+    // For Approved or Rejected with multiple projects, show all in one dialog
+    if ((status == 'Approved' || status == 'Rejected') && projectGroups.length > 1) {
+      _showProjectSelectionDialog(
+        dateStr,
+        actualDate,
+        projectGroups,
+        status,
+        false, // Read-only
+      );
+    } else if (projectGroups.length == 1) {
       final projectEntry = projectGroups.entries.first;
       _showProjectDetailDialog(
         dateStr,

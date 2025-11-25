@@ -8,6 +8,7 @@ import 'employee/providers/attendance_details_provider.dart';
 import 'employee/providers/attendance_provider.dart';
 import 'employee/providers/auth_provider.dart';
 import 'employee/providers/dashboard_provider.dart';
+import 'employee/providers/leave_provider.dart';
 import 'employee/providers/regularisation_provider.dart';
 import 'employee/providers/splash_provider.dart';
 import 'employee/screens/dashboard_screen.dart';
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceDetailsProvider()),
+        ChangeNotifierProvider(create: (_) => LeaveProvider()),
 
         // Manager Providers
         ChangeNotifierProvider(create: (_) => AppTheme()),

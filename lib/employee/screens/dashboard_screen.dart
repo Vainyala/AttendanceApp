@@ -11,7 +11,7 @@ import '../services/notification_service.dart';
 import '../utils/app_styles.dart';
 import '../widgets/custom_bars.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/custome_stat_row.dart';
+import '../widgets/dashboard_widgets/custome_stat_row.dart';
 import '../widgets/date_time_utils.dart';
 import '../widgets/menu_drawer.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +21,6 @@ import 'auth_verification_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'face_detection_screen.dart';
 
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -29,7 +28,8 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
+class _DashboardScreenState extends State<DashboardScreen>
+    with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _verificationAlertShowing = false;
 
@@ -226,7 +226,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     bool allowFingerprint = false;
 
     // **UPDATED: Check if first check-in of the day**
-    if (provider.isFirstCheckInToday || provider.employeeStatus == EmployeeStatus.notCheckedIn) {
+    if (provider.isFirstCheckInToday ||
+        provider.employeeStatus == EmployeeStatus.notCheckedIn) {
       // First check-in - go directly to face verification
       _navigateToFaceVerification(VerificationReason.checkIn);
       return; // Exit early, don't show choice screen
@@ -292,7 +293,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-  void _handleVerificationSuccess(VerificationType type, VerificationReason reason) {
+  void _handleVerificationSuccess(
+    VerificationType type,
+    VerificationReason reason,
+  ) {
     final provider = context.read<AppProvider>();
 
     if (type == VerificationType.faceBlinking) {
@@ -360,6 +364,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       provider.setLocationEnabled(false);
     }
   }
+
   void _startPeriodicLocationCheck() {
     Future.delayed(const Duration(seconds: 30), () {
       if (mounted) {
@@ -388,6 +393,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       _startCountdownTimer();
     }
   }
+
   Future<void> _handleCheckOut() async {
     final provider = context.read<AppProvider>();
 
@@ -426,8 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               children: [
                 _buildBody(provider),
 
-                if (provider.pendingVerification)
-                  _buildVerificationBanner(),
+                if (provider.pendingVerification) _buildVerificationBanner(),
               ],
             ),
           ),
@@ -534,10 +539,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             child: CircleAvatar(
               radius: 47,
               backgroundColor: AppColors.textHint.shade300,
-              child: Icon(Icons.person, size: 55, color: AppColors.textHint.shade600),
+              child: Icon(
+                Icons.person,
+                size: 55,
+                color: AppColors.textHint.shade600,
+              ),
             ),
           ),
-          const SizedBox(height:5),
+          const SizedBox(height: 5),
 
           // Employee Name
           Text(
@@ -580,56 +589,22 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.sync, color: AppColors.textLight, size: 26),
+                icon: const Icon(
+                  Icons.sync,
+                  color: AppColors.textLight,
+                  size: 26,
+                ),
                 onPressed: () => _showMessage('Sync data with the database'),
               ),
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: AppColors.textLight, size: 26),
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: AppColors.textLight,
+                  size: 26,
+                ),
                 onPressed: () => _showMessage('Notifications coming soon'),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocationToggle(AppProvider provider) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // Align to right
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.textLight.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.textLight.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min, // Compact size
-              children: [
-                Icon(
-                  provider.trackingEnabled ? Icons.location_on : Icons.location_off,
-                  color: Colors.black,
-                  size: 25, // Smaller icon
-                ),
-                Transform.scale(
-                  scale: 0.5, // Smaller switch
-                  child: Switch(
-                    value: provider.trackingEnabled,
-                    onChanged: (value) => provider.toggleTracking(value),
-                    activeColor: AppColors.success,
-                    activeTrackColor: AppColors.success.shade300,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -656,9 +631,13 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             const SizedBox(height: 5),
             _buildCheckInOutButtons(provider),
             const SizedBox(height: 20),
-            _buildMyAttendanceSection(provider), // Monthly Summary + Pie Chart// Weekly Graph
+            _buildMyAttendanceSection(
+              provider,
+            ), // Monthly Summary + Pie Chart// Weekly Graph
             const SizedBox(height: 20),
-            _buildStatsContainer(provider), // Daily Avg + Monthly Total (MOVED TO LAST)
+            _buildStatsContainer(
+              provider,
+            ), // Daily Avg + Monthly Total (MOVED TO LAST)
             const SizedBox(height: 20),
             _buildMappedProjects(provider), // Mapped Projects
             const SizedBox(height: 50),
@@ -799,7 +778,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 ],
               ),
 
-              Divider(height: 20, color: AppColors.textHint.shade400, thickness: 1.5),
+              Divider(
+                height: 20,
+                color: AppColors.textHint.shade400,
+                thickness: 1.5,
+              ),
 
               // Data Row
               Row(
@@ -972,7 +955,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildPieLegendItem('Present', AppColors.success, totalPresent),
+                    _buildPieLegendItem(
+                      'Present',
+                      AppColors.success,
+                      totalPresent,
+                    ),
                     SizedBox(height: 8),
                     _buildPieLegendItem('Leave', Colors.orange, totalLeave),
                     SizedBox(height: 8),
@@ -991,17 +978,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-// Helper method for pie chart legend
+  // Helper method for pie chart legend
   Widget _buildPieLegendItem(String label, Color color, int count) {
     return Row(
       children: [
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         SizedBox(width: 6),
         Text(
@@ -1016,7 +1000,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-
   // FIXED: Date Time Status Widget with proper layout
   Widget _buildDateTimeStatus(AppProvider provider) {
     final hasCheckedIn = provider.checkInTime != null;
@@ -1028,24 +1011,30 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         children: [
           // Date at top
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // LEFT: Date
+              // LEFT EMPTY SPACE
+              const Spacer(flex: 2),
+
+              // CENTER DATE
               Text(
                 DateTimeUtils.formatDateTime(DateTime.now()),
                 style: AppStyles.time,
               ),
 
-              // RIGHT SIDE: Location icon + toggle
+              // RIGHT SIDE
+              const Spacer(), // pushes the toggle to the right
+
               Row(
                 children: [
                   Icon(
-                    provider.trackingEnabled ? Icons.location_on : Icons.location_off,
+                    provider.trackingEnabled
+                        ? Icons.location_on
+                        : Icons.location_off,
                     color: Colors.black,
-                    size: 25, // Smaller icon
+                    size: 25,
                   ),
                   Transform.scale(
-                    scale: 0.5, // Smaller switch
+                    scale: 0.5,
                     child: Switch(
                       value: provider.trackingEnabled,
                       onChanged: (value) => provider.toggleTracking(value),
@@ -1055,7 +1044,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
           const SizedBox(height: 7),
@@ -1102,7 +1091,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                             const SizedBox(width: 6),
                             Text(
                               DateTimeUtils.formatTimeOnly(
-                                  provider.checkInTime!
+                                provider.checkInTime!,
                               ),
                               style: TextStyle(
                                 fontSize: 16,
@@ -1145,8 +1134,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               color: _remainingTime!.inMinutes > 60
                                   ? AppColors.success
                                   : (_remainingTime!.inMinutes > 0
-                                  ? Colors.orange
-                                  : AppColors.error),
+                                        ? Colors.orange
+                                        : AppColors.error),
                               size: 18,
                             ),
                             const SizedBox(width: 6),
@@ -1158,8 +1147,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                                 color: _remainingTime!.inMinutes > 60
                                     ? AppColors.success
                                     : (_remainingTime!.inMinutes > 0
-                                    ? Colors.orange
-                                    : AppColors.error),
+                                          ? Colors.orange
+                                          : AppColors.error),
                               ),
                             ),
                           ],
@@ -1219,26 +1208,23 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   Widget _buildMappedProjects(AppProvider provider) {
     return SingleChildScrollView(
-     child: Column(
-       crossAxisAlignment: CrossAxisAlignment.start,
-       children: [
-         Row(
-           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           children: [
-             const Text(
-               'Mapped Projects',
-               style: AppStyles.headingLarge,
-             ),
-             Text(
-               '${provider.user?.projects.length ?? 0} Projects',
-               style: AppStyles.text,
-             ),
-           ],
-         ),
-         const SizedBox(height: 15),
-         _buildProjectsList(provider),
-       ],
-     ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Mapped Projects', style: AppStyles.headingLarge),
+              Text(
+                '${provider.user?.projects.length ?? 0} Projects',
+                style: AppStyles.text,
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          _buildProjectsList(provider),
+        ],
+      ),
     );
   }
 
@@ -1246,20 +1232,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     return provider.isLoadingUser
         ? const Center(child: CircularProgressIndicator())
         : provider.user == null || provider.user!.projects.isEmpty
-        ? Center(
-      child: Text("No projects mapped", style: AppStyles.text),
-    )
+        ? Center(child: Text("No projects mapped", style: AppStyles.text))
         : SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: provider.user!.projects.length,
-        itemBuilder: (context, index) {
-          final project = provider.user!.projects[index];
-          return _buildProjectCard(provider, project);
-        },
-      ),
-    );
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: provider.user!.projects.length,
+              itemBuilder: (context, index) {
+                final project = provider.user!.projects[index];
+                return _buildProjectCard(provider, project);
+              },
+            ),
+          );
   }
 
   Widget _buildProjectCard(AppProvider provider, dynamic project) {
@@ -1276,9 +1260,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             provider.setSelectedProject(project);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const ProjectDetailsScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ProjectDetailsScreen()),
             );
           },
 
@@ -1294,14 +1276,16 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // Row with project icon + name + arrow icon
                   Row(
                     children: [
                       CircleAvatar(
                         backgroundColor: Colors.blue.shade100,
-                        child: Icon(Icons.work,
-                            color: Colors.blue.shade700, size: 20),
+                        child: Icon(
+                          Icons.work,
+                          color: Colors.blue.shade700,
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 10),
 
@@ -1309,13 +1293,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                         child: Text(
                           project.name,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
 
-                      Icon(Icons.arrow_forward_ios,
-                          size: 12, color: Colors.grey),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: Colors.grey,
+                      ),
                     ],
                   ),
 
@@ -1324,14 +1313,19 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   // Location
                   Row(
                     children: [
-                      const Icon(Icons.location_on,
-                          size: 12, color: AppColors.textHint),
+                      const Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: AppColors.textHint,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           project.site,
                           style: TextStyle(
-                              fontSize: 11, color: AppColors.textHint.shade600),
+                            fontSize: 11,
+                            color: AppColors.textHint.shade600,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -1342,15 +1336,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   const SizedBox(height: 5),
                   // Details
                   _buildProjectDetailRow(
-                      Icons.access_time, 'Shift: ${project.shift}'),
+                    Icons.access_time,
+                    'Shift: ${project.shift}',
+                  ),
                   const SizedBox(height: 5),
 
                   _buildProjectDetailRow(
-                      Icons.person, 'Manager: ${project.managerName}'),
+                    Icons.person,
+                    'Manager: ${project.managerName}',
+                  ),
                   const SizedBox(height: 5),
 
-                  _buildProjectDetailRow(
-                      Icons.email, project.managerEmail),
+                  _buildProjectDetailRow(Icons.email, project.managerEmail),
                 ],
               ),
             ),
@@ -1359,8 +1356,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       ),
     );
   }
-
-
 
   Widget _buildProjectDetailRow(IconData icon, String text) {
     return Row(

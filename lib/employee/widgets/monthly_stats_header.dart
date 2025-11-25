@@ -12,6 +12,19 @@ class MonthlyStatsHeader extends StatelessWidget {
     required this.month,
   });
 
+  void _handleDownload(BuildContext context) {
+    // TODO: Implement download functionality
+    // You can generate PDF/Excel report here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Downloading report...'),
+        backgroundColor: AppColors.success.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.read<RegularisationProvider>();
@@ -42,10 +55,29 @@ class MonthlyStatsHeader extends StatelessWidget {
             children: [
               Icon(Icons.analytics, color: AppColors.textLight, size: 24),
               const SizedBox(width: 12),
-              Text(
-                'Monthly Overview',
-                style: AppStyles.headingLarge.copyWith(
-                  color: AppColors.textLight,
+              Expanded(
+                child: Text(
+                  'Monthly Overview',
+                  style: AppStyles.headingLarge.copyWith(
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ),
+              // Download Icon Button
+              Material(
+                color: AppColors.textLight.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  onTap: () => _handleDownload(context),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.download_rounded,
+                      color: AppColors.textLight,
+                      size: 22,
+                    ),
+                  ),
                 ),
               ),
             ],
