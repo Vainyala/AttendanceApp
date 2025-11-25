@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 import 'package:attendanceapp/manager/models/attendance_model.dart';
 import 'package:attendanceapp/manager/models/employeemodels/employee_details_model.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
 import 'package:attendanceapp/manager/models/team_model.dart';
 import 'package:attendanceapp/manager/services/employeeservices/employee_details_service.dart';
 import 'package:attendanceapp/manager/services/managerservices/project_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class EmployeeDetailsViewModel with ChangeNotifier {
   final EmployeeDetailsService _service = EmployeeDetailsService();
@@ -637,6 +639,149 @@ class EmployeeDetailsViewModel with ChangeNotifier {
   void dispose() {
     _employeeDetails = null;
     super.dispose();
+  }
+
+  // ✅ NEW: Get projects as Project objects using your existing model
+  List<Project> get allocatedProjects {
+    final projectNames = getEmployeeProjects();
+
+    // Convert project names to Project objects using your existing model
+    return projectNames
+        .map(
+          (name) => Project(
+            id: _generateProjectId(name),
+            name: name,
+            description: _getProjectDescription(name),
+            startDate: DateTime.now().subtract(const Duration(days: 30)),
+            endDate: DateTime.now().add(const Duration(days: 60)),
+            status: _getProjectStatus(name),
+            priority: _getProjectPriority(name),
+            progress: _getProjectProgress(name),
+            budget: _getProjectBudget(name),
+            client: _getProjectClient(name),
+            assignedTeam: _getAssignedTeam(name),
+            tasks: _getProjectTasks(name),
+            createdAt: DateTime.now().subtract(const Duration(days: 45)),
+          ),
+        )
+        .toList();
+  }
+
+  // ✅ NEW: Project status color method
+  Color getProjectStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return Colors.green;
+      case 'completed':
+        return Colors.blue;
+      case 'planning':
+        return Colors.orange;
+      case 'on-hold':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // ✅ NEW: Project status text method
+  String getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Completed';
+      case 'planning':
+        return 'Planning';
+      case 'on-hold':
+        return 'On Hold';
+      default:
+        return status;
+    }
+  }
+
+  // Helper methods for project data
+  String _generateProjectId(String projectName) {
+    return '${projectName.replaceAll(' ', '').toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  String _getProjectDescription(String projectName) {
+    final descriptions = {
+      'E-Commerce Platform':
+          'Develop and maintain online shopping platform with payment integration',
+      'Mobile App Redesign':
+          'Redesign existing mobile application with modern UI/UX',
+      'Healthcare Management System':
+          'Hospital management software for patient records and appointments',
+      'Inventory Management System':
+          'Track and manage company inventory across multiple locations',
+      'Banking System Upgrade':
+          'Modernize legacy banking systems with new features',
+      'AI Chatbot Integration':
+          'Implement AI-powered chatbot for customer support',
+      'CRM Implementation':
+          'Customer relationship management system implementation',
+      'Data Analytics Dashboard': 'Real-time analytics and reporting dashboard',
+    };
+    return descriptions[projectName] ?? 'Project description not available';
+  }
+
+  String _getProjectStatus(String projectName) {
+    final statuses = ['active', 'active', 'planning', 'completed', 'on-hold'];
+    return statuses[projectName.length % statuses.length];
+  }
+
+  String _getProjectPriority(String projectName) {
+    final priorities = ['medium', 'high', 'low', 'urgent'];
+    return priorities[projectName.length % priorities.length];
+  }
+
+  double _getProjectProgress(String projectName) {
+    return (projectName.length * 10.0) % 100;
+  }
+
+  double _getProjectBudget(String projectName) {
+    return (projectName.length * 5000.0) + 10000.0;
+  }
+
+  String _getProjectClient(String projectName) {
+    final clients = {
+      'E-Commerce Platform': 'Fashion Store Inc.',
+      'Mobile App Redesign': 'Tech Solutions Ltd.',
+      'Healthcare Management System': 'City Hospital',
+      'Inventory Management System': 'Retail Chain Corp.',
+      'Banking System Upgrade': 'National Bank',
+      'AI Chatbot Integration': 'Customer Care Solutions',
+      'CRM Implementation': 'Sales Force Pro',
+      'Data Analytics Dashboard': 'Analytics Experts',
+    };
+    return clients[projectName] ?? 'Internal Project';
+  }
+
+  List<TeamMember> _getAssignedTeam(String projectName) {
+    // Yahan aap actual team members return karein
+    // For now, return empty list since we don't have actual team data
+    return [];
+  }
+
+  List<ProjectTask> _getProjectTasks(String projectName) {
+    // Create some dummy tasks based on project name
+    final taskCount = (projectName.length % 5) + 3; // 3-7 tasks
+
+    return List.generate(
+      taskCount,
+      (index) => ProjectTask(
+        id: 'task_${projectName}_$index',
+        title: 'Task ${index + 1} for $projectName',
+        description: 'Description for task ${index + 1}',
+        status: index % 3 == 0
+            ? 'completed'
+            : (index % 3 == 1 ? 'in-progress' : 'todo'),
+        priority: index % 4 == 0 ? 'high' : (index % 4 == 1 ? 'medium' : 'low'),
+        dueDate: DateTime.now().add(Duration(days: index * 7)),
+        assignedTo: ['team_member_$index'],
+        createdAt: DateTime.now().subtract(Duration(days: index * 2)),
+      ),
+    );
   }
 }
 
