@@ -1,12 +1,10 @@
 import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 import 'package:attendanceapp/manager/models/team_model.dart';
 import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
-import 'package:attendanceapp/manager/widgets/employee/allocated_projects_list.dart';
 import 'package:attendanceapp/manager/widgets/employee/attendance_history_list.dart';
 import 'package:attendanceapp/manager/widgets/employee/attendance_summary_cards.dart';
 import 'package:attendanceapp/manager/widgets/employee/employee_profile_header.dart';
 import 'package:attendanceapp/manager/widgets/employee/performance_metrics.dart';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -199,17 +197,12 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
 
           const SizedBox(height: 24),
 
-          //Project Metrics
-          _buildSectionHeader('Allocated Projects', isDarkMode),
-          const SizedBox(height: 16),
-          AllocatedProjectsList(viewModel: viewModel),
-          const SizedBox(height: 24),
-
           // Performance Metrics
-          // _buildSectionHeader('Performance Metrics', isDarkMode),
-          // const SizedBox(height: 16),
-          // PerformanceMetricsSection(viewModel: viewModel),
-          // const SizedBox(height: 24),
+          _buildSectionHeader('Performance Metrics', isDarkMode),
+          const SizedBox(height: 16),
+          PerformanceMetricsSection(viewModel: viewModel),
+
+          const SizedBox(height: 24),
 
           // Attendance History
           _buildSectionHeader('Recent Attendance', isDarkMode),

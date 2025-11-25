@@ -120,22 +120,22 @@ class ProjectDetailListScreens extends StatelessWidget {
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'EstD. Start Date',
+                        'Est D. Start Date',
                         _formatDate(project.startDate),
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'EstD. End Date',
+                        'Est D. End Date',
                         _formatDate(project.endDate),
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'EstD. Effort',
+                        'Est D. Effort',
                         '765 Man days',
                         isDarkMode,
                       ),
                       _buildModernDetailRow(
-                        'EstD. Cost',
+                        'Est D. Cost',
                         '₹${project.budget.toStringAsFixed(2)}',
                         isDarkMode,
                       ),
@@ -717,21 +717,21 @@ class ProjectPhase {
 //                       _buildModernDetailRow('Client', project.client),
 //                       _buildModernDetailRow('Description', project.description),
 //                       _buildModernDetailRow(
-//                         'EstD. Start Date',
+//                         'Est D. Start Date',
 //                         _formatDate(project.startDate),
 //                       ),
 //                       _buildModernDetailRow(
-//                         'EstD. End Date',
+//                         'Est D. End Date',
 //                         _formatDate(project.endDate),
 //                       ),
 //                       _buildModernDetailRow(
-//                         'EstD. Effort',
+//                         'Est D. Effort',
 //                         '765 Man days',
 //                         // '${project.daysRemaining} Mandays',
 //                       ),
 
 //                       _buildModernDetailRow(
-//                         'EstD. Cost',
+//                         'Est D. Cost',
 //                         '₹${project.budget.toStringAsFixed(2)}',
 //                       ),
 //                       _buildModernDetailRow(

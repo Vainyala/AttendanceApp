@@ -36,7 +36,7 @@ class _RegularisationScreenState extends State<RegularisationScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
-          'Regularization',
+          'Regularisation',
           style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black),
         ),
         backgroundColor: AppColors.grey300,
@@ -166,7 +166,7 @@ class _RegularisationScreenState extends State<RegularisationScreen> {
               Icon(Icons.bar_chart, color: AppColors.primary),
               const SizedBox(width: 8),
               const Text(
-                'Regulariszation Overview',
+                'Regularisation Overview',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ],
@@ -300,20 +300,20 @@ class _RegularisationScreenState extends State<RegularisationScreen> {
 
     switch (viewModel.currentFilter) {
       case RegularisationFilter.pending:
-        message = 'No pending regularization requests';
+        message = 'No pending regularisation requests';
         icon = Icons.check_circle_outline;
         break;
       case RegularisationFilter.approved:
-        message = 'No approved regularization requests';
+        message = 'No approved regularisation requests';
         icon = Icons.thumb_up_outlined;
         break;
       case RegularisationFilter.rejected:
-        message = 'No rejected regularization requests';
+        message = 'No rejected regularisation requests';
         icon = Icons.thumb_down_outlined;
         break;
       case RegularisationFilter.all:
       default:
-        message = 'No regularization requests found';
+        message = 'No regularisation requests found';
         icon = Icons.description_outlined;
     }
 
@@ -467,7 +467,7 @@ class _RegularisationScreenState extends State<RegularisationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Regularization Request'),
+        title: const Text('Create Regularisation Request'),
         content: const Text(
           'This feature will be implemented in the next phase.',
         ),

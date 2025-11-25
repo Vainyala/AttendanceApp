@@ -42,7 +42,7 @@ class ManagerBottomNavigation extends StatelessWidget {
             ),
             _buildNavButton(
               icon: Icons.calendar_today_rounded,
-              label: 'REGULARIZATION',
+              label: 'REGULARISATION',
               index: 1,
               isSelected: currentIndex == 1,
             ),
@@ -54,7 +54,7 @@ class ManagerBottomNavigation extends StatelessWidget {
             ),
             _buildNavButton(
               icon: Icons.timeline_rounded,
-              label: 'TIMESHEET',
+              label: 'TIMELINE',
               index: 3,
               isSelected: currentIndex == 3,
             ),

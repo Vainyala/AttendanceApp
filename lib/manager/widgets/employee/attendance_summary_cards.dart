@@ -36,15 +36,15 @@ class AttendanceSummaryCards extends StatelessWidget {
                 size: 18,
                 color: isDark ? Colors.blue.shade300 : Colors.blue.shade600,
               ),
-              // const SizedBox(width: 8),
-              // Text(
-              //   'Attendance Summary',
-              //   style: TextStyle(
-              //     fontSize: 16,
-              //     fontWeight: FontWeight.w600,
-              //     color: isDark ? Colors.white : Colors.grey.shade800,
-              //   ),
-              // ),
+              const SizedBox(width: 8),
+              Text(
+                'Attendance Summary',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.grey.shade800,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -187,7 +187,7 @@ class AttendanceSummaryCards extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Attendance',
+                  'Attendance Rate',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
