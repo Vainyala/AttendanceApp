@@ -1,6 +1,5 @@
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 class GraphToggle extends StatefulWidget {
   final AttendanceAnalyticsViewModel viewModel;

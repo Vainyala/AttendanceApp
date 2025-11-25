@@ -1,13 +1,13 @@
 // views/managerviews/manager_regularisation_screen.dart
+import 'package:attendanceapp/manager/models/regularisationmodels/manager_regularisation_model.dart';
+import 'package:attendanceapp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/widgets/bottom_navigation.dart';
-import '../../models/regularisationmodels/manager_regularisation_model.dart';
 import '../../models/user_model.dart';
-import '../../view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
-import '../../views/managerviews/leavescreen.dart';
-import '../../views/managerviews/manager_dashboard_screen.dart';
-import '../../views/managerviews/timeline.dart';
+import 'leavescreen.dart';
+import 'manager_dashboard_screen.dart';
+import 'timeline.dart';
 import '../../core/view_models/theme_view_model.dart';
 import 'manager_regularisation_detail_screen.dart';
 
@@ -277,6 +277,90 @@ class _ManagerRegularisationScreenState
     );
   }
 
+  Widget _buildSearchButton(
+    ManagerRegularisationViewModel viewModel,
+    bool isDarkMode,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: AppColors.primary.withOpacity(0.1),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => _showSearchDialog(viewModel, isDarkMode),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Icon(Icons.search, color: AppColors.primary, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSearchDialog(
+    ManagerRegularisationViewModel viewModel,
+    bool isDarkMode,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? AppColors.surfaceDark : AppColors.white,
+        title: Text(
+          'Search Leave Applications',
+          style: TextStyle(
+            color: isDarkMode ? AppColors.textInverse : AppColors.textPrimary,
+          ),
+        ),
+        content: TextField(
+          decoration: InputDecoration(
+            hintText: 'Search by name, email, project...',
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: isDarkMode ? AppColors.grey700 : AppColors.grey300,
+              ),
+            ),
+            hintStyle: TextStyle(
+              color: isDarkMode ? AppColors.grey500 : AppColors.grey500,
+            ),
+          ),
+          style: TextStyle(
+            color: isDarkMode ? AppColors.textInverse : AppColors.textPrimary,
+          ),
+          onChanged: (query) {
+            // Real-time search could be implemented here
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDarkMode ? AppColors.grey400 : AppColors.grey600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Implement search functionality
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Search'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatDivider(bool isDarkMode) {
     return Container(
       width: 1,
@@ -340,6 +424,8 @@ class _ManagerRegularisationScreenState
           ),
           const SizedBox(width: 12),
           _buildExportButton(viewModel, isDarkMode),
+          const SizedBox(width: 8),
+          _buildSearchButton(viewModel, isDarkMode),
         ],
       ),
     );
@@ -1209,7 +1295,7 @@ class _ManagerRegularisationScreenState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LeaveScreen(user: widget.user),
+            builder: (context) => ManagerLeaveScreen(user: widget.user),
           ),
         );
         break;

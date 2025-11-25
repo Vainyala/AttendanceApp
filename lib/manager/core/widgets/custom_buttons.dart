@@ -1,8 +1,7 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/button_view_model.dart';
-import '../view_models/theme_view_model.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;

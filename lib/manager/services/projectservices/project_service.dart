@@ -1,8 +1,5 @@
-
-
-import '../../models/project_model.dart' hide Project;
-import '../../models/projectmodels/project_models.dart';
-import '../../models/team_model.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class ProjectService {
   List<Project> _projects = [];

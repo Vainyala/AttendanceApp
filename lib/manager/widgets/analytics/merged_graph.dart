@@ -1,11 +1,8 @@
-
-
+import 'package:attendanceapp/manager/models/attendancemodels/attendance_analytics_model.dart';
+import 'package:attendanceapp/manager/widgets/analytics/download_excel_sheet_merge.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-import '../../models/attendancemodels/attendance_analytics_model.dart';
-import '../../view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
-import 'download_excel_sheet_merge.dart';
+import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 class MergedGraph extends StatefulWidget {
   final AttendanceAnalyticsViewModel viewModel;

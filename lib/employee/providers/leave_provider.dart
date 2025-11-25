@@ -1,3 +1,4 @@
+import 'package:AttendanceApp/employee/widgets/date_time_utils.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../models/leave_model.dart';
@@ -77,46 +78,51 @@ class LeaveProvider extends ChangeNotifier {
       'status': 'Approved',
       'reason': 'Family function',
       'appliedOn': DateTime(2025, 10, 1),
+      'managerComment': 'Approved. Enjoy your time!'
     },
     {
       'id': '2',
       'type': 'Sick Leave',
       'fromDate': DateTime(2025, 11, 5),
-      'toDate': DateTime(2025, 11, 5),
+      'toDate': DateTime(2025, 11, 6),
       'days': 1,
       'status': 'Pending',
       'reason': 'Medical checkup',
       'appliedOn': DateTime(2025, 10, 20),
+      'managerComment': 'Medical Report have to attach'
     },
     {
       'id': '3',
       'type': 'Annual Leave',
       'fromDate': DateTime(2025, 12, 20),
-      'toDate': DateTime(2025, 12, 25),
+      'toDate': DateTime(2025, 12, 30),
       'days': 5,
       'status': 'Pending',
       'reason': 'Year end vacation',
-      'appliedOn': DateTime(2025, 10, 5),
+      'appliedOn': DateTime(2025, 12, 5),
+      'managerComment': 'Not more than 5 days leaves'
     },
     {
       'id': '4',
       'type': 'Casual Leave',
       'fromDate': DateTime(2025, 9, 10),
-      'toDate': DateTime(2025, 9, 10),
+      'toDate': DateTime(2025, 9, 12),
       'days': 1,
       'status': 'Rejected',
       'reason': 'Personal work',
       'appliedOn': DateTime(2025, 9, 1),
+      'managerComment': '....'
     },
     {
       'id': '5',
       'type': 'Emergency Leave',
       'fromDate': DateTime(2025, 11, 20),
-      'toDate': DateTime(2025, 11, 21),
+      'toDate': DateTime(2025, 11, 25),
       'days': 2,
-      'status': 'Pending',
+      'status': 'Approved',
       'reason': 'Family emergency',
       'appliedOn': DateTime(2025, 10, 3),
+      'managerComment': 'Okay...'
     },
   ];
 
@@ -136,6 +142,13 @@ class LeaveProvider extends ChangeNotifier {
   Map<String, dynamic> get leaveBalance => _leaveBalance;
   List<String> get leaveTypes => _leaveTypes;
   List<String> get statusFilters => _statusFilters;
+
+
+  String get fromDateFormatted => DateFormattingUtils.formatDate(_fromDate);
+  String get toDateFormatted   => DateFormattingUtils.formatDate(_toDate);
+  String get fromTimeFormatted => '${_fromTime.hour.toString().padLeft(2, '0')}:${_fromTime.minute.toString().padLeft(2, '0')}';
+  String get toTimeFormatted => '${_toTime.hour.toString().padLeft(2, '0')}:${_toTime.minute.toString().padLeft(2, '0')}';
+
 
   // Get all leaves (dummy + applied)
   List<Map<String, dynamic>> get allLeaves {
@@ -158,6 +171,119 @@ class LeaveProvider extends ChangeNotifier {
 
       return true;
     }).toList()..sort((a, b) => b['appliedOn'].compareTo(a['appliedOn']));
+  }
+
+  Future<void> pickFromDate(BuildContext context) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _fromDate.isBefore(today) ? today : _fromDate,
+      firstDate: today, // ✅ Only today and future dates
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.textLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setFromDate(picked);
+    }
+  }
+
+  Future<void> pickToDate(BuildContext context) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _toDate.isBefore(today) ? today : _toDate,
+      firstDate: _fromDate.isBefore(today) ? today : _fromDate, // ✅ Can't be before fromDate or today
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.textLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setToDate(picked);
+    }
+  }
+  Future<void> pickFromTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _fromTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.textLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setFromTime(picked);
+      calculateDayType();
+    }
+  }
+
+  Future<void> pickToTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _toTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.textLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      // ✅ Validate time when same date
+      if (_fromDate.year == _toDate.year &&
+          _fromDate.month == _toDate.month &&
+          _fromDate.day == _toDate.day) {
+
+        final fromMinutes = _fromTime.hour * 60 + _fromTime.minute;
+        final toMinutes = picked.hour * 60 + picked.minute;
+
+        if (toMinutes <= fromMinutes) {
+          // Show error - to time must be after from time
+          return;
+        }
+      }
+
+      setToTime(picked);
+      calculateDayType();
+    }
   }
 
   bool canCancelPartialLeave(Map<String, dynamic> leave) {
@@ -372,6 +498,31 @@ class LeaveProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void calculateDayType() {
+    final from = DateTime(2025, 1, 1, fromTime.hour, fromTime.minute);
+    final to = DateTime(2025, 1, 1, toTime.hour, toTime.minute);
+
+    final difference = to.difference(from).inHours;
+
+    if (difference >= 8) {
+      // FULL DAY
+      setIsHalfDayFrom(false);
+      setIsHalfDayTo(false);
+    }
+    else if (difference >= 4) {
+      // HALF DAY (FIRST HALF)
+      setIsHalfDayFrom(true);
+      setIsHalfDayTo(false);
+    }
+    else {
+      // HALF DAY (SECOND HALF)
+      setIsHalfDayFrom(false);
+      setIsHalfDayTo(true);
+    }
+  }
+
+
   void updateLeaveDay(String leaveId, DateTime date, bool isHalfDay) {
     // Update specific day in the leave record
     // This persists to your backend
@@ -388,6 +539,76 @@ class LeaveProvider extends ChangeNotifier {
     // Both dates must be in the future (excluding today)
     return fromDate.isAfter(DateTime(now.year, now.month, now.day));
   }
+  // Add manager comments field to leave data
+  String? getManagerComment(Map<String, dynamic> leave) {
+    return leave['managerComment'] as String?;
+  }
+
+// Check if leave has started
+  bool hasLeaveStarted(Map<String, dynamic> leave) {
+    final now = DateTime.now();
+    final fromDate = leave['fromDate'] as DateTime;
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+    final normalizedFrom = DateTime(fromDate.year, fromDate.month, fromDate.day);
+
+    return normalizedFrom.isBefore(normalizedNow) ||
+        normalizedFrom.isAtSameMomentAs(normalizedNow);
+  }
+
+// Check if leave can be edited (dates changed)
+  bool canEditLeave(Map<String, dynamic> leave) {
+    if (leave['status'] == 'Rejected') return false;
+
+    final now = DateTime.now();
+    final fromDate = leave['fromDate'] as DateTime;
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+    final normalizedFrom = DateTime(fromDate.year, fromDate.month, fromDate.day);
+
+    // Can edit only if leave hasn't started yet
+    return normalizedFrom.isAfter(normalizedNow);
+  }
+
+// Check if leave can be cancelled
+  bool canCancelLeave(Map<String, dynamic> leave) {
+    if (leave['status'] == 'Rejected' || leave['status'] == 'Cancelled') {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final toDate = leave['toDate'] as DateTime;
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+    final normalizedTo = DateTime(toDate.year, toDate.month, toDate.day);
+
+    // Calculate remaining days (including today if leave is ongoing)
+    final remainingDays = normalizedTo.difference(normalizedNow).inDays;
+
+    // Can cancel if more than 1 day remaining
+    return remainingDays > 1;
+  }
+
+// Check if leave can be decreased (for ongoing leaves)
+  bool canDecreaseLeave(Map<String, dynamic> leave) {
+    if (leave['status'] != 'Approved') return false;
+
+    final now = DateTime.now();
+    final fromDate = leave['fromDate'] as DateTime;
+    final toDate = leave['toDate'] as DateTime;
+    final normalizedNow = DateTime(now.year, now.month, now.day);
+
+    // Leave has started but not ended
+    final hasStarted = fromDate.isBefore(normalizedNow) ||
+        fromDate.isAtSameMomentAs(normalizedNow);
+    final notEnded = toDate.isAfter(normalizedNow);
+
+    // Can decrease if remaining days > 1
+    if (hasStarted && notEnded) {
+      final remainingDays = toDate.difference(normalizedNow).inDays;
+      return remainingDays > 1;
+    }
+
+    return false;
+  }
+
   @override
   void dispose() {
     notesController.dispose();

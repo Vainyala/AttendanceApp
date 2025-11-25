@@ -16,32 +16,18 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
   final List<RoleOption> _roles = [
     RoleOption(
-      role: 'Manager',
-      icon: Icons.business_center,
-      color: const Color(0xFF4A90E2),
-      description: 'Manage teams and projects',
-      route: '/manager_dashboard',
-    ),
-    RoleOption(
       role: 'Employee',
       icon: Icons.person,
-      color: const Color(0xFF27AE60),
+      color: Color(0xFF27AE60),
       description: 'Access your work dashboard',
-      route: '/employee_dashboard',
+      route: '/employee',    // 👈 changed
     ),
     RoleOption(
-      role: 'HR',
-      icon: Icons.people,
-      color: const Color(0xFFE74C3C),
-      description: 'Human resources management',
-      route: '/hr_dashboard',
-    ),
-    RoleOption(
-      role: 'Finance',
-      icon: Icons.account_balance_wallet,
-      color: const Color(0xFFFF9800),
-      description: 'Financial management',
-      route: '/finance_dashboard',
+      role: 'Manager',
+      icon: Icons.business_center,
+      color: Color(0xFF4A90E2),
+      description: 'Manage teams and projects',
+      route: '/manager',     // 👈 changed
     ),
   ];
 
@@ -58,27 +44,17 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
     setState(() => _isLoading = true);
 
-    // Save the selected role
-    final provider = context.read<SplashProvider>();
-    // Uncomment and implement this in your provider if needed
-    // await provider.saveUserRole(_selectedRole!);
-
-    // Simulate API call or processing
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted) {
       setState(() => _isLoading = false);
 
-      // Find the selected role's route
-      final selectedRoleOption = _roles.firstWhere(
-            (role) => role.role == _selectedRole,
-      );
-
-      // Navigate to the appropriate dashboard
-      Navigator.pushReplacementNamed(
-        context,
-        selectedRoleOption.route,
-      );
+      // Navigate based on selected role
+      if (_selectedRole == 'Manager') {
+        Navigator.pushReplacementNamed(context, '/manager');
+      } else {
+        Navigator.pushReplacementNamed(context, '/employee');
+      }
     }
   }
 
@@ -312,3 +288,6 @@ class RoleOption {
     required this.route,
   });
 }
+
+
+

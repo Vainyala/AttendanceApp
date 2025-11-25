@@ -1,8 +1,6 @@
-
+import 'package:attendanceapp/manager/models/employeemodels/employee_details_model.dart';
+import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/employeemodels/employee_details_model.dart';
-import '../../view_models/employeeviewmodels/employee_details_view_model.dart';
 
 class PerformanceMetricsSection extends StatelessWidget {
   final EmployeeDetailsViewModel viewModel;

@@ -1,11 +1,10 @@
 // employee_list_screen.dart
-import 'package:AttendanceApp/manager/models/team_model.dart';
-import 'package:AttendanceApp/manager/views/managerviews/employee_detail_screen.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/employee_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../view_models/managerviewmodels/manager_dashboard_view_model.dart';
 
 class EmployeeListScreen extends StatefulWidget {
   const EmployeeListScreen({super.key});

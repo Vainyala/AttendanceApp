@@ -1,6 +1,4 @@
-
-
-import '../../models/team_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
 
 class TeamService {
   Future<List<TeamMember>> getTeamMembers(String managerEmail) async {

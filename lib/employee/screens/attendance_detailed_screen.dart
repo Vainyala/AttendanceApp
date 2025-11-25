@@ -1,19 +1,16 @@
-// screens/attendance_details_screen.dart
+
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/attendance_details_provider.dart';
-import '../utils/app_colors.dart';
-import '../widgets/allocated_pro_cards.dart';
 import '../widgets/attendance_history_section.dart';
 import '../widgets/attendance_overview_card.dart';
-import '../widgets/attendance_widgets.dart';
-import '../widgets/emp_info_card.dart';
 import '../widgets/export_option_sheet.dart';
 import '../widgets/period_info_widget.dart';
 
 class AttendanceDetailsScreen extends StatefulWidget {
   final String employeeId;
+  final DateTime selectedDate;
   final String periodType; // 'daily', 'weekly', 'monthly', 'quarterly'
   final String? projectId; // Optional project filter
   final String? projectName; // Optional project name for display
@@ -21,6 +18,7 @@ class AttendanceDetailsScreen extends StatefulWidget {
   const AttendanceDetailsScreen({
     super.key,
     required this.employeeId,
+    required this.selectedDate,
     this.periodType = 'quarterly',
     this.projectId,
     this.projectName,
@@ -31,17 +29,25 @@ class AttendanceDetailsScreen extends StatefulWidget {
 }
 
 class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
+
+  late DateTime selectedDate;
+
   @override
   void initState() {
     super.initState();
+
+    selectedDate = widget.selectedDate;   // ← IMPORTANT
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AttendanceDetailsProvider>().loadEmployeeDetails(
         widget.employeeId,
         widget.periodType,
+        selectedDate: selectedDate,        // ← NOW VALID
         projectId: widget.projectId,
       );
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +156,7 @@ class _AttendanceDetailsScreenState extends State<AttendanceDetailsScreen> {
                   builder: (_) => AttendanceDetailsScreen(
                     employeeId: widget.employeeId,
                     periodType: widget.periodType,
+                    selectedDate: widget.selectedDate,
                   ),
                 ),
               );

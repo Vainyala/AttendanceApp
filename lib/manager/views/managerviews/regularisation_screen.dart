@@ -1,13 +1,13 @@
 // views/regularisation/regularisation_screen.dart
+import 'package:attendanceapp/manager/models/regularisationmodels/regularisation_model.dart';
+import 'package:attendanceapp/manager/view_models/regularisationviewmodel/regularisation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/regularisationmodels/regularisation_model.dart';
 import '../../models/user_model.dart';
 import '../../core/widgets/bottom_navigation.dart';
-import '../../view_models/regularisationviewmodel/regularisation_view_model.dart';
-import '../../views/managerviews/leavescreen.dart';
-import '../../views/managerviews/manager_dashboard_screen.dart';
-import '../../views/managerviews/timeline.dart';
+import 'leavescreen.dart';
+import 'manager_dashboard_screen.dart';
+import 'timeline.dart';
 import '../../core/view_models/theme_view_model.dart';
 
 class RegularisationScreen extends StatefulWidget {
@@ -538,7 +538,7 @@ class _RegularisationScreenState extends State<RegularisationScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LeaveScreen(user: widget.user),
+            builder: (context) => ManagerLeaveScreen(user: widget.user),
           ),
         );
         break;

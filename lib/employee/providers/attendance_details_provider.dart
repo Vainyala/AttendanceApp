@@ -1,9 +1,8 @@
-
 // providers/attendance_details_provider.dart
+import 'package:AttendanceApp/employee/models/attendance_record.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-import '../models/attendance_record.dart';
 import '../models/attendance_stats.dart';
 import '../models/emp_model.dart';
 import '../models/projects_model.dart';
@@ -17,7 +16,7 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   EmployeeModel? _employee;
   AttendanceStats? _attendanceStats;
   List<ProjectsModel> _allocatedProjects = [];
-  List<AttendanceRecord> _attendanceRecords = [];
+  List<AttendanceRecords> _attendanceRecords = [];
   String _dateRange = '';
 
   // Getters
@@ -27,10 +26,10 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   EmployeeModel? get employee => _employee;
   AttendanceStats? get attendanceStats => _attendanceStats;
   List<ProjectsModel> get allocatedProjects => _allocatedProjects;
-  List<AttendanceRecord> get attendanceRecords => _filteredRecords;
+  List<AttendanceRecords> get attendanceRecords => _filteredRecords;
   String get dateRange => _dateRange;
 
-  List<AttendanceRecord> get _filteredRecords {
+  List<AttendanceRecords> get _filteredRecords {
     if (_selectedFilter == 'all') return _attendanceRecords;
     return _attendanceRecords
         .where((record) => record.status.toLowerCase() == _selectedFilter)
@@ -38,11 +37,11 @@ class AttendanceDetailsProvider extends ChangeNotifier {
   }
 
   Future<void> loadEmployeeDetails(
-      String employeeId,
-      String periodType, {
-        String? projectId,
-      }) async {
-
+    String employeeId,
+    String periodType, {
+    required DateTime selectedDate,
+    String? projectId,
+  }) async {
     _isLoading = true;
     _selectedPeriod = periodType;
     notifyListeners();
@@ -53,62 +52,71 @@ class AttendanceDetailsProvider extends ChangeNotifier {
     _allocatedProjects = _generateDummyProjects();
     _generateAttendanceData();
     _calculateStats();
-    _updateDateRange();
+    _updateDateRange(selectedDate);
 
     _isLoading = false;
     notifyListeners();
   }
 
-  void changePeriod(String period, String employeeId, {String? projectId}) {
+  void changePeriod(
+    String period,
+    String employeeId,
+    DateTime selectedDate, {
+    String? projectId,
+  }) {
     _selectedPeriod = period;
-    _selectedFilter = 'all';
     loadEmployeeDetails(
       employeeId,
       period,
+      selectedDate: selectedDate,
       projectId: projectId,
     );
   }
-
 
   void setFilter(String filter) {
     _selectedFilter = filter;
     notifyListeners();
   }
 
-  void _updateDateRange() {
-    final now = DateTime.now();
+  void _updateDateRange(DateTime selectedDate) {
+    final now = selectedDate; // ← USE SELECTED DATE
+
     switch (_selectedPeriod) {
       case 'daily':
-        _dateRange = 'Today: ${_formatDate(now)}';
+        _dateRange = 'Date: ${_formatDate(now)}';
         break;
+
       case 'weekly':
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
         final weekEnd = weekStart.add(Duration(days: 6));
-        _dateRange = 'From: ${_formatDate(weekStart)} To: ${_formatDate(weekEnd)}';
+        _dateRange =
+            'From: ${_formatDate(weekStart)} To: ${_formatDate(weekEnd)}';
         break;
+
       case 'monthly':
         final monthStart = DateTime(now.year, now.month, 1);
         final monthEnd = DateTime(now.year, now.month + 1, 0);
-        _dateRange = 'From: ${_formatDate(monthStart)} To: ${_formatDate(monthEnd)}';
+        _dateRange =
+            'From: ${_formatDate(monthStart)} To: ${_formatDate(monthEnd)}';
         break;
+
       case 'quarterly':
         final quarter = ((now.month - 1) ~/ 3) + 1;
         final quarterStart = DateTime(now.year, (quarter - 1) * 3 + 1, 1);
         final quarterEnd = DateTime(now.year, quarter * 3 + 1, 0);
-        final months = ['January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'];
-        _dateRange = 'From: ${months[quarterStart.month - 1]} To: ${months[quarterEnd.month - 1]}';
+
+        _dateRange =
+            'From: ${_formatDate(quarterStart)} To: ${_formatDate(quarterEnd)}';
         break;
     }
   }
 
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
-    final monthName = DateTimeUtils.months[date.month]; // Example: 1 → January
+    final monthName = DateTimeUtils.months[date.month - 1];
 
     return "$day $monthName ${date.year}";
   }
-
 
   void _generateAttendanceData() {
     _attendanceRecords.clear();
@@ -142,13 +150,15 @@ class AttendanceDetailsProvider extends ChangeNotifier {
         hours = 9.0 + (dayNum % 2) * 0.25;
       }
 
-      _attendanceRecords.add(AttendanceRecord(
-        date: date,
-        status: status,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        hours: hours,
-      ));
+      _attendanceRecords.add(
+        AttendanceRecords(
+          date: date,
+          status: status,
+          checkIn: checkIn,
+          checkOut: checkOut,
+          hours: hours,
+        ),
+      );
     }
   }
 
@@ -191,7 +201,9 @@ class AttendanceDetailsProvider extends ChangeNotifier {
       }
     }
 
-    final attendancePercentage = totalDays > 0 ? (present / totalDays * 100).toInt() : 0;
+    final attendancePercentage = totalDays > 0
+        ? (present / totalDays * 100).toInt()
+        : 0;
 
     _attendanceStats = AttendanceStats(
       present: present,
@@ -219,7 +231,11 @@ class AttendanceDetailsProvider extends ChangeNotifier {
     return [
       ProjectsModel(id: '1', name: 'E-Commerce Platform', status: 'Active'),
       ProjectsModel(id: '2', name: 'Banking System Upgrade', status: 'Active'),
-      ProjectsModel(id: '3', name: 'Inventory Management System', status: 'Active'),
+      ProjectsModel(
+        id: '3',
+        name: 'Inventory Management System',
+        status: 'Active',
+      ),
     ];
   }
 

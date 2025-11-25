@@ -1,4 +1,4 @@
-import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 class ManagerProfileHeader extends StatelessWidget {

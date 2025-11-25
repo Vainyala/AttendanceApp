@@ -1,19 +1,19 @@
 import 'dart:ui';
 
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:attendanceapp/manager/models/employeemodels/employee_details_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/services/employeeservices/employee_details_service.dart';
+import 'package:attendanceapp/manager/services/managerservices/project_service.dart';
 import 'package:flutter/foundation.dart';
-
-import '../../../employee/models/attendance_record.dart';
-import '../../core/view_models/theme_view_model.dart';
-import '../../models/team_model.dart';
-import '../../services/employeeservices/employee_details_service.dart';
-import '../../services/managerservices/project_service.dart';
 
 class EmployeeDetailsViewModel with ChangeNotifier {
   final EmployeeDetailsService _service = EmployeeDetailsService();
   final ProjectService _projectService = ProjectService();
 
   bool _isLoading = false;
-  EmployeeDetails  _employeeDetails;
+  EmployeeDetails? _employeeDetails;
   String? _errorMessage;
   String _selectedFilter = 'all'; // all, present, absent, late
 
@@ -638,9 +638,6 @@ class EmployeeDetailsViewModel with ChangeNotifier {
     _employeeDetails = null;
     super.dispose();
   }
-}
-
-class EmployeeDetails {
 }
 
 // import 'dart:ui';

@@ -1,8 +1,7 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/attendance_model.dart';
-import '../../view_models/employeeviewmodels/employee_details_view_model.dart';
 
 class AttendanceHistoryList extends StatefulWidget {
   final EmployeeDetailsViewModel viewModel;

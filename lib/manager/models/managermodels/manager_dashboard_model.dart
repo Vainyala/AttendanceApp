@@ -1,8 +1,7 @@
-import 'package:AttendanceApp/manager/models/user_model.dart';
-
-import '../../../employee/models/attendance_record.dart';
-import '../projectmodels/project_models.dart';
-import '../team_model.dart';
+import 'package:attendanceapp/manager/models/attendance_model.dart';
+import 'package:attendanceapp/manager/models/project_model.dart';
+import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
 
 class ManagerDashboard {
   final User profile;

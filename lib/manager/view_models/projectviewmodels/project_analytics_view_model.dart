@@ -1,8 +1,7 @@
 // view_models/projectviewmodels/project_analytics_view_model.dart
 import 'package:flutter/foundation.dart';
-
-import '../../models/projectmodels/project_analytics_model.dart';
-import '../../models/projectmodels/project_models.dart';
+import 'package:attendanceapp/manager/models/projectmodels/project_models.dart'; // Use the correct import
+import 'package:attendanceapp/manager/models/projectmodels/project_analytics_model.dart';
 
 class ProjectAnalyticsViewModel with ChangeNotifier {
   ProjectAnalytics? _analytics;

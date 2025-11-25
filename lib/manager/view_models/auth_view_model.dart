@@ -1,7 +1,6 @@
-
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:attendanceapp/manager/services/geofencing_service.dart';
 import 'package:flutter/material.dart';
-import '../../employee/services/geofencing_service.dart';
-import '../core/view_models/theme_view_model.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../database/database_helper.dart';

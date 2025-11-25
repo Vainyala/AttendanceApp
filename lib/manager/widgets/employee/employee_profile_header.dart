@@ -1,7 +1,5 @@
-
+import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
 import 'package:flutter/material.dart';
-
-import '../../view_models/employeeviewmodels/employee_details_view_model.dart';
 
 class EmployeeProfileHeader extends StatelessWidget {
   final EmployeeDetailsViewModel viewModel;

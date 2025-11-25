@@ -1,11 +1,11 @@
-import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
+import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:attendanceapp/manager/views/managerviews/leavescreen.dart';
+import 'package:attendanceapp/manager/views/managerviews/manager_dashboard_screen.dart';
+import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
+import 'package:attendanceapp/manager/views/managerviews/regularisation_screen.dart';
 import 'package:flutter/material.dart';
-
-import '../../core/view_models/theme_view_model.dart';
-import '../../core/widgets/bottom_navigation.dart';
-import 'leavescreen.dart';
-import 'manager_dashboard_screen.dart';
-import 'manager_regularisation_screen.dart';
+import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
 
 class TimelineScreen extends StatelessWidget {
   final User user;
@@ -77,7 +77,9 @@ class TimelineScreen extends StatelessWidget {
           } else if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => LeaveScreen(user: user)),
+              MaterialPageRoute(
+                builder: (context) => ManagerLeaveScreen(user: user),
+              ),
             );
           }
         },

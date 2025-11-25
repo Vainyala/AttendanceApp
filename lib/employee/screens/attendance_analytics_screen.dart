@@ -1,9 +1,9 @@
 // screens/attendance_analytics_screen.dart
+import 'package:AttendanceApp/employee/providers/analytics_provider.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../models/analytics_data.dart';
-import '../providers/analytics_provider.dart';
 import '../widgets/month_selection_drawer.dart';
 import '../widgets/quarter_selection_drawer.dart';
 import '../widgets/week_selection_drawer.dart';
@@ -24,12 +24,6 @@ class _AttendanceAnalyticsScreenState extends State<AttendanceAnalyticsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<AnalyticsProvider>();
-      if (widget.preSelectedProjectId != null) {
-        provider.setProjectId(widget.preSelectedProjectId);
-      }
-    });
   }
 
   @override
@@ -226,6 +220,7 @@ class _TopSummaryBar extends StatelessWidget {
     return Container(
       child: Column(
         children: [
+          // Icon buttons row
           Align(
             alignment: Alignment.center,
             child: Container(
@@ -248,43 +243,87 @@ class _TopSummaryBar extends StatelessWidget {
                     context,
                     Icons.all_inbox,
                     provider.viewMode == ViewMode.all,
-                        () => provider.setViewMode(ViewMode.all),
+                        () {
+                      provider.clearProjectSelection();
+                      provider.setViewMode(ViewMode.all);
+                    },
                   ),
+                  // Only show project icon if no project is selected
                   SizedBox(width: 15),
                   _buildIconButton(
                     context,
                     Icons.drive_file_move_sharp,
                     provider.viewMode == ViewMode.project,
-                        () => provider.setViewMode(ViewMode.project),
+                    provider.hasProjectSelected
+                        ? null   // disable tap
+                        : () => provider.setViewMode(ViewMode.project),
                   ),
                 ],
               ),
             ),
           ),
+          // Show selected project name
+          if (provider.hasProjectSelected) ...[
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.work_outline,
+                    size: 18,
+                    color: AppColors.primaryBlue,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    provider.selectedProjectName ?? 'Project',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-
   Widget _buildIconButton(
       BuildContext context,
       IconData icon,
       bool isSelected,
-      VoidCallback onTap,
+      VoidCallback? onTap,
       ) {
+    final bool isDisabled = onTap == null;
+
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isSelected ? Colors.blue : Colors.black.withOpacity(0.25),
-        ),
-        child: Icon(
-          icon,
-          size: 21,
-          color: AppColors.textLight,
+      onTap: isDisabled ? null : onTap,
+      child: Opacity(
+        opacity: isDisabled ? 0.4 : 1.0,   // look disabled
+        child: Container(
+          padding: EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected ? Colors.blue : Colors.black.withOpacity(0.25),
+          ),
+          child: Icon(
+            icon,
+            size: 21,
+            color: AppColors.textLight,
+          ),
         ),
       ),
     );
