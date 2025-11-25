@@ -1,10 +1,12 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
-import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
-import 'package:attendanceapp/manager/widgets/employee/attendance_history_list.dart';
-import 'package:attendanceapp/manager/widgets/employee/attendance_summary_cards.dart';
-import 'package:attendanceapp/manager/widgets/employee/employee_profile_header.dart';
-import 'package:attendanceapp/manager/widgets/employee/performance_metrics.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
+import 'package:AttendanceApp/manager/widgets/employee/allocated_projects_list.dart';
+import 'package:AttendanceApp/manager/widgets/employee/attendance_history_list.dart';
+import 'package:AttendanceApp/manager/widgets/employee/attendance_summary_cards.dart';
+import 'package:AttendanceApp/manager/widgets/employee/employee_profile_header.dart';
+import 'package:AttendanceApp/manager/widgets/employee/performance_metrics.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -197,12 +199,17 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
 
           const SizedBox(height: 24),
 
-          // Performance Metrics
-          _buildSectionHeader('Performance Metrics', isDarkMode),
+          //Project Metrics
+          _buildSectionHeader('Allocated Projects', isDarkMode),
           const SizedBox(height: 16),
-          PerformanceMetricsSection(viewModel: viewModel),
-
+          AllocatedProjectsList(viewModel: viewModel),
           const SizedBox(height: 24),
+
+          // Performance Metrics
+          // _buildSectionHeader('Performance Metrics', isDarkMode),
+          // const SizedBox(height: 16),
+          // PerformanceMetricsSection(viewModel: viewModel),
+          // const SizedBox(height: 24),
 
           // Attendance History
           _buildSectionHeader('Recent Attendance', isDarkMode),
@@ -228,12 +235,12 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
   }
 }
 
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_history_list.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_summary_cards.dart';
-// import 'package:attendanceapp/widgets/employee/employee_profile_header.dart';
-// import 'package:attendanceapp/widgets/employee/performance_metrics.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_history_list.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_summary_cards.dart';
+// import 'package:AttendanceApp/widgets/employee/employee_profile_header.dart';
+// import 'package:AttendanceApp/widgets/employee/performance_metrics.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -441,13 +448,13 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_history_list.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_summary_cards.dart';
-// import 'package:attendanceapp/widgets/employee/employee_profile_header.dart';
-// import 'package:attendanceapp/widgets/employee/performance_metrics.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_history_list.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_summary_cards.dart';
+// import 'package:AttendanceApp/widgets/employee/employee_profile_header.dart';
+// import 'package:AttendanceApp/widgets/employee/performance_metrics.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -678,13 +685,13 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> {
 
 ############################################################################################################################ */
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/team_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_history_list.dart';
-// import 'package:attendanceapp/widgets/employee/attendance_summary_cards.dart';
-// import 'package:attendanceapp/widgets/employee/employee_profile_header.dart';
-// import 'package:attendanceapp/widgets/employee/performance_metrics.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_history_list.dart';
+// import 'package:AttendanceApp/widgets/employee/attendance_summary_cards.dart';
+// import 'package:AttendanceApp/widgets/employee/employee_profile_header.dart';
+// import 'package:AttendanceApp/widgets/employee/performance_metrics.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

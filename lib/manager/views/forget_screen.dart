@@ -1,7 +1,7 @@
 // import 'dart:async';
 // import 'dart:math';
 // import 'dart:ui';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/common_view_model.dart';
@@ -879,7 +879,7 @@
 // import 'dart:async';
 // import 'dart:math';
 // import 'dart:ui';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/common_view_model.dart';

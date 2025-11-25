@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/database/database_helper.dart';
+import 'package:AttendanceApp/manager/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/theme_view_model.dart';
@@ -983,7 +983,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// import 'package:attendanceapp/database/database_helper.dart';
+// import 'package:AttendanceApp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/theme_view_model.dart';
@@ -1910,8 +1910,8 @@ class _LoginScreenState extends State<LoginScreen>
 
 // import 'dart:math';
 // import 'dart:ui';
-// import 'package:attendanceapp/database/database_helper.dart';
-// import 'package:attendanceapp/models/user_model.dart';
+// import 'package:AttendanceApp/database/database_helper.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/theme_view_model.dart';
@@ -3492,7 +3492,7 @@ class _LoginScreenState extends State<LoginScreen>
 
 ###################################################################################################################### */
 
-// import 'package:attendanceapp/database/database_helper.dart';
+// import 'package:AttendanceApp/database/database_helper.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../core/view_models/theme_view_model.dart';

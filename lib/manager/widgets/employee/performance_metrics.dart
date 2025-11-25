@@ -1,5 +1,5 @@
-import 'package:attendanceapp/manager/models/employeemodels/employee_details_model.dart';
-import 'package:attendanceapp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
+import 'package:AttendanceApp/manager/models/employeemodels/employee_details_model.dart';
+import 'package:AttendanceApp/manager/view_models/employeeviewmodels/employee_details_view_model.dart';
 import 'package:flutter/material.dart';
 
 class PerformanceMetricsSection extends StatelessWidget {
@@ -272,8 +272,8 @@ class PerformanceMetricsSection extends StatelessWidget {
   }
 }
 
-// import 'package:attendanceapp/models/employeemodels/employee_details_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/models/employeemodels/employee_details_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class PerformanceMetricsSection extends StatelessWidget {
@@ -532,9 +532,9 @@ class PerformanceMetricsSection extends StatelessWidget {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/employeemodels/employee_details_model.dart';
-// import 'package:attendanceapp/view_models/employeeviewmodels/employee_details_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/employeemodels/employee_details_model.dart';
+// import 'package:AttendanceApp/view_models/employeeviewmodels/employee_details_view_model.dart';
 // import 'package:flutter/material.dart';
 
 // class PerformanceMetricsSection extends StatelessWidget {

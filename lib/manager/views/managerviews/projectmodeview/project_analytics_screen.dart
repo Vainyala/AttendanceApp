@@ -1,9 +1,9 @@
 // // widgets/project_analytics_screen.dart
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 // import 'package:flutter/material.dart';
-// import 'package:attendanceapp/models/project_model.dart';
-// import 'package:attendanceapp/widgets/analytics/merged_graph.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/models/project_model.dart';
+// import 'package:AttendanceApp/widgets/analytics/merged_graph.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 
 // class ProjectAnalyticsScreen extends StatelessWidget {
 //   final Project project;

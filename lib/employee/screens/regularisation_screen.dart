@@ -1,3 +1,4 @@
+import 'package:AttendanceApp/employee/widgets/status_badge.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +12,6 @@ import '../widgets/monthly_stats_header.dart';
 import '../widgets/project_selection_dialog.dart';
 import '../widgets/regularisation_detail_dailog.dart';
 import '../widgets/regularization_widgets/attendance_cards.dart';
-import '../widgets/status_badge.dart';
 
 class RegularisationScreen extends StatefulWidget {
   const RegularisationScreen({super.key});

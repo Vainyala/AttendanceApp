@@ -1,5 +1,5 @@
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -1033,7 +1033,7 @@ class _PeriodSelectorState extends State<PeriodSelector> {
   }
 }
 
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:intl/intl.dart';
 
@@ -2019,8 +2019,8 @@ class _PeriodSelectorState extends State<PeriodSelector> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:intl/intl.dart';
 
@@ -2914,8 +2914,8 @@ class _PeriodSelectorState extends State<PeriodSelector> {
 //   }
 // }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:intl/intl.dart';
 
@@ -3494,8 +3494,8 @@ class _PeriodSelectorState extends State<PeriodSelector> {
 //   }
 // }
 
-// // import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// // import 'package:attendanceapp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
+// // import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// // import 'package:AttendanceApp/view_models/attendanceviewmodels/attendance_analytics_view_model.dart';
 // // import 'package:flutter/material.dart';
 
 // // class PeriodSelector extends StatelessWidget {

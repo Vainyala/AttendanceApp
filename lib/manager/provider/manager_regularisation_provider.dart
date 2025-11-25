@@ -1,7 +1,7 @@
 // providers/manager_regularisation_provider.dart
-import 'package:attendanceapp/manager/services/regularisationservices/manager_regularisation_service.dart';
-import 'package:attendanceapp/manager/services/projectservices/project_service.dart'; // ✅ Add this import
-import 'package:attendanceapp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
+import 'package:AttendanceApp/manager/services/regularisationservices/manager_regularisation_service.dart';
+import 'package:AttendanceApp/manager/services/projectservices/project_service.dart'; // ✅ Add this import
+import 'package:AttendanceApp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
 import 'package:flutter/material.dart';
 
 class ManagerRegularisationProvider extends InheritedWidget {

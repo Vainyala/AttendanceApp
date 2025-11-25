@@ -1,5 +1,5 @@
 // widgets/dashboard_counter.dart
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
 import 'package:flutter/material.dart';
 
 class DashboardCounter extends StatelessWidget {

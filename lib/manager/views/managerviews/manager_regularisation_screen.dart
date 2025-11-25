@@ -1,6 +1,6 @@
 // views/managerviews/manager_regularisation_screen.dart
-import 'package:attendanceapp/manager/models/regularisationmodels/manager_regularisation_model.dart';
-import 'package:attendanceapp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
+import 'package:AttendanceApp/manager/models/regularisationmodels/manager_regularisation_model.dart';
+import 'package:AttendanceApp/manager/view_models/regularisationviewmodel/manager_regularisation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/widgets/bottom_navigation.dart';

@@ -1,5 +1,5 @@
-import 'package:attendanceapp/manager/models/projectmodels/project_models.dart';
-import 'package:attendanceapp/manager/models/team_model.dart';
+import 'package:AttendanceApp/manager/models/projectmodels/project_models.dart';
+import 'package:AttendanceApp/manager/models/team_model.dart';
 
 class ProjectService {
   List<Project> _projects = [];
@@ -456,8 +456,8 @@ class ProjectService {
   }
 }
 
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 
 // class ProjectService {
 //   List<Project> _projects = [];
@@ -893,8 +893,8 @@ class ProjectService {
 //   }
 // }
 
-// import 'package:attendanceapp/models/projectmodels/project_models.dart';
-// import 'package:attendanceapp/models/team_model.dart';
+// import 'package:AttendanceApp/models/projectmodels/project_models.dart';
+// import 'package:AttendanceApp/models/team_model.dart';
 
 // class ProjectService {
 //   List<Project> _projects = [];

@@ -1,6 +1,6 @@
 // widgets/leave_application_card.dart
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
 import 'package:flutter/material.dart';
 
 class LeaveApplicationCard extends StatelessWidget {
@@ -387,7 +387,7 @@ class LeaveApplicationCard extends StatelessWidget {
 }
 
 // // widgets/leave_application_card.dart
-// import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
+// import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
 // import 'package:flutter/material.dart';
 
 // class LeaveApplicationCard extends StatelessWidget {

@@ -1,15 +1,15 @@
 // views/manager_leave_screen.dart
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
-import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
-import 'package:attendanceapp/manager/models/user_model.dart';
-import 'package:attendanceapp/manager/view_models/leaveviewmodels/leave_view_model.dart';
-import 'package:attendanceapp/manager/views/managerviews/leave_detail_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/manager_dashboard_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/timeline.dart';
-import 'package:attendanceapp/manager/widgets/leavewidgets/dashboard_counter.dart';
-import 'package:attendanceapp/manager/widgets/leavewidgets/leave_application_card.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/widgets/bottom_navigation.dart';
+import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
+import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:AttendanceApp/manager/view_models/leaveviewmodels/leave_view_model.dart';
+import 'package:AttendanceApp/manager/views/managerviews/leave_detail_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/manager_dashboard_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/timeline.dart';
+import 'package:AttendanceApp/manager/widgets/leavewidgets/dashboard_counter.dart';
+import 'package:AttendanceApp/manager/widgets/leavewidgets/leave_application_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -673,17 +673,17 @@ class _ManagerLeaveScreenState extends State<ManagerLeaveScreen> {
 }
 
 // // views/manager_leave_screen.dart
-// import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
-// import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
-// import 'package:attendanceapp/manager/models/user_model.dart';
-// import 'package:attendanceapp/manager/view_models/leaveviewmodels/leave_view_model.dart';
-// import 'package:attendanceapp/manager/views/managerviews/leave_detail_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/manager_dashboard_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/timeline.dart';
-// import 'package:attendanceapp/manager/widgets/leavewidgets/dashboard_counter.dart';
-// import 'package:attendanceapp/manager/widgets/leavewidgets/leave_application_card.dart';
+// import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/manager/core/widgets/bottom_navigation.dart';
+// import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
+// import 'package:AttendanceApp/manager/models/user_model.dart';
+// import 'package:AttendanceApp/manager/view_models/leaveviewmodels/leave_view_model.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/leave_detail_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/manager_dashboard_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/timeline.dart';
+// import 'package:AttendanceApp/manager/widgets/leavewidgets/dashboard_counter.dart';
+// import 'package:AttendanceApp/manager/widgets/leavewidgets/leave_application_card.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 
@@ -1240,17 +1240,17 @@ class _ManagerLeaveScreenState extends State<ManagerLeaveScreen> {
 // }
 
 // // views/manager_leave_screen.dart
-// import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
-// import 'package:attendanceapp/manager/models/leavemodels/leave_model.dart';
-// import 'package:attendanceapp/manager/models/user_model.dart';
-// import 'package:attendanceapp/manager/view_models/leaveviewmodels/leave_view_model.dart';
-// import 'package:attendanceapp/manager/views/managerviews/leave_detail_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/manager_dashboard_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
-// import 'package:attendanceapp/manager/views/managerviews/timeline.dart';
-// import 'package:attendanceapp/manager/widgets/leavewidgets/dashboard_counter.dart';
-// import 'package:attendanceapp/manager/widgets/leavewidgets/leave_application_card.dart';
+// import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/manager/core/widgets/bottom_navigation.dart';
+// import 'package:AttendanceApp/manager/models/leavemodels/leave_model.dart';
+// import 'package:AttendanceApp/manager/models/user_model.dart';
+// import 'package:AttendanceApp/manager/view_models/leaveviewmodels/leave_view_model.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/leave_detail_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/manager_dashboard_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
+// import 'package:AttendanceApp/manager/views/managerviews/timeline.dart';
+// import 'package:AttendanceApp/manager/widgets/leavewidgets/dashboard_counter.dart';
+// import 'package:AttendanceApp/manager/widgets/leavewidgets/leave_application_card.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

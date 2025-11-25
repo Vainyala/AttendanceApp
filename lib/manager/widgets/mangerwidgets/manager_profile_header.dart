@@ -1,4 +1,4 @@
-import 'package:attendanceapp/manager/models/user_model.dart';
+import 'package:AttendanceApp/manager/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 class ManagerProfileHeader extends StatelessWidget {
@@ -264,8 +264,8 @@ class ManagerProfileHeader extends StatelessWidget {
   }
 }
 
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/models/user_model.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
 // import 'package:flutter/material.dart';
 
 // class ManagerProfileHeader extends StatelessWidget {

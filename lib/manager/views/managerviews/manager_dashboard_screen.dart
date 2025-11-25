@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:attendanceapp/manager/views/managerviews/leavescreen.dart';
-import 'package:attendanceapp/manager/views/managerviews/manager_regularisation_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/regularisation_screen.dart';
-import 'package:attendanceapp/manager/views/managerviews/timeline.dart';
-import 'package:attendanceapp/manager/widgets/mangerwidgets/manager_drawer.dart';
-import 'package:attendanceapp/manager/widgets/mangerwidgets/matrix_counter.dart';
-import 'package:attendanceapp/manager/widgets/mangerwidgets/presentdashboard.dart';
+import 'package:AttendanceApp/manager/views/managerviews/leavescreen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/manager_regularisation_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/regularisation_screen.dart';
+import 'package:AttendanceApp/manager/views/managerviews/timeline.dart';
+import 'package:AttendanceApp/manager/widgets/mangerwidgets/manager_drawer.dart';
+import 'package:AttendanceApp/manager/widgets/mangerwidgets/matrix_counter.dart';
+import 'package:AttendanceApp/manager/widgets/mangerwidgets/presentdashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:attendanceapp/manager/core/view_models/theme_view_model.dart';
-import 'package:attendanceapp/manager/core/widgets/bottom_navigation.dart';
-import 'package:attendanceapp/manager/models/user_model.dart';
-import 'package:attendanceapp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-import 'package:attendanceapp/manager/widgets/mangerwidgets/attendance_timer.dart';
-import 'package:attendanceapp/manager/widgets/mangerwidgets/dashboard_cards.dart';
+import 'package:AttendanceApp/manager/core/view_models/theme_view_model.dart';
+import 'package:AttendanceApp/manager/core/widgets/bottom_navigation.dart';
+import 'package:AttendanceApp/manager/models/user_model.dart';
+import 'package:AttendanceApp/manager/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+import 'package:AttendanceApp/manager/widgets/mangerwidgets/attendance_timer.dart';
+import 'package:AttendanceApp/manager/widgets/mangerwidgets/dashboard_cards.dart';
 
 class ManagerDashboardScreen extends StatefulWidget {
   final User user;
@@ -1101,21 +1101,21 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen>
 
 // import 'dart:async';
 
-// import 'package:attendanceapp/views/managerviews/leavescreen.dart';
-// import 'package:attendanceapp/views/managerviews/manager_regularisation_screen.dart';
-// import 'package:attendanceapp/views/managerviews/regularisation_screen.dart';
-// import 'package:attendanceapp/views/managerviews/timeline.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/manager_drawer.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/matrix_counter.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/presentdashboard.dart';
+// import 'package:AttendanceApp/views/managerviews/leavescreen.dart';
+// import 'package:AttendanceApp/views/managerviews/manager_regularisation_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/regularisation_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/timeline.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/manager_drawer.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/matrix_counter.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/presentdashboard.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/core/widgets/bottom_navigation.dart';
-// import 'package:attendanceapp/models/user_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/attendance_timer.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/dashboard_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/widgets/bottom_navigation.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/attendance_timer.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/dashboard_cards.dart';
 
 // class ManagerDashboardScreen extends StatefulWidget {
 //   final User user;
@@ -2061,20 +2061,20 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen>
 
 // import 'dart:async';
 
-// import 'package:attendanceapp/views/managerviews/leavescreen.dart';
-// import 'package:attendanceapp/views/managerviews/regularisation_screen.dart';
-// import 'package:attendanceapp/views/managerviews/timeline.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/manager_drawer.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/matrix_counter.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/presentdashboard.dart';
+// import 'package:AttendanceApp/views/managerviews/leavescreen.dart';
+// import 'package:AttendanceApp/views/managerviews/regularisation_screen.dart';
+// import 'package:AttendanceApp/views/managerviews/timeline.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/manager_drawer.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/matrix_counter.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/presentdashboard.dart';
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
-// import 'package:attendanceapp/core/view_models/theme_view_model.dart';
-// import 'package:attendanceapp/core/widgets/bottom_navigation.dart';
-// import 'package:attendanceapp/models/user_model.dart';
-// import 'package:attendanceapp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/attendance_timer.dart';
-// import 'package:attendanceapp/widgets/mangerwidgets/dashboard_cards.dart';
+// import 'package:AttendanceApp/core/view_models/theme_view_model.dart';
+// import 'package:AttendanceApp/core/widgets/bottom_navigation.dart';
+// import 'package:AttendanceApp/models/user_model.dart';
+// import 'package:AttendanceApp/view_models/managerviewmodels/manager_dashboard_view_model.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/attendance_timer.dart';
+// import 'package:AttendanceApp/widgets/mangerwidgets/dashboard_cards.dart';
 
 // class ManagerDashboardScreen extends StatefulWidget {
 //   final User user;
