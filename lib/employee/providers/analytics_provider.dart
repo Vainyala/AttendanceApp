@@ -207,7 +207,16 @@ class AnalyticsProvider with ChangeNotifier {
   void setProjectId(String? projectId, {String? projectName}) {
     print('🔄 Setting project: $projectId - $projectName');
     _selectedProjectId = projectId;
-    _selectedProjectName = projectName;
+
+    // FIX: do NOT overwrite if name is null
+    if (projectName != null && projectName.isNotEmpty) {
+      _selectedProjectName = projectName;
+    }
+
+    if (projectName == null) {
+      print("⚠️ WARNING: setProjectId called with NULL projectName");
+    }
+
     _generateDummyDataForProject(projectId);
     notifyListeners();
   }
@@ -298,7 +307,9 @@ class AnalyticsProvider with ChangeNotifier {
   String _getWeekLabel(int index) {
     final now = DateTime.now();
     final targetDate = now.subtract(Duration(days: 7 * index));
-    final weekStart = targetDate.subtract(Duration(days: targetDate.weekday - 1));
+    final weekStart = targetDate.subtract(
+      Duration(days: targetDate.weekday - 1),
+    );
     final weekEnd = weekStart.add(Duration(days: 6));
 
     if (index == 0) {
@@ -362,8 +373,6 @@ class AnalyticsProvider with ChangeNotifier {
       return "Q$quarter $qYear";
     }
   }
-
-
 
   void clearProjectSelection() {
     _selectedProjectId = null;

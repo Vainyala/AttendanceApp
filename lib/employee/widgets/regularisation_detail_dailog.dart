@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_helpers.dart';
 import '../utils/app_styles.dart';
+import '../widgets/date_time_utils.dart';
 
 class RegularisationDetailDialog extends StatefulWidget {
   final String dateStr;
@@ -33,6 +34,7 @@ class RegularisationDetailDialog extends StatefulWidget {
 
 class _RegularisationDetailDialogState
     extends State<RegularisationDetailDialog> {
+  late DateTime selectedDate;
   late TimeOfDay selectedTime;
   late TextEditingController justificationController;
 
@@ -43,6 +45,7 @@ class _RegularisationDetailDialogState
           (r) => r.type == AttendanceType.checkOut,
       orElse: () => widget.projectRecords.last,
     );
+    selectedDate = checkOut.timestamp;
     selectedTime = TimeOfDay.fromDateTime(checkOut.timestamp);
     justificationController = TextEditingController();
   }
@@ -72,7 +75,8 @@ class _RegularisationDetailDialogState
           Icon(icon, size: 20, color: AppColors.primaryBlue),
           const SizedBox(width: 12),
           Expanded(child: Text(label, style: AppStyles.text)),
-          Text(value, style: AppStyles.heading),
+          Text(value, style: AppStyles.heading, maxLines: 2,
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -135,6 +139,8 @@ class _RegularisationDetailDialogState
 
   @override
   Widget build(BuildContext context) {
+    final submittedDate = DateFormat('dd MMM yyyy').format(selectedDate);
+    final submittedTime = selectedTime.format(context);
     final checkIn = widget.projectRecords.firstWhere(
           (r) => r.type == AttendanceType.checkIn,
       orElse: () => widget.projectRecords.first,
@@ -239,20 +245,9 @@ class _RegularisationDetailDialogState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Edit Shortfall Time", style: AppStyles.heading),
+                      Text("Shortfall Time", style: AppStyles.heading),
                       const SizedBox(height: 12),
                       InkWell(
-                        onTap: () async {
-                          final TimeOfDay? picked = await showTimePicker(
-                            context: context,
-                            initialTime: selectedTime,
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              selectedTime = picked;
-                            });
-                          }
-                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -305,11 +300,21 @@ class _RegularisationDetailDialogState
                       ),
                     ],
                   ),
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _summaryRow("Submitted Time",
-                          selectedTime.format(context), Icons.schedule),
+                      _summaryRow(
+                        "Submitted Date",
+                        widget.dateStr,
+                        Icons.schedule,
+                      ),
+
+                      _summaryRow(
+                        "Submitted Time",
+                        submittedTime,
+                        Icons.schedule,
+                      ),
                       const SizedBox(height: 12),
                       Text("Justification", style: AppStyles.heading),
                       const SizedBox(height: 6),

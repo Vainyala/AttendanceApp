@@ -36,7 +36,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Login method
-  Future<String?> login(String countryCode, String phone, String password) async {
+  Future<String?> login(
+    String countryCode,
+    String phone,
+    String password,
+  ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -63,7 +67,8 @@ class AuthProvider with ChangeNotifier {
       return _errorMessage;
     }
   }
-// Login with email
+
+  // Login with email
   Future<String?> loginWithEmail(String email, String password) async {
     // reuse the same login logic, just pass empty countryCode
     return login('', email, password);

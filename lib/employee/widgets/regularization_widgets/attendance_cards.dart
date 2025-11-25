@@ -1,12 +1,12 @@
+import 'package:AttendanceApp/employee/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../models/attendance_model.dart';
-import '../providers/regularisation_provider.dart';
-import '../utils/app_colors.dart';
-import '../utils/app_styles.dart';
-import '../widgets/status_badge.dart';
-import '../widgets/stat_item.dart';
+import '../../models/attendance_model.dart';
+import '../../providers/regularisation_provider.dart';
+import '../../utils/app_styles.dart';
+import '../stat_item.dart';
+import '../status_badge.dart';
 
 class AttendanceCard extends StatelessWidget {
   final String date;

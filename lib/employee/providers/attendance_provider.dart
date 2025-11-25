@@ -37,7 +37,13 @@ class AttendanceProvider with ChangeNotifier {
         final List<dynamic> data = jsonDecode(response.body);
 
         // Clear and repopulate local database
-        await _dbHelper.database.then((db) => db.delete('attendance', where: 'user_id = ?', whereArgs: [userId]));
+        await _dbHelper.database.then(
+          (db) => db.delete(
+            'attendance',
+            where: 'user_id = ?',
+            whereArgs: [userId],
+          ),
+        );
 
         for (var record in data) {
           await _dbHelper.insertAttendance({
@@ -47,7 +53,8 @@ class AttendanceProvider with ChangeNotifier {
             'check_out': record['check_out'],
             'status': record['status'],
             'location': record['location'],
-            'created_at': record['created_at'] ?? DateTime.now().toIso8601String(),
+            'created_at':
+                record['created_at'] ?? DateTime.now().toIso8601String(),
           });
         }
 
@@ -61,8 +68,6 @@ class AttendanceProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-
-
 
   // Mark attendance (check-in)
   Future<bool> checkIn({String? location}) async {
@@ -79,7 +84,8 @@ class AttendanceProvider with ChangeNotifier {
 
       // Check if already checked in today
       final existingRecords = await _dbHelper.getAttendanceByDate(userId, date);
-      if (existingRecords.isNotEmpty && existingRecords.first['check_in'] != null) {
+      if (existingRecords.isNotEmpty &&
+          existingRecords.first['check_in'] != null) {
         _errorMessage = 'Already checked in today';
         _isLoading = false;
         notifyListeners();
@@ -153,17 +159,12 @@ class AttendanceProvider with ChangeNotifier {
       final response = await _authService.authenticatedRequest(
         '/attendance/check-out',
         method: 'POST',
-        body: {
-          'date': date,
-          'check_out': time,
-        },
+        body: {'date': date, 'check_out': time},
       );
 
       if (response.statusCode == 200) {
         // Update local database
-        await _dbHelper.updateAttendance(recordId, {
-          'check_out': time,
-        });
+        await _dbHelper.updateAttendance(recordId, {'check_out': time});
 
         await fetchAttendance();
         _errorMessage = null;

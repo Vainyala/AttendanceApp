@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../../providers/attendance_details_provider.dart';
 import '../../screens/attendance_detailed_screen.dart';
 import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -125,8 +126,9 @@ class _DailyGroupView extends StatelessWidget {
     );
   }
 
-
   void _openDetails(BuildContext context) {
+    final provider = context.read<AnalyticsProvider>();  // ✅ correct provider
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -134,11 +136,13 @@ class _DailyGroupView extends StatelessWidget {
           employeeId: data['employeeId'] ?? 'emp123',
           periodType: 'daily',
           projectId: data['projectId'],
+          selectedDate: provider.selectedDate,  // ✅ now correct
           projectName: data['projectName'],
         ),
       ),
     );
   }
+
 }
 
 class _PeriodGroupView extends StatelessWidget {
@@ -226,6 +230,7 @@ class _PeriodGroupView extends StatelessWidget {
           periodType: provider.getPeriodType(),
           projectId: data['projectId'],
           projectName: data['projectName'],
+          selectedDate: provider.selectedDate,
         ),
       ),
     );

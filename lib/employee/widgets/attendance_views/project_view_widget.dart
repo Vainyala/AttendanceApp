@@ -1,5 +1,6 @@
 // widgets/attendance_views/project_view_widget.dart
 import 'package:AttendanceApp/employee/providers/analytics_provider.dart';
+import 'package:AttendanceApp/employee/screens/attendance_analytics_screen.dart';
 import 'package:flutter/material.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../screens/project_details_screen.dart';
@@ -98,7 +99,6 @@ class ActiveProjectCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -109,8 +109,15 @@ class ActiveProjectCard extends StatelessWidget {
         analyticsProvider.setProjectId(project.id, projectName: project.name);
         analyticsProvider.setViewMode(ViewMode.all);
 
-        // Pop back to attendance analytics screen
-        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AttendanceAnalyticsScreen(
+              preSelectedProjectId: project.id,
+            ),
+          ),
+        );
+
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
@@ -170,45 +177,7 @@ class ActiveProjectCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 16),
-            Text(
-              'Progress',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textDark,
-              ),
-            ),
-            SizedBox(height: 8),
-            Stack(
-              children: [
-                Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.textDark,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: 0.65,
-                  child: Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.success,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4),
-            Text(
-              '65%',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
+            SizedBox(height:6),
           ],
         ),
       ),
