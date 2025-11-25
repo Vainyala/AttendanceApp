@@ -158,13 +158,19 @@ class _PresentDashboardCardSectionState
           SizedBox(width: spacing),
           _buildPremiumStatItem(
             'Absent',
-
-            stats.absentToday,
-            Icons.person_off_rounded,
+            overallPresentPercentage,
+            Icons.trending_up_rounded,
             isDarkMode,
             textColor: textColor,
             secondaryTextColor: secondaryTextColor,
             iconColor: iconColor,
+            isPercentage: true,
+            // stats.absentToday,
+            // Icons.person_off_rounded,
+            // isDarkMode,
+            // textColor: textColor,
+            // secondaryTextColor: secondaryTextColor,
+            // iconColor: iconColor,
           ),
           SizedBox(width: spacing),
           // ✅ Safe percentage display

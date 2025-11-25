@@ -85,8 +85,7 @@ class _MetricsCounterState extends State<MetricsCounter>
                   _buildCounterCard(
                     context,
                     'ATTENDANCE',
-                    '75%',
-                    // widget.totalAttendance,
+                    widget.totalAttendance,
                     Icons.groups_rounded,
                     Colors.green,
                     isDark,

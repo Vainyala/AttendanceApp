@@ -69,12 +69,6 @@ class EmployeeProfileHeader extends StatelessWidget {
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                const SizedBox(width: 8),
-                _buildInfoRow(
-                  Icons.badge_rounded,
-                  '(' + employee.employeeId + ')',
-                  isDark,
-                ),
                 const SizedBox(height: 4),
                 Text(
                   employee.position,
@@ -85,24 +79,16 @@ class EmployeeProfileHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Text(
-                //   employee.id,
-                //   style: TextStyle(
-                //     fontSize: 14,
-                //     color: isDark ? Colors.blue.shade300 : Colors.blue.shade600,
-                //     fontWeight: FontWeight.w500,
-                //   ),
-                // ),
 
                 // Contact Info
-                _buildInfoRow(Icons.phone, employee.contactInfo.phone, isDark),
                 _buildInfoRow(Icons.email_rounded, employee.email, isDark),
-
+                _buildInfoRow(Icons.phone, employee.contactInfo.phone, isDark),
                 _buildInfoRow(
                   Icons.business_rounded,
                   employee.department,
                   isDark,
                 ),
+                _buildInfoRow(Icons.badge_rounded, employee.employeeId, isDark),
 
                 const SizedBox(height: 8),
 
@@ -120,12 +106,12 @@ class EmployeeProfileHeader extends StatelessWidget {
                         _formatJoinDate(employee.joinDate),
                         isDark,
                       ),
-                      // const SizedBox(width: 16),
-                      // _buildQuickStat(
-                      //   'Attendance',
-                      //   '${summary['percentage']}%',
-                      //   isDark,
-                      // ),
+                      const SizedBox(width: 16),
+                      _buildQuickStat(
+                        'Attendance',
+                        '${summary['percentage']}%',
+                        isDark,
+                      ),
                     ],
                   ),
                 ),
