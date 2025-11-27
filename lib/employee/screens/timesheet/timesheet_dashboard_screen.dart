@@ -1,0 +1,299 @@
+import 'package:AttendanceApp/employee/providers/timesheet_provider.dart';
+import 'package:AttendanceApp/employee/screens/timesheet/todays_tasks.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/task_model.dart';
+import '../../utils/app_colors.dart';
+import '../../utils/app_dimensions.dart';
+import '../../utils/app_styles.dart';
+import '../../widgets/custom_bars.dart';
+import '../../widgets/timesheet_widgets/priority_tab.dart';
+import '../../widgets/timesheet_widgets/status_tab.dart';
+import '../../widgets/timesheet_widgets/task_card.dart';
+import '../../widgets/timesheet_widgets/task_piechart.dart';
+import 'task_detail_page.dart';
+import 'create_task_page.dart';
+
+class TimesheetScreen extends StatelessWidget {
+  const TimesheetScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<TimesheetProvider>(
+      builder: (context, provider, child) {
+        return ScreenWithBottomNav(
+          currentIndex: 3,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              title: const Text('Timesheet', style: AppStyles.headingMedium),
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: AppColors.textLight,
+              elevation: 0,
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status Tabs Section
+                  _buildStatusSection(context, provider),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
+
+                  // Priority Tabs Section
+                  _buildPrioritySection(context, provider),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
+
+                  // Graph Section (Horizontally Scrollable)
+                  _buildGraphSection(provider),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
+
+                  // Task Cards Section
+                  _buildTaskCardsSection(context, provider),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
+
+                  // Today's Tasks Expand Button
+                  _buildTodaysTasksButton(context, provider),
+
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreateTaskPage()),
+                );
+              },
+              backgroundColor: AppColors.primaryBlue,
+              child: const Icon(Icons.add, color: AppColors.textLight),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusSection(BuildContext context, TimesheetProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('By Status', style: AppStyles.headingSmall1),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: TaskStatus.values.map((status) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: StatusTabWidget(
+                    status: status,
+                    count: provider.getStatusCount(status),
+                    isSelected: provider.selectedStatus == status,
+                    onTap: () => provider.setSelectedStatus(status),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrioritySection(
+    BuildContext context,
+    TimesheetProvider provider,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.paddingLarge,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('By Priority', style: AppStyles.headingSmall1),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: TaskPriority.values.map((priority) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: PriorityTabWidget(
+                    priority: priority,
+                    count: provider.getPriorityCount(priority),
+                    isSelected: provider.selectedPriority == priority,
+                    onTap: () => provider.setSelectedPriority(priority),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphSection(TimesheetProvider provider) {
+    // Status data
+    final statusData = {
+      'Assigned': provider.getStatusCount(TaskStatus.assigned),
+      'Pending': provider.getStatusCount(TaskStatus.pending),
+      'Resolved': provider.getStatusCount(TaskStatus.resolved),
+      'Closed': provider.getStatusCount(TaskStatus.closed),
+      'Open': provider.getStatusCount(TaskStatus.open),
+    };
+
+    // Priority data
+    final priorityData = {
+      'Urgent': provider.getPriorityCount(TaskPriority.urgent),
+      'High': provider.getPriorityCount(TaskPriority.high),
+      'Medium': provider.getPriorityCount(TaskPriority.medium),
+      'Normal': provider.getPriorityCount(TaskPriority.normal),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.paddingLarge,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Analytics', style: AppStyles.headingSmall1),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 320,
+                  child: TaskPieChartWidget(
+                    data: statusData,
+                    title: 'Tasks by Status',
+                  ),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: 320,
+                  child: TaskPieChartWidget(
+                    data: priorityData,
+                    title: 'Tasks by Priority',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskCardsSection(
+    BuildContext context,
+    TimesheetProvider provider,
+  ) {
+    final tasks = provider.getTasksByStatus(provider.selectedStatus);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.paddingLarge,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${provider.selectedStatus.name.toUpperCase()} Tasks',
+            style: AppStyles.headingSmall1,
+          ),
+          const SizedBox(height: 12),
+          tasks.isEmpty
+              ? Container(
+                  padding: const EdgeInsets.all(24),
+                  child: const Center(
+                    child: Text('No tasks found', style: AppStyles.bodyMedium),
+                  ),
+                )
+              : SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      return TaskCardWidget(
+                        task: tasks[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  TaskDetailPage(task: tasks[index]),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodaysTasksButton(
+    BuildContext context,
+    TimesheetProvider provider,
+  ) {
+    final todaysTasks = provider.getTodaysTasks();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.paddingLarge,
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const TodayTasksPage()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+            boxShadow: AppStyles.cardShadow,
+            border: Border.all(color: AppColors.primaryBlue, width: 2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Today's Tasks", style: AppStyles.headingSmall1),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${todaysTasks.length} tasks due today',
+                    style: AppStyles.caption,
+                  ),
+                ],
+              ),
+              const Icon(
+                Icons.expand_more,
+                color: AppColors.primaryBlue,
+                size: 32,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
