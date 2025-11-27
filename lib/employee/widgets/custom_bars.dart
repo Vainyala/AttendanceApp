@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/timesheet/timesheet_dashboard_screen.dart';
 import '../utils/app_colors.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/regularisation_screen.dart';
@@ -29,7 +30,7 @@ class CustomBottomNavBar extends StatelessWidget {
         _navigateToScreen(const LeaveScreen());
         break;
       case 3:
-        _navigateToScreen(const TimesheetScreen());
+        _navigateToScreen(TimesheetScreen());
         break;
     }
   }

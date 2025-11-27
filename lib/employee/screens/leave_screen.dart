@@ -767,6 +767,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
           currentIndex: 2,
           child: Scaffold(
             backgroundColor: AppColors.background,
+            appBar: AppBar(
+              title: const Text('Leaves', style: AppStyles.headingLarge),
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: AppColors.textLight,
+              elevation: 0,
+            ),
             floatingActionButton: FloatingActionButton(
               backgroundColor: AppColors.primaryBlue,
               onPressed: () => _showLeaveFormDialog(context),
@@ -777,7 +783,6 @@ class _LeaveScreenState extends State<LeaveScreen> {
             body: SafeArea(
               child: Column(
                 children: [
-                  _buildHeader(),
                   Expanded(
                     child: SingleChildScrollView(
                       controller: _scrollController,
