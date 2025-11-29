@@ -25,6 +25,7 @@ class TimesheetProvider extends ChangeNotifier {
       status: TaskStatus.open,
       description: 'Design the timesheet UI module',
       deliverables: 'UI mockups and specifications',
+      billable: false,
     ),
     Task(
       taskId: 'T002',
@@ -34,10 +35,15 @@ class TimesheetProvider extends ChangeNotifier {
       type: 'Development',
       priority: TaskPriority.urgent,
       estEndDate: DateTime(2025, 11, 25),
+      actualEndDate: DateTime(2025, 12, 29),
       estEffortHrs: 12.0,
+      actualEffortHrs: 14.0,
       status: TaskStatus.assigned,
       description: 'Integrate REST APIs',
       deliverables: 'Working API integration',
+      managerComments: 'good',
+      taskHistory: 'Working API integration',
+      billable: true,
     ),
     Task(
       taskId: 'T003',
@@ -46,9 +52,16 @@ class TimesheetProvider extends ChangeNotifier {
       taskName: 'Database Schema Design',
       type: 'Design',
       priority: TaskPriority.medium,
-      estEndDate: DateTime(2025, 11, 28),
-      estEffortHrs: 6.0,
+      estEndDate: DateTime(2025, 11, 24),
+      actualEndDate: DateTime(2025, 12, 27),
+      estEffortHrs: 4.0,
+      actualEffortHrs: 15.0,
       status: TaskStatus.pending,
+      description: 'Integrate REST APIs',
+      deliverables: 'Working API integration',
+      managerComments: 'good',
+      taskHistory: 'Working API integration',
+      billable: true,
     ),
     Task(
       taskId: 'T004',
@@ -57,9 +70,16 @@ class TimesheetProvider extends ChangeNotifier {
       taskName: 'Unit Testing',
       type: 'Testing',
       priority: TaskPriority.normal,
-      estEndDate: DateTime(2025, 11, 26),
-      estEffortHrs: 10.0,
+      estEndDate: DateTime(2025, 11, 24),
+      actualEndDate: DateTime(2025, 12, 27),
+      estEffortHrs: 4.0,
+      actualEffortHrs: 9.0,
       status: TaskStatus.resolved,
+      description: 'Integrate REST APIs',
+      deliverables: 'Working API integration',
+      managerComments: 'good',
+      taskHistory: 'Working API integration',
+      billable: false,
     ),
     Task(
       taskId: 'T005',
@@ -69,67 +89,33 @@ class TimesheetProvider extends ChangeNotifier {
       type: 'Review',
       priority: TaskPriority.high,
       estEndDate: DateTime(2025, 11, 24),
+      actualEndDate: DateTime(2025, 12, 27),
       estEffortHrs: 4.0,
+      actualEffortHrs: 9.0,
       status: TaskStatus.closed,
+      description: 'Integrate REST APIs',
+      deliverables: 'Working API integration',
+      managerComments: 'good',
+      taskHistory: 'Working API integration',
+      billable: false,
     ),
     Task(
-      taskId: 'T001',
+      taskId: 'T006',
       projectId: 'P001',
       projectName: 'Project Alpha',
-      taskName: 'Timesheet UI Design',
-      type: 'Design',
-      priority: TaskPriority.high,
-      estEndDate: DateTime(2025, 11, 27),
-      estEffortHrs: 8.0,
-      status: TaskStatus.open,
-      description: 'Design the timesheet UI module',
-      deliverables: 'UI mockups and specifications',
-    ),
-    Task(
-      taskId: 'T002',
-      projectId: 'P001',
-      projectName: 'Project Alpha',
-      taskName: 'Backend API Integration',
+      taskName: 'Backend API Integration - Phase 2',
       type: 'Development',
       priority: TaskPriority.urgent,
       estEndDate: DateTime(2025, 11, 25),
+      actualEndDate: DateTime(2025, 12, 25),
       estEffortHrs: 12.0,
+      actualEffortHrs: 24.0,
       status: TaskStatus.assigned,
       description: 'Integrate REST APIs',
       deliverables: 'Working API integration',
-    ),
-    Task(
-      taskId: 'T003',
-      projectId: 'P002',
-      projectName: 'Project Beta',
-      taskName: 'Database Schema Design',
-      type: 'Design',
-      priority: TaskPriority.medium,
-      estEndDate: DateTime(2025, 11, 28),
-      estEffortHrs: 6.0,
-      status: TaskStatus.pending,
-    ),
-    Task(
-      taskId: 'T004',
-      projectId: 'P001',
-      projectName: 'Project Alpha',
-      taskName: 'Unit Testing',
-      type: 'Testing',
-      priority: TaskPriority.normal,
-      estEndDate: DateTime(2025, 11, 26),
-      estEffortHrs: 10.0,
-      status: TaskStatus.resolved,
-    ),
-    Task(
-      taskId: 'T005',
-      projectId: 'P003',
-      projectName: 'Project Gamma',
-      taskName: 'Code Review',
-      type: 'Review',
-      priority: TaskPriority.high,
-      estEndDate: DateTime(2025, 11, 24),
-      estEffortHrs: 4.0,
-      status: TaskStatus.closed,
+      managerComments: '........',
+      taskHistory: 'Working API integration',
+      billable: true,
     ),
   ];
 
@@ -177,6 +163,34 @@ class TimesheetProvider extends ChangeNotifier {
   // Get tasks by project
   List<Task> getTasksByProject(String projectId) {
     return _tasks.where((task) => task.projectId == projectId).toList();
+  }
+
+  // Get filtered tasks based on time filter
+  List<Task> getFilteredTasks() {
+    final now = DateTime.now();
+
+    switch (_selectedTimeFilter) {
+      case TimeFilter.daily:
+        return _tasks.where((task) {
+          return task.estEndDate.year == now.year &&
+              task.estEndDate.month == now.month &&
+              task.estEndDate.day == now.day;
+        }).toList();
+
+      case TimeFilter.weekly:
+        if (_fromDate == null || _toDate == null) return [];
+        return _tasks.where((task) {
+          return task.estEndDate.isAfter(_fromDate!) &&
+              task.estEndDate.isBefore(_toDate!.add(const Duration(days: 1)));
+        }).toList();
+
+      case TimeFilter.monthly:
+        if (_fromDate == null || _toDate == null) return [];
+        return _tasks.where((task) {
+          return task.estEndDate.isAfter(_fromDate!) &&
+              task.estEndDate.isBefore(_toDate!.add(const Duration(days: 1)));
+        }).toList();
+    }
   }
 
   // Get today's tasks

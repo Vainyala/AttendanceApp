@@ -14,9 +14,14 @@ import '../../widgets/timesheet_widgets/task_piechart.dart';
 import 'task_detail_page.dart';
 import 'create_task_page.dart';
 
-class TimesheetScreen extends StatelessWidget {
-  const TimesheetScreen({Key? key}) : super(key: key);
+class TimesheetScreen extends StatefulWidget {
+  const TimesheetScreen({super.key});
 
+  @override
+  State<TimesheetScreen> createState() => _TimesheetScreenState();
+}
+
+class _TimesheetScreenState extends State<TimesheetScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<TimesheetProvider>(
@@ -26,7 +31,7 @@ class TimesheetScreen extends StatelessWidget {
           child: Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(
-              title: const Text('Timesheet', style: AppStyles.headingMedium),
+              title: const Text('Timesheet', style: AppStyles.headingLarge),
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: AppColors.textLight,
               elevation: 0,
@@ -84,14 +89,20 @@ class TimesheetScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('By Status', style: AppStyles.headingSmall1),
-          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              const Text('By Status', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 14),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: TaskStatus.values.map((status) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: 12),
                   child: StatusTabWidget(
                     status: status,
                     count: provider.getStatusCount(status),
@@ -118,14 +129,20 @@ class TimesheetScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('By Priority', style: AppStyles.headingSmall1),
-          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.flag, color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              const Text('By Priority', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 14),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: TaskPriority.values.map((priority) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: 12),
                   child: PriorityTabWidget(
                     priority: priority,
                     count: provider.getPriorityCount(priority),
@@ -142,7 +159,6 @@ class TimesheetScreen extends StatelessWidget {
   }
 
   Widget _buildGraphSection(TimesheetProvider provider) {
-    // Status data
     final statusData = {
       'Assigned': provider.getStatusCount(TaskStatus.assigned),
       'Pending': provider.getStatusCount(TaskStatus.pending),
@@ -151,7 +167,6 @@ class TimesheetScreen extends StatelessWidget {
       'Open': provider.getStatusCount(TaskStatus.open),
     };
 
-    // Priority data
     final priorityData = {
       'Urgent': provider.getPriorityCount(TaskPriority.urgent),
       'High': provider.getPriorityCount(TaskPriority.high),
@@ -166,14 +181,20 @@ class TimesheetScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Analytics', style: AppStyles.headingSmall1),
-          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.analytics, color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              const Text('Analytics', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 14),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 SizedBox(
-                  width: 320,
+                  width: 300,
                   child: TaskPieChartWidget(
                     data: statusData,
                     title: 'Tasks by Status',
@@ -181,7 +202,7 @@ class TimesheetScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 SizedBox(
-                  width: 320,
+                  width: 300,
                   child: TaskPieChartWidget(
                     data: priorityData,
                     title: 'Tasks by Priority',

@@ -5,6 +5,7 @@ import '../../providers/timesheet_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_dimensions.dart';
 import '../../utils/app_styles.dart';
+import 'package:file_picker/file_picker.dart';
 
 class CreateTaskPage extends StatefulWidget {
   const CreateTaskPage({Key? key}) : super(key: key);
@@ -20,12 +21,13 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   final _effortController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _deliverablesController = TextEditingController();
-
+  final _notesController = TextEditingController(); // NEW
+  bool _billable = false;
   String? _selectedProjectId;
   TaskPriority _selectedPriority = TaskPriority.normal;
   TaskStatus _selectedStatus = TaskStatus.open;
   DateTime _selectedEndDate = DateTime.now().add(const Duration(days: 7));
-
+  List<AttachedFile> _attachedFiles = []; //
   @override
   void dispose() {
     _taskNameController.dispose();
@@ -33,6 +35,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     _effortController.dispose();
     _descriptionController.dispose();
     _deliverablesController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -87,13 +90,22 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: AppDimensions.marginLarge),
 
+                  // Description
+                  _buildTextField(
+                    controller: _descriptionController,
+                    label: 'Task Description',
+                    hint: 'Enter task description',
+                    icon: Icons.description,
+                    maxLines: 3,
+                  ),
                   const SizedBox(height: AppDimensions.marginLarge),
 
                   // Type
                   _buildTextField(
                     controller: _typeController,
-                    label: 'Type',
+                    label: 'Task Type',
                     hint: 'e.g., Design, Development, Testing',
                     icon: Icons.category,
                     validator: (value) {
@@ -141,14 +153,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
 
                   const SizedBox(height: AppDimensions.marginLarge),
 
-                  // Description
-                  _buildTextField(
-                    controller: _descriptionController,
-                    label: 'Description (Optional)',
-                    hint: 'Enter task description',
-                    icon: Icons.description,
-                    maxLines: 3,
-                  ),
+                  // Billable Toggle (NEW)
+                  _buildBillableToggle(),
 
                   const SizedBox(height: AppDimensions.marginLarge),
 
@@ -160,8 +166,22 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                     icon: Icons.checklist,
                     maxLines: 3,
                   ),
+// Notes (NEW)
+                  const SizedBox(height: AppDimensions.marginLarge),
 
-                  const SizedBox(height: 32),
+                  // File Attachments Section (NEW)
+                  _buildFileAttachmentsSection(),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
+                  _buildTextField(
+                    controller: _notesController,
+                    label: 'Notes',
+                    hint: 'Enter any additional notes',
+                    icon: Icons.note,
+                    maxLines: 3,
+                  ),
+
+                  const SizedBox(height: AppDimensions.marginLarge),
 
                   // Submit Button
                   SizedBox(
@@ -189,6 +209,24 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBillableToggle() {
+    return Row(
+      children: [
+        const Text('Billable', style: AppStyles.label),
+        const Spacer(),
+        Switch(
+          value: _billable,
+          onChanged: (value) {
+            setState(() {
+              _billable = value;
+            });
+          },
+          activeColor: AppColors.primaryBlue,
+        ),
+      ],
     );
   }
 
@@ -414,6 +452,120 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     );
   }
 
+  Widget _buildFileAttachmentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Attachments', style: AppStyles.label),
+            ElevatedButton.icon(
+              onPressed: _pickFiles,
+              icon: const Icon(Icons.attach_file, size: 18),
+              label: const Text('Browse'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: AppColors.textLight,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (_attachedFiles.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.grey100,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+              border: Border.all(color: AppColors.grey300),
+            ),
+            child: const Center(
+              child: Text('No files attached', style: AppStyles.caption),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.grey100,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+              border: Border.all(color: AppColors.grey300),
+            ),
+            child: Column(
+              children: _attachedFiles.map((file) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.textLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        file.fileType == 'pdf'
+                            ? Icons.picture_as_pdf
+                            : Icons.image,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          file.fileName,
+                          style: AppStyles.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _attachedFiles.remove(file);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _pickFiles() async {
+    // TODO: Implement file picker using file_picker package
+    // For now, show a placeholder
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('File picker implementation needed'),
+        backgroundColor: AppColors.info,
+      ),
+    );
+
+    // Example implementation would be:
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null) {
+      setState(() {
+        _attachedFiles.addAll(result.files.map((file) => AttachedFile(
+          fileName: file.name,
+          filePath: file.path!,
+          fileType: file.extension!,
+        )));
+      });
+    }
+  }
+
   void _submitTask(TimesheetProvider provider) {
     if (_formKey.currentState!.validate()) {
       final projectName = provider.projects
@@ -429,12 +581,12 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         estEndDate: _selectedEndDate,
         estEffortHrs: double.parse(_effortController.text),
         status: _selectedStatus,
-        description: _descriptionController.text.isEmpty
-            ? null
-            : _descriptionController.text,
+        description: _descriptionController.text, // Required now
         deliverables: _deliverablesController.text.isEmpty
             ? null
             : _deliverablesController.text,
+        notes: _notesController.text.isEmpty ? null : _notesController.text, // NEW
+        billable: _billable, // NEW
       );
 
       provider.addTask(newTask);
