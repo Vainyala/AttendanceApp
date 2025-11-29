@@ -12,10 +12,17 @@ class Task {
   final String type;
   final TaskPriority priority;
   final DateTime estEndDate;
+  final DateTime? actualEndDate;
   final double estEffortHrs;
+  final double? actualEffortHrs;
   final TaskStatus status;
-  final String? description;
+  final String description; // Made required
   final String? deliverables;
+  final String? taskHistory;
+  final String? managerComments;
+  final String? notes;
+  final bool billable;
+  final List<AttachedFile>? attachedFiles; // NEW
 
   Task({
     required this.taskId,
@@ -25,9 +32,29 @@ class Task {
     required this.type,
     required this.priority,
     required this.estEndDate,
+    this.actualEndDate,
     required this.estEffortHrs,
+    this.actualEffortHrs,
     required this.status,
-    this.description,
+    required this.billable,
+    this.taskHistory,
+    this.managerComments,
+    required this.description, // Required now
     this.deliverables,
+    this.notes,
+    this.attachedFiles,
+  });
+}
+
+// NEW class for file attachments
+class AttachedFile {
+  final String fileName;
+  final String filePath;
+  final String fileType; // 'pdf', 'image', etc.
+
+  AttachedFile({
+    required this.fileName,
+    required this.filePath,
+    required this.fileType,
   });
 }

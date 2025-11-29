@@ -85,12 +85,40 @@ class TaskDetailPage extends StatelessWidget {
               const SizedBox(height: AppDimensions.marginLarge),
 
               // Description Section
-              if (task.description != null) _buildDescriptionSection(),
+              if (task.description.isNotEmpty) _buildDescriptionSection(),
+
+              const SizedBox(height: AppDimensions.marginLarge),
+
+              // Task History Section
+              if (task.taskHistory != null && task.taskHistory!.isNotEmpty)
+                _buildTaskHistorySection(),
+
+              const SizedBox(height: AppDimensions.marginLarge),
+
+              // Manager Comments Section
+              if (task.managerComments != null &&
+                  task.managerComments!.isNotEmpty)
+                _buildManagerCommentsSection(),
 
               const SizedBox(height: AppDimensions.marginLarge),
 
               // Deliverables Section
-              if (task.deliverables != null) _buildDeliverablesSection(),
+              if (task.deliverables != null && task.deliverables!.isNotEmpty)
+                _buildDeliverablesSection(),
+
+              const SizedBox(height: AppDimensions.marginLarge),
+
+              // Attachments Section
+              if (task.attachedFiles != null && task.attachedFiles!.isNotEmpty)
+                _buildAttachmentsSection(),
+
+              const SizedBox(height: AppDimensions.marginLarge),
+
+              // Notes Section
+              if (task.notes != null && task.notes!.isNotEmpty)
+                _buildNotesSection(),
+
+              const SizedBox(height: AppDimensions.marginLarge),
             ],
           ),
         ),
@@ -103,7 +131,10 @@ class TaskDetailPage extends StatelessWidget {
       padding: const EdgeInsets.all(AppDimensions.paddingLarge),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+          colors: [
+            AppColors.primaryBlue,
+            AppColors.primaryBlue.withOpacity(0.8)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -179,16 +210,15 @@ class TaskDetailPage extends StatelessWidget {
       child: Column(
         children: [
           _buildDetailRow(
-            icon: Icons.category,
-            label: 'Type',
-            value: task.type,
+            icon: Icons.work_outline,
+            label: 'Project',
+            value: '${task.projectName} (${task.projectId})',
           ),
           const Divider(height: 24),
           _buildDetailRow(
-            icon: Icons.flag,
-            label: 'Priority',
-            value: task.priority.name.toUpperCase(),
-            valueColor: priorityColor,
+            icon: Icons.category,
+            label: 'Task Type',
+            value: task.type,
           ),
           const Divider(height: 24),
           _buildDetailRow(
@@ -201,19 +231,36 @@ class TaskDetailPage extends StatelessWidget {
           _buildDetailRow(
             icon: Icons.calendar_today,
             label: 'Est. End Date',
-            value: '${task.estEndDate.day}/${task.estEndDate.month}/${task.estEndDate.year}',
+            value:
+            '${task.estEndDate.day}/${task.estEndDate.month}/${task.estEndDate.year}',
           ),
+          if (task.actualEndDate != null) const Divider(height: 24),
+          if (task.actualEndDate != null)
+            _buildDetailRow(
+              icon: Icons.event_available,
+              label: 'Actual End Date',
+              value:
+              '${task.actualEndDate!.day}/${task.actualEndDate!.month}/${task.actualEndDate!.year}',
+            ),
           const Divider(height: 24),
           _buildDetailRow(
             icon: Icons.access_time,
             label: 'Est. Effort',
             value: '${task.estEffortHrs} hrs',
           ),
+          if (task.actualEffortHrs != null) const Divider(height: 24),
+          if (task.actualEffortHrs != null)
+            _buildDetailRow(
+              icon: Icons.timer,
+              label: 'Actual Effort',
+              value: '${task.actualEffortHrs} hrs',
+            ),
           const Divider(height: 24),
           _buildDetailRow(
-            icon: Icons.work_outline,
-            label: 'Project',
-            value: '${task.projectName} (${task.projectId})',
+            icon: Icons.attach_money,
+            label: 'Billable',
+            value: task.billable ? 'Yes' : 'No',
+            valueColor: task.billable ? AppColors.success : AppColors.grey600,
           ),
         ],
       ),
@@ -277,14 +324,14 @@ class TaskDetailPage extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               const Text(
-                'Description',
+                'Task Description',
                 style: AppStyles.headingSmall1,
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            task.description!,
+            task.description,
             style: AppStyles.bodyMedium,
           ),
         ],
@@ -322,6 +369,154 @@ class TaskDetailPage extends StatelessWidget {
             task.deliverables!,
             style: AppStyles.bodyMedium,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskHistorySection() {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+        boxShadow: AppStyles.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.history,
+                size: AppDimensions.iconMedium,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(width: 8),
+              const Text('Task History', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(task.taskHistory!, style: AppStyles.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+        boxShadow: AppStyles.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.note,
+                size: AppDimensions.iconMedium,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(width: 8),
+              const Text('Notes', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(task.notes!, style: AppStyles.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManagerCommentsSection() {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+        boxShadow: AppStyles.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.comment,
+                size: AppDimensions.iconMedium,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(width: 8),
+              const Text('Manager Comments', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(task.managerComments!, style: AppStyles.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachmentsSection() {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+        boxShadow: AppStyles.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.attach_file,
+                size: AppDimensions.iconMedium,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(width: 8),
+              const Text('Attachments', style: AppStyles.headingSmall1),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...task.attachedFiles!.map((file) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    file.fileType == 'pdf'
+                        ? Icons.picture_as_pdf
+                        : Icons.image,
+                    color: AppColors.primaryBlue,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      file.fileName,
+                      style: AppStyles.bodyMedium,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.download, size: 20),
+                    onPressed: () {
+                      // TODO: Implement file download
+                    },
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ],
       ),
     );

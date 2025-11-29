@@ -28,15 +28,15 @@ class TodayTasksPage extends StatelessWidget {
           ),
           body: Column(
             children: [
+              // Projects Horizontal Scroll
+              _buildProjectsSection(provider),
+
               // Time Filter Tabs
               _buildTimeFilterTabs(provider),
 
               // Date Range Display (if weekly/monthly selected)
               if (provider.selectedTimeFilter != TimeFilter.daily)
                 _buildDateRangeSelector(context, provider),
-
-              // Projects Horizontal Scroll
-              _buildProjectsSection(provider),
 
               // Task List
               Expanded(
@@ -175,7 +175,10 @@ class TodayTasksPage extends StatelessWidget {
   }
 
   Widget _buildProjectsSection(TimesheetProvider provider) {
-    final projects = provider.projects;
+    final projects = [
+      {'id': 'ALL', 'name': 'All'}, // Add All tab
+      ...provider.projects,
+    ];
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.paddingLarge),
@@ -184,10 +187,7 @@ class TodayTasksPage extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
-            child: Text(
-              'Mapped Projects',
-              style: AppStyles.headingSmall1,
-            ),
+            child: Text('Mapped Projects', style: AppStyles.headingSmall1),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -213,21 +213,21 @@ class TodayTasksPage extends StatelessWidget {
   }
 
   Widget _buildTaskList(BuildContext context, TimesheetProvider provider) {
-    final tasks = provider.getTasksByProject(provider.selectedProjectId);
+    final tasks = provider.selectedProjectId == 'ALL'
+        ? provider.getFilteredTasks() // Get all tasks based on time filter
+        : provider.getTasksByProject(provider.selectedProjectId);
 
     if (tasks.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.task_outlined,
-              size: 80,
-              color: AppColors.grey400,
-            ),
+            Icon(Icons.task_outlined, size: 80, color: AppColors.grey400),
             const SizedBox(height: 16),
-            const Text(
-              'No tasks found for this project',
+            Text(
+              provider.selectedProjectId == 'ALL'
+                  ? 'No tasks found'
+                  : 'No tasks found for this project',
               style: AppStyles.bodyLarge,
             ),
           ],
