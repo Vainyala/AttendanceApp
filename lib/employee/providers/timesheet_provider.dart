@@ -10,7 +10,9 @@ class TimesheetProvider extends ChangeNotifier {
   DateTime _selectedDate = DateTime.now();
   DateTime? _fromDate;
   DateTime? _toDate;
-
+  DateTime selectedDailyDate = DateTime.now();
+  int selectedWeekIndex = 0;
+  int selectedMonthIndex = DateTime.now().month;
   // Mock data
   List<Task> _tasks = [
     Task(
@@ -20,7 +22,7 @@ class TimesheetProvider extends ChangeNotifier {
       taskName: 'Timesheet UI Design',
       type: 'Design',
       priority: TaskPriority.high,
-      estEndDate: DateTime(2025, 11, 27),
+      estEndDate: DateTime(2025, 12, 1),
       estEffortHrs: 8.0,
       status: TaskStatus.open,
       description: 'Design the timesheet UI module',
@@ -34,7 +36,7 @@ class TimesheetProvider extends ChangeNotifier {
       taskName: 'Backend API Integration',
       type: 'Development',
       priority: TaskPriority.urgent,
-      estEndDate: DateTime(2025, 11, 25),
+      estEndDate: DateTime(2025, 12, 1),
       actualEndDate: DateTime(2025, 12, 29),
       estEffortHrs: 12.0,
       actualEffortHrs: 14.0,
@@ -128,7 +130,6 @@ class TimesheetProvider extends ChangeNotifier {
   DateTime? get fromDate => _fromDate;
   DateTime? get toDate => _toDate;
   List<Task> get allTasks => _tasks;
-
   // Get tasks filtered by status
   List<Task> getTasksByStatus(TaskStatus status) {
     return _tasks.where((task) => task.status == status).toList();
@@ -165,33 +166,6 @@ class TimesheetProvider extends ChangeNotifier {
     return _tasks.where((task) => task.projectId == projectId).toList();
   }
 
-  // Get filtered tasks based on time filter
-  List<Task> getFilteredTasks() {
-    final now = DateTime.now();
-
-    switch (_selectedTimeFilter) {
-      case TimeFilter.daily:
-        return _tasks.where((task) {
-          return task.estEndDate.year == now.year &&
-              task.estEndDate.month == now.month &&
-              task.estEndDate.day == now.day;
-        }).toList();
-
-      case TimeFilter.weekly:
-        if (_fromDate == null || _toDate == null) return [];
-        return _tasks.where((task) {
-          return task.estEndDate.isAfter(_fromDate!) &&
-              task.estEndDate.isBefore(_toDate!.add(const Duration(days: 1)));
-        }).toList();
-
-      case TimeFilter.monthly:
-        if (_fromDate == null || _toDate == null) return [];
-        return _tasks.where((task) {
-          return task.estEndDate.isAfter(_fromDate!) &&
-              task.estEndDate.isBefore(_toDate!.add(const Duration(days: 1)));
-        }).toList();
-    }
-  }
 
   // Get today's tasks
   List<Task> getTodaysTasks() {
@@ -259,6 +233,91 @@ class TimesheetProvider extends ChangeNotifier {
     }
   }
 
+  bool isSameDate(DateTime? a, DateTime b) {
+    if (a == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  /// WEEK FILTER
+  List<Task> filterByWeek(int weekIndex) {
+    DateTime now = DateTime.now();
+    DateTime start = now.subtract(Duration(days: (weekIndex + 1) * 7));
+    DateTime end   = now.subtract(Duration(days: weekIndex * 7));
+
+    return _tasks.where((t) =>
+    t.estEndDate.isAfter(start) &&
+        t.estEndDate.isBefore(end)
+    ).toList();
+  }
+
+  /// MONTH FILTER
+  List<Task> filterByMonth(int month) {
+    return _tasks.where((t) =>
+    t.estEndDate.month == month &&
+        t.estEndDate.year == DateTime.now().year
+    ).toList();
+  }
+
+  /// MAIN FILTER
+  List<Task> getFilteredTasks() {
+    if (selectedTimeFilter == TimeFilter.daily) {
+      return _tasks.where((t) => isSameDate(t.estEndDate, selectedDailyDate)).toList();
+    }
+    if (selectedTimeFilter == TimeFilter.weekly) {
+      return filterByWeek(selectedWeekIndex);
+    }
+    if (selectedTimeFilter == TimeFilter.monthly) {
+      return filterByMonth(selectedMonthIndex);
+    }
+    return allTasks;
+  }
+
+
+  void setDailyDate(DateTime date) {
+    selectedDailyDate = date;
+    notifyListeners();
+  }
+
+  void setWeekIndex(int index) {
+    selectedWeekIndex = index;
+    notifyListeners();
+  }
+
+  void setMonthIndex(int index) {
+    selectedMonthIndex = index;
+    notifyListeners();
+  }
+
+  void incrementMonthIndex() {
+    if (selectedMonthIndex < 12) {
+      selectedMonthIndex++;
+      notifyListeners();
+    }
+  }
+
+  void decrementMonthIndex() {
+    if (selectedMonthIndex > 1) {
+      selectedMonthIndex--;
+      notifyListeners();
+    }
+  }
+
+  void incrementWeekIndex() {
+    selectedWeekIndex++;
+    notifyListeners();
+  }
+
+  void decrementWeekIndex() {
+    if (selectedWeekIndex > 0) {
+      selectedWeekIndex--;
+      notifyListeners();
+    }
+  }
+
+  void setFilter(TimeFilter filter) {
+    _selectedTimeFilter = filter;
+    notifyListeners();
+  }
   // Generate auto task ID
   String generateTaskId() {
     final maxId = _tasks.isEmpty

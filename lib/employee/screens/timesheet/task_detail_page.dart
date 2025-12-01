@@ -4,6 +4,7 @@ import '../../models/task_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_dimensions.dart';
 import '../../utils/app_styles.dart';
+import '../../widgets/date_time_utils.dart';
 import 'edit_task_page.dart';
 
 class TaskDetailPage extends StatelessWidget {
@@ -231,16 +232,14 @@ class TaskDetailPage extends StatelessWidget {
           _buildDetailRow(
             icon: Icons.calendar_today,
             label: 'Est. End Date',
-            value:
-            '${task.estEndDate.day}/${task.estEndDate.month}/${task.estEndDate.year}',
+            value: DateFormattingUtils.formatDate(task.estEndDate), // Use utility
           ),
           if (task.actualEndDate != null) const Divider(height: 24),
           if (task.actualEndDate != null)
             _buildDetailRow(
               icon: Icons.event_available,
               label: 'Actual End Date',
-              value:
-              '${task.actualEndDate!.day}/${task.actualEndDate!.month}/${task.actualEndDate!.year}',
+              value: DateFormattingUtils.formatDate(task.actualEndDate!), // Use utility
             ),
           const Divider(height: 24),
           _buildDetailRow(
