@@ -157,7 +157,6 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
       ),
     );
   }
-
   Widget _buildGraphSection(TimesheetProvider provider) {
     final statusData = {
       'Assigned': provider.getStatusCount(TaskStatus.assigned),
@@ -175,9 +174,7 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.paddingLarge,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -193,20 +190,14 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                SizedBox(
-                  width: 300,
-                  child: TaskPieChartWidget(
-                    data: statusData,
-                    title: 'Tasks by Status',
-                  ),
+                TaskPieChartWidget(
+                  data: statusData,
+                  title: 'Tasks by Status',
                 ),
                 const SizedBox(width: 16),
-                SizedBox(
-                  width: 300,
-                  child: TaskPieChartWidget(
-                    data: priorityData,
-                    title: 'Tasks by Priority',
-                  ),
+                TaskPieChartWidget(
+                  data: priorityData,
+                  title: 'Tasks by Priority',
                 ),
               ],
             ),
@@ -267,16 +258,11 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
     );
   }
 
-  Widget _buildTodaysTasksButton(
-    BuildContext context,
-    TimesheetProvider provider,
-  ) {
+  Widget _buildTodaysTasksButton(BuildContext context, TimesheetProvider provider) {
     final todaysTasks = provider.getTodaysTasks();
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.paddingLarge,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -287,10 +273,13 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
         child: Container(
           padding: const EdgeInsets.all(AppDimensions.paddingLarge),
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-            boxShadow: AppStyles.cardShadow,
-            border: Border.all(color: AppColors.primaryBlue, width: 2),
+            boxShadow: AppStyles.cardShadowMedium,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -298,18 +287,41 @@ class _TimesheetScreenState extends State<TimesheetScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Today's Tasks", style: AppStyles.headingSmall1),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${todaysTasks.length} tasks due today',
-                    style: AppStyles.caption,
+                  Row(
+                    children: [
+                      Icon(Icons.today, color: AppColors.textLight, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        "Today's Tasks",
+                        style: AppStyles.headingSmall1.copyWith(color: AppColors.textLight),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.textLight.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${todaysTasks.length} tasks due today',
+                      style: AppStyles.labelMedium.copyWith(color: AppColors.textLight),
+                    ),
                   ),
                 ],
               ),
-              const Icon(
-                Icons.expand_more,
-                color: AppColors.primaryBlue,
-                size: 32,
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.textLight.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.textLight,
+                  size: 20,
+                ),
               ),
             ],
           ),

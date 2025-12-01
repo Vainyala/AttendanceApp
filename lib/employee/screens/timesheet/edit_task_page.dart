@@ -7,6 +7,8 @@ import '../../utils/app_dimensions.dart';
 import '../../utils/app_styles.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../widgets/date_time_utils.dart';
+
 class EditTaskPage extends StatefulWidget {
   final Task task;
 
@@ -309,7 +311,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 const SizedBox(width: 12),
                 Text(
                   _actualEndDate != null
-                      ? '${_actualEndDate!.day}/${_actualEndDate!.month}/${_actualEndDate!.year}'
+                      ? DateFormattingUtils.formatDate(_actualEndDate!)
                       : 'Select actual end date',
                   style: AppStyles.bodyMedium,
                 ),
@@ -428,29 +430,38 @@ class _EditTaskPageState extends State<EditTaskPage> {
   }
 
   Future<void> _pickFiles() async {
-    // TODO: Implement file picker using file_picker package
-    // For now, show a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('File picker implementation needed'),
-        backgroundColor: AppColors.info,
-      ),
-    );
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
 
-    // Example implementation would be:
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    );
-    if (result != null) {
-      setState(() {
-        _attachedFiles.addAll(result.files.map((file) => AttachedFile(
-          fileName: file.name,
-          filePath: file.path!,
-          fileType: file.extension!,
-        )));
-      });
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _attachedFiles.addAll(
+            result.files.map((file) => AttachedFile(
+              fileName: file.name,
+              filePath: file.path ?? '',
+              fileType: file.extension ?? '',
+            )),
+          );
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${result.files.length} file(s) attached successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error picking files. Please try again.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

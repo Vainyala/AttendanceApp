@@ -7,6 +7,8 @@ import '../../utils/app_dimensions.dart';
 import '../../utils/app_styles.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../widgets/date_time_utils.dart';
+
 class CreateTaskPage extends StatefulWidget {
   const CreateTaskPage({Key? key}) : super(key: key);
 
@@ -441,7 +443,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                 const Icon(Icons.calendar_today, color: AppColors.primaryBlue),
                 const SizedBox(width: 12),
                 Text(
-                  '${_selectedEndDate.day}/${_selectedEndDate.month}/${_selectedEndDate.year}',
+                  DateFormattingUtils.formatDate(_selectedEndDate), // Use utility
                   style: AppStyles.bodyMedium,
                 ),
               ],
@@ -540,32 +542,40 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   }
 
   Future<void> _pickFiles() async {
-    // TODO: Implement file picker using file_picker package
-    // For now, show a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('File picker implementation needed'),
-        backgroundColor: AppColors.info,
-      ),
-    );
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
 
-    // Example implementation would be:
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    );
-    if (result != null) {
-      setState(() {
-        _attachedFiles.addAll(result.files.map((file) => AttachedFile(
-          fileName: file.name,
-          filePath: file.path!,
-          fileType: file.extension!,
-        )));
-      });
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _attachedFiles.addAll(
+            result.files.map((file) => AttachedFile(
+              fileName: file.name,
+              filePath: file.path ?? '',
+              fileType: file.extension ?? '',
+            )),
+          );
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${result.files.length} file(s) attached successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error picking files. Please try again.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
-
   void _submitTask(TimesheetProvider provider) {
     if (_formKey.currentState!.validate()) {
       final projectName = provider.projects

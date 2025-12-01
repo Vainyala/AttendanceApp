@@ -187,7 +187,7 @@ static const id = TextStyle(
   // Shadows
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: AppColors.shadowColor,
+      color: AppColors.textDark,
       blurRadius: 10,
       offset: const Offset(0, 2),
     ),
