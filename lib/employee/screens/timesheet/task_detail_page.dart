@@ -204,7 +204,7 @@ class TaskDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.paddingLarge),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: AppColors.textLight,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
         boxShadow: AppStyles.cardShadow,
       ),

@@ -3,8 +3,8 @@ import '../models/task_model.dart';
 
 class TimesheetProvider extends ChangeNotifier {
   // State variables
-  TaskStatus _selectedStatus = TaskStatus.assigned;
-  TaskPriority _selectedPriority = TaskPriority.urgent;
+  TaskStatus? _selectedStatus; // Made nullable
+  TaskPriority? _selectedPriority; // Made nullable
   TimeFilter _selectedTimeFilter = TimeFilter.daily;
   String _selectedProjectId = 'P001';
   DateTime _selectedDate = DateTime.now();
@@ -13,6 +13,7 @@ class TimesheetProvider extends ChangeNotifier {
   DateTime selectedDailyDate = DateTime.now();
   int selectedWeekIndex = 0;
   int selectedMonthIndex = DateTime.now().month;
+
   // Mock data
   List<Task> _tasks = [
     Task(
@@ -122,14 +123,21 @@ class TimesheetProvider extends ChangeNotifier {
   ];
 
   // Getters
-  TaskStatus get selectedStatus => _selectedStatus;
-  TaskPriority get selectedPriority => _selectedPriority;
+  TaskStatus? get selectedStatus => _selectedStatus;
+  TaskPriority? get selectedPriority => _selectedPriority;
   TimeFilter get selectedTimeFilter => _selectedTimeFilter;
   String get selectedProjectId => _selectedProjectId;
   DateTime get selectedDate => _selectedDate;
   DateTime? get fromDate => _fromDate;
   DateTime? get toDate => _toDate;
   List<Task> get allTasks => _tasks;
+
+  // Initialize with null (no filter selected)
+  TimesheetProvider() {
+    _selectedStatus = null;
+    _selectedPriority = null;
+  }
+
   // Get tasks filtered by status
   List<Task> getTasksByStatus(TaskStatus status) {
     return _tasks.where((task) => task.status == status).toList();
@@ -166,7 +174,6 @@ class TimesheetProvider extends ChangeNotifier {
     return _tasks.where((task) => task.projectId == projectId).toList();
   }
 
-
   // Get today's tasks
   List<Task> getTodaysTasks() {
     final today = DateTime.now();
@@ -177,13 +184,13 @@ class TimesheetProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // Setters with notification
-  void setSelectedStatus(TaskStatus status) {
+  // FIXED: Setters now accept null to clear filters
+  void setSelectedStatus(TaskStatus? status) {
     _selectedStatus = status;
     notifyListeners();
   }
 
-  void setSelectedPriority(TaskPriority priority) {
+  void setSelectedPriority(TaskPriority? priority) {
     _selectedPriority = priority;
     notifyListeners();
   }
@@ -242,26 +249,28 @@ class TimesheetProvider extends ChangeNotifier {
   List<Task> filterByWeek(int weekIndex) {
     DateTime now = DateTime.now();
     DateTime start = now.subtract(Duration(days: (weekIndex + 1) * 7));
-    DateTime end   = now.subtract(Duration(days: weekIndex * 7));
+    DateTime end = now.subtract(Duration(days: weekIndex * 7));
 
-    return _tasks.where((t) =>
-    t.estEndDate.isAfter(start) &&
-        t.estEndDate.isBefore(end)
-    ).toList();
+    return _tasks
+        .where((t) => t.estEndDate.isAfter(start) && t.estEndDate.isBefore(end))
+        .toList();
   }
 
   /// MONTH FILTER
   List<Task> filterByMonth(int month) {
-    return _tasks.where((t) =>
+    return _tasks
+        .where((t) =>
     t.estEndDate.month == month &&
-        t.estEndDate.year == DateTime.now().year
-    ).toList();
+        t.estEndDate.year == DateTime.now().year)
+        .toList();
   }
 
   /// MAIN FILTER
   List<Task> getFilteredTasks() {
     if (selectedTimeFilter == TimeFilter.daily) {
-      return _tasks.where((t) => isSameDate(t.estEndDate, selectedDailyDate)).toList();
+      return _tasks
+          .where((t) => isSameDate(t.estEndDate, selectedDailyDate))
+          .toList();
     }
     if (selectedTimeFilter == TimeFilter.weekly) {
       return filterByWeek(selectedWeekIndex);
@@ -271,7 +280,6 @@ class TimesheetProvider extends ChangeNotifier {
     }
     return allTasks;
   }
-
 
   void setDailyDate(DateTime date) {
     selectedDailyDate = date;
@@ -318,6 +326,14 @@ class TimesheetProvider extends ChangeNotifier {
     _selectedTimeFilter = filter;
     notifyListeners();
   }
+
+  // Clear all filters
+  void clearFilters() {
+    _selectedStatus = null;
+    _selectedPriority = null;
+    notifyListeners();
+  }
+
   // Generate auto task ID
   String generateTaskId() {
     final maxId = _tasks.isEmpty

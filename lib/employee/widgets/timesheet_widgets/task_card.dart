@@ -55,88 +55,77 @@ class TaskCardWidget extends StatelessWidget {
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: priorityColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       task.priority.name.toUpperCase(),
-                      style: AppStyles.chipText.copyWith(
-                        color: priorityColor,
-                      ),
+                      style: AppStyles.chipText.copyWith(color: priorityColor),
                     ),
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: AppDimensions.iconSmall,
-                    color: AppColors.grey400,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                task.taskName,
-                style: AppStyles.headingSmall1,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'ID: ${task.taskId}',
-                style: AppStyles.labelSmall1,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Type: ${task.type}',
-                style: AppStyles.labelSmall1,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: AppDimensions.iconSmall,
-                    color: AppColors.grey600,
-                  ),
-                  const SizedBox(width: 4),
+
+                  const SizedBox(height: 12),
                   Text(
-                    '${task.estEndDate.day}/${task.estEndDate.month}/${task.estEndDate.year}',
-                    style: AppStyles.caption,
+                    task.taskName,
+                    style: AppStyles.headingSmall1,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 8),
+                  Text('ID: ${task.taskId}', style: AppStyles.labelSmall1),
+                  const SizedBox(height: 4),
+                  Text('Type: ${task.type}', style: AppStyles.labelSmall1),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today,
+                          size: AppDimensions.iconSmall, color: AppColors.grey600),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${task.estEndDate.day}/${task.estEndDate.month}/${task.estEndDate.year}',
+                        style: AppStyles.caption,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      task.status.name.toUpperCase(),
+                      style: AppStyles.chipText.copyWith(color: statusColor),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  task.status.name.toUpperCase(),
-                  style: AppStyles.chipText.copyWith(
-                    color: statusColor,
-                  ),
-                ),
+            ),
+            // RIGHT-CENTER ARROW ICON
+            Positioned(
+              right: 0,
+              top: 52, // adjust this value to match perfect center
+              child: Icon(
+                Icons.arrow_forward_ios,
+                size: 28, // bigger arrow
+                color: AppColors.textDark,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -128,43 +128,43 @@ class TaskPieChartWidget extends StatelessWidget {
 }
 
 //Project Selection Widget
-class ProjectSelectionWidget extends StatelessWidget {
-  final String projectId;
-  final String projectName;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const ProjectSelectionWidget({
-    Key? key,
-    required this.projectId,
-    required this.projectName,
-    required this.isSelected,
-    required this.onTap,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: AppDimensions.marginMedium),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.paddingLarge,
-          vertical: AppDimensions.paddingMedium,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryBlue : AppColors.grey100,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryBlue : AppColors.grey300,
-          ),
-        ),
-        child: Text(
-          projectName,
-          style: AppStyles.labelMedium.copyWith(
-            color: isSelected ? AppColors.textLight : AppColors.textDark,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
+// class ProjectSelectionWidget extends StatelessWidget {
+//   final String projectId;
+//   final String projectName;
+//   final bool isSelected;
+//   final VoidCallback onTap;
+//   const ProjectSelectionWidget({
+//     Key? key,
+//     required this.projectId,
+//     required this.projectName,
+//     required this.isSelected,
+//     required this.onTap,
+//   }) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       child: Container(
+//         margin: const EdgeInsets.only(right: AppDimensions.marginMedium),
+//         padding: const EdgeInsets.symmetric(
+//           horizontal: AppDimensions.paddingLarge,
+//           vertical: AppDimensions.paddingMedium,
+//         ),
+//         decoration: BoxDecoration(
+//           color: isSelected ? AppColors.primaryBlue : AppColors.grey100,
+//           borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+//           border: Border.all(
+//             color: isSelected ? AppColors.primaryBlue : AppColors.grey300,
+//           ),
+//         ),
+//         child: Text(
+//           projectName,
+//           style: AppStyles.labelMedium.copyWith(
+//             color: isSelected ? AppColors.textLight : AppColors.textDark,
+//             fontWeight: FontWeight.w600,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
