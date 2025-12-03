@@ -1,7 +1,4 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-
 import '../../models/task_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_dimensions.dart';
@@ -34,6 +31,19 @@ class PriorityTabWidget extends StatelessWidget {
     }
   }
 
+  IconData get priorityIcon {
+    switch (priority) {
+      case TaskPriority.urgent:
+        return Icons.emergency;
+      case TaskPriority.high:
+        return Icons.priority_high;
+      case TaskPriority.medium:
+        return Icons.remove;
+      case TaskPriority.normal:
+        return Icons.low_priority;
+    }
+  }
+
   Color get priorityColor {
     switch (priority) {
       case TaskPriority.urgent:
@@ -49,39 +59,79 @@ class PriorityTabWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.paddingLarge,
-          vertical: AppDimensions.paddingMedium,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? priorityColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          border: Border.all(
-            color: isSelected ? priorityColor : AppColors.grey300,
+    return SingleChildScrollView(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          width: 85,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? priorityColor : AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? priorityColor : AppColors.grey300,
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+              BoxShadow(
+                color: priorityColor.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ]
+                : [],
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              priorityLabel,
-              style: AppStyles.labelSmall.copyWith(
-                color: isSelected ? AppColors.textLight : AppColors.textDark,
-                fontWeight: FontWeight.w600,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.textLight.withOpacity(0.2)
+                      : priorityColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  priorityIcon,
+                  color: isSelected ? AppColors.textLight : priorityColor,
+                  size: 20,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              count.toString(),
-              style: AppStyles.headingSmall.copyWith(
-                color: isSelected ? AppColors.textLight : priorityColor,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 6),
+              Text(
+                priorityLabel,
+                style: TextStyle(
+                  color: isSelected ? AppColors.textLight : AppColors.textDark,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.textLight.withOpacity(0.3)
+                      : priorityColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    color: isSelected ? AppColors.textLight : priorityColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
