@@ -153,6 +153,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   void _checkPendingVerification() {
+    if (!mounted) return; // 🔥 FIX
+
     final provider = context.read<AppProvider>();
 
     if (provider.pendingVerification &&
@@ -344,12 +346,26 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     await NotificationService.initialize();
     await provider.loadUserData();
+
+    if (!mounted) return; // 🔥 FIX
+
     await _checkLocationAndStartMonitoring();
+
+    if (!mounted) return; // 🔥 FIX
+
     await provider.loadTodayAttendance();
     await provider.loadWeeklyAttendance();
-    _startCountdownTimer(); // Start timer after loading data
+
+    if (!mounted) return; // 🔥 FIX
+
+    _startCountdownTimer();
+
+    // Must check mounted BEFORE using context again
+    if (!mounted) return;
+
     _checkPendingVerification();
   }
+
 
   Future<void> _checkLocationAndStartMonitoring() async {
     final provider = context.read<AppProvider>();
