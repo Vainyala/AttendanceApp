@@ -54,6 +54,7 @@ class TaskCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+          border: Border.all(color: AppColors.textDark), // 👈 BLACK BORDER
         ),
         child: Stack(
           children: [

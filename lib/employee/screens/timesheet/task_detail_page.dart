@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../models/task_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_dimensions.dart';
@@ -7,16 +6,45 @@ import '../../utils/app_styles.dart';
 import '../../widgets/date_time_utils.dart';
 import 'edit_task_page.dart';
 
-class TaskDetailPage extends StatelessWidget {
+class TaskDetailPage extends StatefulWidget {
   final Task task;
 
-  const TaskDetailPage({
-    Key? key,
-    required this.task,
-  }) : super(key: key);
+  const TaskDetailPage({Key? key, required this.task}) : super(key: key);
+
+  @override
+  State<TaskDetailPage> createState() => _TaskDetailPageState();
+}
+
+class _TaskDetailPageState extends State<TaskDetailPage> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   Color get priorityColor {
-    switch (task.priority) {
+    switch (widget.task.priority) {
       case TaskPriority.urgent:
         return AppColors.error;
       case TaskPriority.high:
@@ -29,11 +57,10 @@ class TaskDetailPage extends StatelessWidget {
   }
 
   Color get statusColor {
-    switch (task.status) {
+    switch (widget.task.status) {
       case TaskStatus.open:
         return AppColors.info;
       case TaskStatus.assigned:
-        return AppColors.warning;
       case TaskStatus.pending:
         return AppColors.warning;
       case TaskStatus.resolved:
@@ -43,156 +70,420 @@ class TaskDetailPage extends StatelessWidget {
     }
   }
 
+  IconData get statusIcon {
+    switch (widget.task.status) {
+      case TaskStatus.open:
+        return Icons.inbox;
+      case TaskStatus.assigned:
+        return Icons.assignment_ind;
+      case TaskStatus.pending:
+        return Icons.pending;
+      case TaskStatus.resolved:
+        return Icons.check_circle;
+      case TaskStatus.closed:
+        return Icons.lock;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          task.projectName,
-          style: AppStyles.headingMedium,
-        ),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.textLight,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditTaskPage(task: task),
+      backgroundColor: AppColors.grey50,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildModernAppBar(),
+          SliverToBoxAdapter(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeaderCard(),
+                      const SizedBox(height: 20),
+                      _buildQuickStatsRow(),
+                      const SizedBox(height: 24),
+                      _buildTaskDetailsCard(),
+                      const SizedBox(height: 20),
+                      _buildTimelineCard(),
+                      const SizedBox(height: 20),
+                      if (widget.task.description.isNotEmpty) ...[
+                        _buildDescriptionCard(),
+                        const SizedBox(height: 20),
+                      ],
+                      if (widget.task.deliverables != null && widget.task.deliverables!.isNotEmpty) ...[
+                        _buildDeliverablesCard(),
+                        const SizedBox(height: 20),
+                      ],
+                      if (widget.task.taskHistory != null && widget.task.taskHistory!.isNotEmpty) ...[
+                        _buildHistoryCard(),
+                        const SizedBox(height: 20),
+                      ],
+                      if (widget.task.notes != null && widget.task.notes!.isNotEmpty) ...[
+                        _buildNotesCard(),
+                        const SizedBox(height: 20),
+                      ],
+                      if (widget.task.managerComments != null && widget.task.managerComments!.isNotEmpty) ...[
+                        _buildCommentsCard(),
+                        const SizedBox(height: 20),
+                      ],
+                      if (widget.task.attachedFiles != null && widget.task.attachedFiles!.isNotEmpty) ...[
+                        _buildAttachmentsCard(),
+                        const SizedBox(height: 20),
+                      ],
+                    ],
+                  ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Task Header Card
-              _buildHeaderCard(),
+      floatingActionButton: _buildFloatingEditButton(),
+    );
+  }
 
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Task Details Card
-              _buildDetailsCard(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Description Section
-              if (task.description.isNotEmpty) _buildDescriptionSection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Task History Section
-              if (task.taskHistory != null && task.taskHistory!.isNotEmpty)
-                _buildTaskHistorySection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Manager Comments Section
-              if (task.managerComments != null &&
-                  task.managerComments!.isNotEmpty)
-                _buildManagerCommentsSection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Deliverables Section
-              if (task.deliverables != null && task.deliverables!.isNotEmpty)
-                _buildDeliverablesSection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Attachments Section
-              if (task.attachedFiles != null && task.attachedFiles!.isNotEmpty)
-                _buildAttachmentsSection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-
-              // Notes Section
-              if (task.notes != null && task.notes!.isNotEmpty)
-                _buildNotesSection(),
-
-              const SizedBox(height: AppDimensions.marginLarge),
-            ],
-          ),
+  SliverAppBar _buildModernAppBar() {
+    return SliverAppBar(
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primaryBlue,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: AppColors.textDark, size: 20),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Text(
+        widget.task.projectName,
+        style: const TextStyle(
+          color: AppColors.textDark,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
         ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(color: AppColors.grey200, height: 1),
       ),
     );
   }
 
+
   Widget _buildHeaderCard() {
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primaryBlue,
-            AppColors.primaryBlue.withOpacity(0.8)
-          ],
+          colors: [priorityColor, priorityColor.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadowMedium,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: priorityColor.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      // IMPORTANT: let inner Column size itself (shrink wrap)
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // <- prevents flex-in-unbounded errors
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.tag, color: Colors.white, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.task.taskId,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(), // <-- If you must keep a Spacer in this row it's fine (row has bounded height)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.flag, color: Colors.white, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.task.priority.name.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            widget.task.taskName,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.3,
+            ),
+          ),
+
+          const SizedBox(height: 12), // <-- replaces the old Spacer which caused error
+
+          // Status chip aligned to start
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: Colors.white, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  widget.task.status.name.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildQuickStatsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.category_outlined,
+            label: 'Type',
+            value: widget.task.type,
+            color: AppColors.primaryBlue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.access_time,
+            label: 'Effort',
+            value: '${widget.task.estEffortHrs}h',
+            color: AppColors.warning,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            icon: widget.task.billable ? Icons.attach_money : Icons.money_off,
+            label: 'Billable',
+            value: widget.task.billable ? 'Yes' : 'No',
+            color: widget.task.billable ? AppColors.success : AppColors.grey600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey600),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.grey600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskDetailsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey600),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  task.taskName,
-                  style: AppStyles.headingLarge.copyWith(
-                    color: AppColors.textLight,
-                  ),
+              Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Project Details',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+          _buildDetailRow(
+            icon: Icons.folder_outlined,
+            label: 'Project ID',
+            value: widget.task.projectId,
+          ),
+          const Divider(height: 24),
+          _buildDetailRow(
+            icon: Icons.work_outline,
+            label: 'Project Name',
+            value: widget.task.projectName,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey600),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'ID: ${task.taskId}',
-                  style: AppStyles.labelMedium.copyWith(
-                    color: AppColors.textLight,
-                  ),
-                ),
-              ),
+              Icon(Icons.schedule, color: AppColors.primaryBlue, size: 20),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: priorityColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  task.priority.name.toUpperCase(),
-                  style: AppStyles.chipText.copyWith(
-                    color: AppColors.textLight,
-                  ),
+              const Text(
+                'Timeline & Effort',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildTimelineItem(
+            icon: Icons.calendar_today,
+            label: 'Estimated End Date',
+            value: DateFormattingUtils.formatDate(widget.task.estEndDate),
+            color: AppColors.info,
+          ),
+          if (widget.task.actualEndDate != null) ...[
+            const SizedBox(height: 16),
+            _buildTimelineItem(
+              icon: Icons.event_available,
+              label: 'Actual End Date',
+              value: DateFormattingUtils.formatDate(widget.task.actualEndDate!),
+              color: AppColors.success,
+            ),
+          ],
+          const Divider(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: _buildEffortBox(
+                  label: 'Estimated Efforts',
+                  value: '${widget.task.estEffortHrs}h',
+                  icon: Icons.access_time,
+                  color: AppColors.info,
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (widget.task.actualEffortHrs != null)
+                Expanded(
+                  child: _buildEffortBox(
+                    label: 'Actual Efforts',
+                    value: '${widget.task.actualEffortHrs}h',
+                    icon: Icons.timer,
+                    color: AppColors.warning,
+                  ),
+                ),
             ],
           ),
         ],
@@ -200,66 +491,82 @@ class TaskDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildTimelineItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.grey600),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.grey600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEffortBox({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.textLight,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         children: [
-          _buildDetailRow(
-            icon: Icons.work_outline,
-            label: 'Project',
-            value: '${task.projectName} (${task.projectId})',
-          ),
-          const Divider(height: 24),
-          _buildDetailRow(
-            icon: Icons.category,
-            label: 'Task Type',
-            value: task.type,
-          ),
-          const Divider(height: 24),
-          _buildDetailRow(
-            icon: Icons.info_outline,
-            label: 'Status',
-            value: task.status.name.toUpperCase(),
-            valueColor: statusColor,
-          ),
-          const Divider(height: 24),
-          _buildDetailRow(
-            icon: Icons.calendar_today,
-            label: 'Est. End Date',
-            value: DateFormattingUtils.formatDate(task.estEndDate), // Use utility
-          ),
-          if (task.actualEndDate != null) const Divider(height: 24),
-          if (task.actualEndDate != null)
-            _buildDetailRow(
-              icon: Icons.event_available,
-              label: 'Actual End Date',
-              value: DateFormattingUtils.formatDate(task.actualEndDate!), // Use utility
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-          const Divider(height: 24),
-          _buildDetailRow(
-            icon: Icons.access_time,
-            label: 'Est. Effort',
-            value: '${task.estEffortHrs} hrs',
           ),
-          if (task.actualEffortHrs != null) const Divider(height: 24),
-          if (task.actualEffortHrs != null)
-            _buildDetailRow(
-              icon: Icons.timer,
-              label: 'Actual Effort',
-              value: '${task.actualEffortHrs} hrs',
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.grey600,
             ),
-          const Divider(height: 24),
-          _buildDetailRow(
-            icon: Icons.attach_money,
-            label: 'Billable',
-            value: task.billable ? 'Yes' : 'No',
-            valueColor: task.billable ? AppColors.success : AppColors.grey600,
           ),
         ],
       ),
@@ -270,15 +577,10 @@ class TaskDetailPage extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
-    Color? valueColor,
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: AppDimensions.iconMedium,
-          color: AppColors.primaryBlue,
-        ),
+        Icon(icon, size: 18, color: AppColors.grey600),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -286,14 +588,18 @@ class TaskDetailPage extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppStyles.labelSmall1,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.grey600,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: AppStyles.bodyMedium.copyWith(
-                  color: valueColor ?? AppColors.textDark,
+                style: const TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
@@ -303,213 +609,224 @@ class TaskDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionSection() {
+  Widget _buildDescriptionCard() {
+    return _buildContentCard(
+      icon: Icons.description,
+      title: 'Description',
+      content: widget.task.description,
+      color: AppColors.primaryBlue,
+    );
+  }
+
+  Widget _buildDeliverablesCard() {
+    return _buildContentCard(
+      icon: Icons.checklist_rtl,
+      title: 'Deliverables',
+      content: widget.task.deliverables!,
+      color: AppColors.success,
+    );
+  }
+
+  Widget _buildHistoryCard() {
+    return _buildContentCard(
+      icon: Icons.history,
+      title: 'Task History',
+      content: widget.task.taskHistory!,
+      color: AppColors.info,
+    );
+  }
+
+  Widget _buildNotesCard() {
+    return _buildContentCard(
+      icon: Icons.note_alt_outlined,
+      title: 'Notes',
+      content: widget.task.notes!,
+      color: AppColors.warning,
+    );
+  }
+
+  Widget _buildCommentsCard() {
+    return _buildContentCard(
+      icon: Icons.chat_bubble_outline,
+      title: 'Manager Comments',
+      content: widget.task.managerComments!,
+      color: AppColors.primaryBlue,
+    );
+  }
+
+  Widget _buildContentCard({
+    required IconData icon,
+    required String title,
+    required String content,
+    required Color color,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey600),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.description,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.grey50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              content,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textDark,
+                height: 1.6,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachmentsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey600),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.attach_file, color: AppColors.primaryBlue, size: 20),
+              ),
+              const SizedBox(width: 12),
               const Text(
-                'Task Description',
-                style: AppStyles.headingSmall1,
+                'Attachments',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${widget.task.attachedFiles!.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            task.description,
-            style: AppStyles.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeliverablesSection() {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.checklist,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Deliverables',
-                style: AppStyles.headingSmall1,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            task.deliverables!,
-            style: AppStyles.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTaskHistorySection() {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.history,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(width: 8),
-              const Text('Task History', style: AppStyles.headingSmall1),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(task.taskHistory!, style: AppStyles.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotesSection() {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.note,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(width: 8),
-              const Text('Notes', style: AppStyles.headingSmall1),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(task.notes!, style: AppStyles.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildManagerCommentsSection() {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.comment,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(width: 8),
-              const Text('Manager Comments', style: AppStyles.headingSmall1),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(task.managerComments!, style: AppStyles.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttachmentsSection() {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-        boxShadow: AppStyles.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.attach_file,
-                size: AppDimensions.iconMedium,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(width: 8),
-              const Text('Attachments', style: AppStyles.headingSmall1),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...task.attachedFiles!.map((file) {
+          const SizedBox(height: 16),
+          ...widget.task.attachedFiles!.map((file) {
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey200),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    file.fileType == 'pdf'
-                        ? Icons.picture_as_pdf
-                        : Icons.image,
-                    color: AppColors.primaryBlue,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      file.fileType == 'pdf' ? Icons.picture_as_pdf : Icons.image,
+                      color: AppColors.primaryBlue,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      file.fileName,
-                      style: AppStyles.bodyMedium,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          file.fileName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          file.fileType.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.grey600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.download, size: 20),
+                    color: AppColors.primaryBlue,
                     onPressed: () {
-                      // TODO: Implement file download
+                      // TODO: Implement download
                     },
                   ),
                 ],
@@ -518,6 +835,31 @@ class TaskDetailPage extends StatelessWidget {
           }).toList(),
         ],
       ),
+    );
+  }
+
+
+
+  Widget _buildFloatingEditButton() {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditTaskPage(task: widget.task),
+          ),
+        );
+      },
+      backgroundColor: AppColors.primaryBlue,
+      icon: const Icon(Icons.edit, size: 20),
+      label: const Text(
+        'Edit Task',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      elevation: 4,
     );
   }
 }
